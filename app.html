@@ -698,6 +698,12 @@
                 </div>
               </div>
             </div>
+            <!-- تخصيص الاضبارة حسب التخصص -->
+            <div class="sgroup">
+              <div class="sgroup-label">اضبارة العيادة</div>
+              <p style="font-size:.74rem;color:var(--text-muted);line-height:1.6;margin:0 0 10px;">أضف خانات خاصة بتخصصك إلى ملف المريض (نص، رقم، تاريخ، قائمة منسدلة...). تظهر تلقائياً في الاضبارة والطباعة دون أي إعداد إضافي.</p>
+              <button type="button" id="chartCustomizeBtn" class="btn-primary" style="width:100%;justify-content:center;gap:8px;" onclick="openChartCustomizer()"><i class="fas fa-sliders"></i> خصّص اضبارتك</button>
+            </div>
             <!-- النسخة الاحتياطية -->
             <div class="sgroup">
               <div class="sgroup-label">النسخة الاحتياطية</div>
@@ -1114,6 +1120,8 @@
         <div><label class="form-label"><i class="fas fa-heart-pulse" style="color:#d97706;margin-left:4px;"></i> أمراض مزمنة</label>
           <textarea id="piChronic" class="form-input" rows="2" style="resize:vertical;" placeholder="مثال: سكري، ضغط، ربو... (افصل بفاصلة)"></textarea>
         </div>
+        <!-- حقول المريض المخصّصة (حسب تخصص الطبيب) — تُبنى ديناميكياً -->
+        <div id="piCustomFields" style="display:none;"></div>
       </div>
       <div style="padding:14px 20px;border-top:1.5px solid var(--border);display:flex;gap:10px;">
         <button onclick="closePatientInfoEditor()" class="btn-secondary" style="flex:1;justify-content:center;">إلغاء</button>
@@ -1148,6 +1156,11 @@
 
           <!-- العمود الرئيسي: الفحص السريري + التشخيص + الوصفة -->
           <div style="display:flex;flex-direction:column;gap:16px;">
+            <!-- حقول الزيارة المخصّصة (قياسات حسب التخصص) — تُبنى ديناميكياً -->
+            <div class="ve-card" id="noteCustomCard" style="display:none;">
+              <label class="ve-label"><span class="ve-ico" style="background:#eef2ff;border-color:#c7d2fe;"><i class="fas fa-ruler-combined" style="font-size:.7rem;color:#4f46e5;"></i></span> قياسات وحقول مخصّصة</label>
+              <div id="noteCustomFields"></div>
+            </div>
             <div class="ve-card">
               <label class="ve-label"><span class="ve-ico" style="background:#f0fdfa;border-color:#99f6e4;"><i class="fas fa-stethoscope" style="font-size:.7rem;color:#0d9488;"></i></span> الفحص السريري</label>
               <textarea id="clinicalExamText" style="width:100%;padding:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:90px;box-sizing:border-box;" placeholder="ماذا وجدت أثناء الفحص؟ (إصغاء، جس، علامات سريرية...)" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
@@ -1215,6 +1228,51 @@
     </div>
   </div>
 
+
+  <!-- ===== مُخصِّص الاضبارة (حقول حسب التخصص) ===== -->
+  <div id="chartCustomizerModal" class="hidden fixed inset-0 z-[190] flex items-center justify-center p-4 modal-overlay" onclick="if(event.target===this)closeChartCustomizer()">
+    <div class="modal-content w-full" style="max-width:660px;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;max-height:92vh;">
+      <div style="padding:16px 20px;border-bottom:1.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-weight:800;font-size:1rem;color:var(--text-primary);"><i class="fas fa-sliders" style="margin-left:6px;color:var(--primary);"></i> تخصيص الاضبارة</h3>
+        <button onclick="closeChartCustomizer()" style="width:32px;height:32px;border-radius:8px;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;"><i class="fas fa-times"></i></button>
+      </div>
+      <div style="padding:18px 20px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;">
+
+        <!-- قالب جاهز -->
+        <div class="sgroup">
+          <div class="sgroup-label">قالب جاهز حسب التخصص</div>
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <select id="cfPresetSelect" class="form-input" style="flex:1;"><option value="">— اختر تخصصاً —</option></select>
+            <button type="button" class="btn-secondary" style="white-space:nowrap;" onclick="cfApplyPreset(document.getElementById('cfPresetSelect').value)"><i class="fas fa-wand-magic-sparkles"></i> تطبيق</button>
+          </div>
+          <p style="font-size:.72rem;color:var(--text-muted);line-height:1.6;margin:8px 0 0;">يملأ حقولاً مقترحة يمكنك تعديلها أو حذفها بعد التطبيق.</p>
+        </div>
+
+        <!-- حقول ثابتة للمريض -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">
+            <div><span style="font-weight:800;font-size:.88rem;color:var(--text-primary);">حقول ثابتة للمريض</span><span style="font-size:.7rem;color:var(--text-muted);margin-right:6px;">تُدخل مرة وتبقى (تأمين، حساسية...)</span></div>
+            <button type="button" class="btn-secondary" style="padding:6px 12px;font-size:.78rem;" onclick="cfAdd('patient')"><i class="fas fa-plus"></i> إضافة حقل</button>
+          </div>
+          <div id="cfPatientRows" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+
+        <!-- حقول لكل زيارة -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">
+            <div><span style="font-weight:800;font-size:.88rem;color:var(--text-primary);">حقول لكل زيارة</span><span style="font-size:.7rem;color:var(--text-muted);margin-right:6px;">قيمة جديدة كل زيارة (ضغط، وزن...)</span></div>
+            <button type="button" class="btn-secondary" style="padding:6px 12px;font-size:.78rem;" onclick="cfAdd('visit')"><i class="fas fa-plus"></i> إضافة حقل</button>
+          </div>
+          <div id="cfVisitRows" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+
+      </div>
+      <div style="padding:14px 20px;border-top:1.5px solid var(--border);display:flex;gap:10px;">
+        <button onclick="closeChartCustomizer()" class="btn-secondary" style="flex:1;justify-content:center;">إلغاء</button>
+        <button onclick="saveChartTemplate()" class="btn-primary" style="flex:1;justify-content:center;"><i class="fas fa-floppy-disk"></i> حفظ</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ========== DESKTOP FAB SPEED DIAL ========== -->
   <!-- Pills منفصلة بـ fixed -->

@@ -7,20 +7,20 @@
 /* (1) إعدادات مشروع Firebase
    من: Firebase Console → ⚙️ Project settings → Your apps → Web app → SDK config */
 window.FIREBASE_CONFIG = {
-      apiKey: "AIzaSyCMUMqjGH9Xsl_qZBkOHAVvDuzc-ii-U4k",
-  authDomain: "simple-b8b05.firebaseapp.com",
-  databaseURL: "https://simple-b8b05-default-rtdb.firebaseio.com",
-  projectId: "simple-b8b05",
-  storageBucket: "simple-b8b05.firebasestorage.app",
-  messagingSenderId: "943515326256",
-  appId: "1:943515326256:web:b1eff0fd8ea996eb73daf5"
+    apiKey: "AIzaSyBOiLLRqSykhwzYrrFrdRO2mzWTYDU2W1M",
+  authDomain: "savedatatest-4dc4c.firebaseapp.com",
+  databaseURL: "https://savedatatest-4dc4c-default-rtdb.firebaseio.com",
+  projectId: "savedatatest-4dc4c",
+  storageBucket: "savedatatest-4dc4c.firebasestorage.app",
+  messagingSenderId: "64405748598",
+  appId: "1:64405748598:web:a0c2282d07d67c63a41857"
 };
 
 
 /* (2) حسابات جوجل للموظفين — نفس هذه الإيميلات يجب أن تُوضع في قواعد Firestore */
 window.DOCBOOK_ROLES = {
-  doctor: ['aistam379@gmail.com'],   // ← بريد/بُرُد الطبيب (يمكن أكثر من واحد)
-  nurse:  ['nawwacode@gmail.com']       // ← بريد/بُرُد الممرضة
+  doctor: ['ahmadtaim450@gmail.com'],   // ← بريد/بُرُد الطبيب (يمكن أكثر من واحد)
+  nurse:  ['aistam379@gmail.com']       // ← بريد/بُرُد الممرضة
 };
 
 /* (دالة مساعدة — لا تعدّلها) */

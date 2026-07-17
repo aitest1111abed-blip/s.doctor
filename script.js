@@ -3950,6 +3950,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + chip('زمرة الدم', p.bloodType ? escapeHtml(p.bloodType) : '-', p.bloodType ? '#dc2626' : 'var(--text-muted)')
         + chip('العنوان', escapeHtml(p.address || '-'))
         + chip('إجمالي الزيارات', String(p.totalVisits || (p.appointments ? p.appointments.length : 0)))
+        + renderPatientCustomChips(p.custom)   // حقول المريض المخصّصة (حسب التخصص)
         + '<div style="grid-column:1/-1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0;">'
           + '<div style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">أمراض مزمنة</div>'
           + '<div style="font-size:.86rem;font-weight:700;word-break:break-word;overflow-wrap:anywhere;line-height:1.7;max-height:160px;overflow-y:auto;color:' + (p.chronicDiseases ? '#d97706' : 'var(--text-muted)') + ';">' + escapeHtml(p.chronicDiseases || 'لا يوجد') + '</div></div>';
@@ -3982,6 +3983,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
             + '<i class="fas fa-chevron-down chart-visit-caret" style="color:var(--text-muted);transition:transform .2s;flex-shrink:0;"></i>'
           + '</div>'
           + '<div class="chart-visit-body" style="display:none;padding:0 13px 13px;border-top:1px dashed var(--border);">'
+            + renderVisitCustomHtml(v.custom)   // حقول الزيارة المخصّصة (قياسات حسب التخصص)
             + ((v.clinicalExam && v.clinicalExam.trim()) ? _visitSection('الفحص السريري', 'fa-stethoscope', v.clinicalExam) : '')
             + _visitSection('التشخيص', 'fa-notes-medical', v.diagnosis || v.note)
             + _visitSection('الوصفة الطبية', 'fa-prescription', v.prescription)
@@ -4144,6 +4146,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('testKind').value = _curTestKind;
       document.getElementById('labTestText').value = _testBuf[_curTestKind] || '';
       _applyTestKindUI(_curTestKind);
+      // حقول الزيارة المخصّصة (قياسات حسب التخصص)
+      var _vf = getChartTemplate().visit;
+      var _vcard = document.getElementById('noteCustomCard'); if (_vcard) _vcard.style.display = _vf.length ? '' : 'none';
+      buildCustomFieldInputs(document.getElementById('noteCustomFields'), _vf, v.custom);
       document.getElementById('visitEditorSub').textContent = (p ? (p.name || '') : '') + ' — ' + formatDateAr(v.date) + (v.slot ? ' · ' + slotTimeOf(v) : '');
       var m = document.getElementById('addNoteModal'); m.classList.remove('modal-hidden'); m.classList.add('modal-visible');
       document.body.classList.add('editor-open');
@@ -4214,6 +4220,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       v.prescription = document.getElementById('prescriptionText').value.trim();
       var _ce = document.getElementById('clinicalExamText'); if (_ce) v.clinicalExam = _ce.value.trim();
       _flushTestFields(v);
+      v.custom = readCustomFieldInputs(document.getElementById('noteCustomFields'));   // حقول الزيارة المخصّصة
       var testText = (kind === 'imaging') ? v.imagingTest : v.labTest;
       if (kind === 'pharmacy' && !v.prescription) { showToast('اكتب الوصفة أولاً', 'error'); return; }
       if (kind !== 'pharmacy' && !testText) { showToast('اكتب نوع ' + (kind === 'imaging' ? 'الأشعة' : 'التحليل') + ' أولاً', 'error'); return; }
@@ -4266,6 +4273,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       v.prescription = document.getElementById('prescriptionText').value.trim();
       var _ce = document.getElementById('clinicalExamText'); if (_ce) v.clinicalExam = _ce.value.trim();
       _flushTestFields(v);
+      v.custom = readCustomFieldInputs(document.getElementById('noteCustomFields'));   // حقول الزيارة المخصّصة
       v.noteUpdatedAt = Date.now();
       window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
         .then(function() { showToast('تم حفظ الزيارة', 'success'); })
@@ -4327,6 +4335,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('piAddress').value = p.address || '';
       document.getElementById('piBlood').value = p.bloodType || '';
       document.getElementById('piChronic').value = p.chronicDiseases || '';
+      buildCustomFieldInputs(document.getElementById('piCustomFields'), getChartTemplate().patient, p.custom, 'حقول مخصّصة');
       updatePiAge();
       document.getElementById('patientInfoModal').classList.remove('hidden');
     };
@@ -4345,6 +4354,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       p.address = document.getElementById('piAddress').value.trim();
       p.bloodType = document.getElementById('piBlood').value;
       p.chronicDiseases = document.getElementById('piChronic').value.trim();
+      p.custom = readCustomFieldInputs(document.getElementById('piCustomFields'));   // حقول المريض المخصّصة
       window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
         .then(function() { showToast('تم حفظ المعلومات', 'success'); })
         .catch(function(e) { showToast('فشل الحفظ', 'error'); console.error(e); });
@@ -4485,6 +4495,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var p = allPatients[pid]; if (!p) return;
       var age = p.birthDate ? calculateAge(p.birthDate) : null;
       function cell(k, val, full) { return '<div class="info-cell' + (full ? ' full' : '') + '"><div class="k">' + k + '</div><div class="vv">' + (val || '-') + '</div></div>'; }
+      // خلايا حقول المريض المخصّصة (تُطبع فقط الحقول التي لها قيمة)
+      var pcustom = getChartTemplate().patient.map(function(f) {
+        var d = _cfDisplayVal(f, (p.custom || {})[f.id]);
+        return d === '' ? '' : cell(escapeHtml(f.label), escapeHtml(d));
+      }).join('');
       var info = '<div class="sec-title">معلومات المريض</div><div class="info-grid">'
         + cell('الاسم', escapeHtml(p.name || '-'))
         + cell('الهاتف', escapeHtml(p.phone || '-'))
@@ -4492,12 +4507,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + cell('العمر', age != null ? age + ' سنة' : '-')
         + cell('زمرة الدم', escapeHtml(p.bloodType || '-'))
         + cell('العنوان', escapeHtml(p.address || '-'))
+        + pcustom
         + cell('أمراض مزمنة', escapeHtml(p.chronicDiseases || 'لا يوجد'), true)
         + '</div>';
+      // عمود إضافي لحقول الزيارة المخصّصة (يظهر فقط عند وجود حقول زيارة مُعرّفة)
+      var vFields = getChartTemplate().visit;
+      function _vCustomText(v) {
+        var custom = (v && v.custom) || {};
+        return vFields.map(function(f) {
+          var d = _cfDisplayVal(f, custom[f.id]);
+          return d === '' ? '' : (escapeHtml(f.label) + ': ' + escapeHtml(d));
+        }).filter(Boolean).join(' · ');
+      }
       var visits = (p.appointments || []).slice().sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
-      var rows = visits.map(function(v, i) { return '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(v.visitType || '-') + '</td><td>' + formatDateAr(v.date) + '</td><td>' + slotTimeOf(v) + '</td></tr>'; }).join('');
-      if (!rows) rows = '<tr><td colspan="4" style="text-align:center;color:#64748b;">لا توجد زيارات</td></tr>';
-      var archive = '<div class="sec-title">أرشيف الزيارات</div><table class="atbl"><thead><tr><th style="width:42px;">#</th><th>نوع الزيارة</th><th>التاريخ</th><th>الوقت</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      var rows = visits.map(function(v, i) { return '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(v.visitType || '-') + '</td><td>' + formatDateAr(v.date) + '</td><td>' + slotTimeOf(v) + '</td>' + (vFields.length ? ('<td>' + (_vCustomText(v) || '-') + '</td>') : '') + '</tr>'; }).join('');
+      if (!rows) rows = '<tr><td colspan="' + (vFields.length ? 5 : 4) + '" style="text-align:center;color:#64748b;">لا توجد زيارات</td></tr>';
+      var archive = '<div class="sec-title">أرشيف الزيارات</div><table class="atbl"><thead><tr><th style="width:42px;">#</th><th>نوع الزيارة</th><th>التاريخ</th><th>الوقت</th>' + (vFields.length ? '<th>القياسات / البيانات</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
       _printSheet('إضبارة المريض', info + archive);
     };
     window.printPrescription = function(pid, idx) {
@@ -4521,4 +4546,293 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + '<div class="rxbody">' + rxText + '</div>'
         + '<div class="sig"><div class="box-s"><div class="lb">توقيع الطبيب</div><div class="ln"></div></div></div>';
       _printSheet('وصفة طبية', inner);
+    };
+
+    /* ============================================================
+       نظام تخصيص الاضبارة — حقول مخصّصة حسب تخصص الطبيب
+       • تعريفات الحقول تُخزَّن في settings.chartTemplate = { patient:[], visit:[] }
+         (تُحمَّل مع بقية الإعدادات من settings/doctor — بلا قراءة إضافية).
+       • القيم تُخزَّن داخل مستند المريض: p.custom[fieldId] (مستوى المريض)
+         وداخل كل زيارة: v.custom[fieldId] (مستوى الزيارة).
+       • لا حاجة لتعديل قاعدة البيانات إطلاقاً: Firestore بلا مخطط ثابت،
+         وقاعدة patients مفتوحة للكادر، والحفظ عبر setDoc(...,{merge:true}) القائم.
+       ============================================================ */
+
+    // أنواع الحقول المدعومة
+    var CF_TYPES = [
+      { v: 'text',     label: 'نص' },
+      { v: 'textarea', label: 'نص طويل' },
+      { v: 'number',   label: 'رقم' },
+      { v: 'date',     label: 'تاريخ' },
+      { v: 'select',   label: 'قائمة منسدلة' },
+      { v: 'checkbox', label: 'نعم / لا' }
+    ];
+
+    // قوالب جاهزة حسب التخصص (تُطبَّق ثم يعدّلها الطبيب)
+    var CHART_PRESETS = {
+      'نسائية وتوليد': {
+        patient: [ { label: 'فصيلة دم الزوج', type: 'text' }, { label: 'حساسية أدوية', type: 'text' } ],
+        visit: [
+          { label: 'آخر دورة (LMP)', type: 'date' },
+          { label: 'الولادة المتوقعة (EDD)', type: 'date' },
+          { label: 'عدد مرات الحمل (Gravida)', type: 'number' },
+          { label: 'عدد الولادات (Para)', type: 'number' },
+          { label: 'عمر الحمل (أسابيع)', type: 'number' },
+          { label: 'ضغط الدم', type: 'text' },
+          { label: 'الوزن (كغ)', type: 'number' }
+        ]
+      },
+      'أطفال': {
+        patient: [ { label: 'اسم الأم', type: 'text' }, { label: 'حساسية', type: 'text' } ],
+        visit: [
+          { label: 'الوزن (كغ)', type: 'number' },
+          { label: 'الطول (سم)', type: 'number' },
+          { label: 'محيط الرأس (سم)', type: 'number' },
+          { label: 'الحرارة (°م)', type: 'number' }
+        ]
+      },
+      'باطنية': {
+        patient: [ { label: 'حساسية أدوية', type: 'text' } ],
+        visit: [
+          { label: 'ضغط الدم', type: 'text' },
+          { label: 'السكر (mg/dl)', type: 'number' },
+          { label: 'النبض', type: 'number' },
+          { label: 'الوزن (كغ)', type: 'number' }
+        ]
+      },
+      'قلبية': {
+        patient: [ { label: 'مدخّن', type: 'checkbox' } ],
+        visit: [
+          { label: 'ضغط الدم', type: 'text' },
+          { label: 'النبض', type: 'number' },
+          { label: 'تخطيط القلب (ECG)', type: 'textarea' }
+        ]
+      },
+      'جلدية': {
+        patient: [ { label: 'نوع البشرة', type: 'select', options: ['دهنية', 'جافة', 'مختلطة', 'عادية'] } ],
+        visit: [
+          { label: 'نوع الآفة', type: 'text' },
+          { label: 'الموقع', type: 'text' }
+        ]
+      },
+      'أسنان': {
+        patient: [],
+        visit: [
+          { label: 'السن', type: 'text' },
+          { label: 'الإجراء', type: 'select', options: ['حشوة', 'قلع', 'تنظيف', 'عصب', 'تركيب'] }
+        ]
+      },
+      'عيون': {
+        patient: [ { label: 'يرتدي نظارة', type: 'checkbox' } ],
+        visit: [
+          { label: 'حدة الإبصار يمين', type: 'text' },
+          { label: 'حدة الإبصار يسار', type: 'text' },
+          { label: 'ضغط العين يمين', type: 'number' },
+          { label: 'ضغط العين يسار', type: 'number' }
+        ]
+      },
+      'عظمية': {
+        patient: [],
+        visit: [
+          { label: 'المفصل / العظم', type: 'text' },
+          { label: 'مدى الحركة', type: 'text' }
+        ]
+      }
+    };
+
+    // يرجّع تعريف القالب الحالي بشكل سليم دائماً (يقرأ من الإعدادات المحمّلة)
+    function getChartTemplate() {
+      var t = (typeof settings !== 'undefined' && settings && settings.chartTemplate) || {};
+      return {
+        patient: Array.isArray(t.patient) ? t.patient : [],
+        visit:   Array.isArray(t.visit)   ? t.visit   : []
+      };
+    }
+    function _cfNewId() { return 'cf_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    // تهريب قيمة سمة HTML (للاقتباس المزدوج)
+    function _cfAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    // ===== توليد عناصر الإدخال من تعريف الحقول وملؤها بالقيم الحالية =====
+    function buildCustomFieldInputs(container, fields, values, heading) {
+      if (!container) return;
+      container.innerHTML = '';
+      if (!fields || !fields.length) { container.style.display = 'none'; return; }
+      container.style.display = '';
+      values = values || {};
+      if (heading) {
+        var h = document.createElement('div');
+        h.style.cssText = 'font-size:.8rem;font-weight:800;color:var(--primary);margin:2px 0 8px;';
+        h.textContent = heading;
+        container.appendChild(h);
+      }
+      fields.forEach(function(f) {
+        var wrap = document.createElement('div');
+        wrap.style.marginTop = '10px';
+        var val = values[f.id];
+        var el;
+        if (f.type === 'checkbox') {
+          // صف أفقي: عنوان + مفتاح
+          wrap.style.cssText = 'margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;';
+          var lblc = document.createElement('span');
+          lblc.style.cssText = 'font-size:.82rem;font-weight:700;color:var(--text-secondary);';
+          lblc.textContent = f.label || '(حقل)';
+          el = document.createElement('input');
+          el.type = 'checkbox';
+          el.checked = (val === true || val === 'true' || val === 'نعم');
+          el.style.cssText = 'width:20px;height:20px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;';
+          wrap.appendChild(lblc);
+        } else {
+          var lbl = document.createElement('label');
+          lbl.style.cssText = 'display:block;font-size:.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:5px;';
+          lbl.textContent = f.label || '(حقل)';
+          wrap.appendChild(lbl);
+          if (f.type === 'textarea') {
+            el = document.createElement('textarea'); el.rows = 2; el.className = 'form-input';
+            el.style.resize = 'vertical'; el.value = (val != null ? val : '');
+          } else if (f.type === 'select') {
+            el = document.createElement('select'); el.className = 'form-input';
+            var blank = document.createElement('option'); blank.value = ''; blank.textContent = '—'; el.appendChild(blank);
+            (f.options || []).forEach(function(o) {
+              var op = document.createElement('option'); op.value = o; op.textContent = o;
+              if (String(val) === String(o)) op.selected = true; el.appendChild(op);
+            });
+          } else {
+            el = document.createElement('input');
+            el.type = (f.type === 'number') ? 'number' : (f.type === 'date' ? 'date' : 'text');
+            el.className = 'form-input'; el.value = (val != null ? val : '');
+          }
+        }
+        el.setAttribute('data-cfid', f.id);
+        el.setAttribute('data-cftype', f.type);
+        wrap.appendChild(el);
+        container.appendChild(wrap);
+      });
+    }
+
+    // يقرأ القيم من الحاوية ويرجع كائن { fieldId: value } (يتجاهل الفارغ)
+    function readCustomFieldInputs(container) {
+      var out = {};
+      if (!container) return out;
+      Array.prototype.forEach.call(container.querySelectorAll('[data-cfid]'), function(el) {
+        var id = el.getAttribute('data-cfid'), type = el.getAttribute('data-cftype');
+        if (type === 'checkbox') { if (el.checked) out[id] = true; return; }
+        var v = el.value;
+        if (v != null && String(v).trim() !== '') out[id] = (type === 'number') ? Number(v) : v;
+      });
+      return out;
+    }
+
+    // ===== عرض القيم (قراءة فقط) =====
+    function _cfDisplayVal(f, val) {
+      if (f.type === 'checkbox') return val ? 'نعم' : '';       // لا نُظهر "لا" لتقليل الضجيج
+      if (f.type === 'date' && val) return formatDateAr(val);
+      return (val != null && String(val).trim() !== '') ? String(val) : '';
+    }
+    function _cfChip(label, valHtml, color) {
+      return '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0;overflow:hidden;">'
+        + '<div style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">' + escapeHtml(label) + '</div>'
+        + '<div style="font-size:.86rem;font-weight:700;word-break:break-word;overflow-wrap:anywhere;color:' + (color || 'var(--text-primary)') + ';">' + (valHtml || '-') + '</div></div>';
+    }
+    // بطاقات حقول المريض المخصّصة (في رأس الاضبارة) — تُعرض فقط الحقول التي لها قيمة
+    function renderPatientCustomChips(custom) {
+      custom = custom || {};
+      return getChartTemplate().patient.map(function(f) {
+        var d = _cfDisplayVal(f, custom[f.id]);
+        return d === '' ? '' : _cfChip(f.label, escapeHtml(d));
+      }).join('');
+    }
+    // شبكة حقول الزيارة المخصّصة (داخل بطاقة الزيارة في الأرشيف)
+    function renderVisitCustomHtml(custom) {
+      custom = custom || {};
+      var items = getChartTemplate().visit.map(function(f) {
+        var d = _cfDisplayVal(f, custom[f.id]);
+        if (d === '') return '';
+        return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 9px;min-width:0;">'
+          + '<div style="font-size:.66rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">' + escapeHtml(f.label) + '</div>'
+          + '<div style="font-size:.82rem;font-weight:700;color:var(--text-primary);word-break:break-word;">' + escapeHtml(d) + '</div></div>';
+      }).filter(Boolean);
+      if (!items.length) return '';
+      return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:12px;">' + items.join('') + '</div>';
+    }
+
+    /* ===== مُخصِّص الاضبارة (نافذة الإعدادات) ===== */
+    var _cfDraft = { patient: [], visit: [] };
+    function _cfClone(f) { return { id: f.id || _cfNewId(), label: f.label || '', type: f.type || 'text', options: (f.options || []).slice() }; }
+
+    window.openChartCustomizer = function() {
+      var t = getChartTemplate();
+      _cfDraft = { patient: t.patient.map(_cfClone), visit: t.visit.map(_cfClone) };
+      // ملء قائمة القوالب الجاهزة
+      var sel = document.getElementById('cfPresetSelect');
+      if (sel) {
+        sel.innerHTML = '<option value="">— اختر تخصصاً —</option>'
+          + Object.keys(CHART_PRESETS).map(function(k) { return '<option value="' + _cfAttr(k) + '">' + escapeHtml(k) + '</option>'; }).join('');
+      }
+      renderCustomizerRows();
+      document.getElementById('chartCustomizerModal').classList.remove('hidden');
+    };
+    window.closeChartCustomizer = function() { document.getElementById('chartCustomizerModal').classList.add('hidden'); };
+
+    function _cfRowHtml(scope, f, idx) {
+      var typeOpts = CF_TYPES.map(function(t) { return '<option value="' + t.v + '"' + (t.v === f.type ? ' selected' : '') + '>' + t.label + '</option>'; }).join('');
+      var showOpts = (f.type === 'select');
+      var btn = 'width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;flex-shrink:0;font-size:.8rem;';
+      return '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px;">'
+        + '<input class="form-input" style="flex:2;min-width:120px;" value="' + _cfAttr(f.label) + '" placeholder="اسم الحقل (مثال: ضغط الدم)" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'label\',this.value)">'
+        + '<select class="form-input" style="flex:1;min-width:96px;" onchange="cfEdit(\'' + scope + '\',' + idx + ',\'type\',this.value)">' + typeOpts + '</select>'
+        + '<input class="form-input" style="flex:2;min-width:120px;' + (showOpts ? '' : 'display:none;') + '" value="' + _cfAttr((f.options || []).join('، ')) + '" placeholder="خيارات مفصولة بفاصلة" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'options\',this.value)">'
+        + '<div style="display:flex;gap:4px;">'
+          + '<button title="أعلى" style="' + btn + '" onclick="cfMove(\'' + scope + '\',' + idx + ',-1)"><i class="fas fa-chevron-up"></i></button>'
+          + '<button title="أسفل" style="' + btn + '" onclick="cfMove(\'' + scope + '\',' + idx + ',1)"><i class="fas fa-chevron-down"></i></button>'
+          + '<button title="حذف" style="' + btn + 'color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="cfDelete(\'' + scope + '\',' + idx + ')"><i class="fas fa-trash"></i></button>'
+        + '</div></div>';
+    }
+    function _cfEmptyRows() {
+      return '<div style="text-align:center;padding:14px;color:var(--text-muted);font-size:.8rem;border:1.5px dashed var(--border);border-radius:10px;">لا توجد حقول بعد — اضغط «إضافة حقل» أو طبّق قالباً جاهزاً.</div>';
+    }
+    function renderCustomizerRows() {
+      var pc = document.getElementById('cfPatientRows'), vc = document.getElementById('cfVisitRows');
+      if (pc) pc.innerHTML = _cfDraft.patient.length ? _cfDraft.patient.map(function(f, i) { return _cfRowHtml('patient', f, i); }).join('') : _cfEmptyRows();
+      if (vc) vc.innerHTML = _cfDraft.visit.length ? _cfDraft.visit.map(function(f, i) { return _cfRowHtml('visit', f, i); }).join('') : _cfEmptyRows();
+    }
+    window.cfEdit = function(scope, idx, key, val) {
+      var f = _cfDraft[scope] && _cfDraft[scope][idx]; if (!f) return;
+      if (key === 'options') { f.options = val.split(/[،,]/).map(function(s) { return s.trim(); }).filter(Boolean); }
+      else if (key === 'type') { f.type = val; renderCustomizerRows(); }   // إعادة الرسم لإظهار/إخفاء حقل الخيارات
+      else f[key] = val;
+    };
+    window.cfAdd = function(scope) {
+      _cfDraft[scope].push({ id: _cfNewId(), label: '', type: 'text', options: [] });
+      renderCustomizerRows();
+    };
+    window.cfDelete = function(scope, idx) {
+      _cfDraft[scope].splice(idx, 1);
+      renderCustomizerRows();
+    };
+    window.cfMove = function(scope, idx, dir) {
+      var arr = _cfDraft[scope], j = idx + dir;
+      if (j < 0 || j >= arr.length) return;
+      var tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp;
+      renderCustomizerRows();
+    };
+    window.cfApplyPreset = function(name) {
+      var preset = CHART_PRESETS[name];
+      if (!preset) { showToast('اختر تخصصاً أولاً', 'info'); return; }
+      if (_cfDraft.patient.length || _cfDraft.visit.length) {
+        if (!confirm('سيتم استبدال الحقول الحالية بحقول قالب «' + name + '». متابعة؟')) return;
+      }
+      _cfDraft = { patient: (preset.patient || []).map(_cfClone), visit: (preset.visit || []).map(_cfClone) };
+      renderCustomizerRows();
+    };
+    window.saveChartTemplate = function() {
+      function clean(arr) {
+        return arr.filter(function(f) { return (f.label || '').trim(); }).map(function(f) {
+          return { id: f.id || _cfNewId(), label: f.label.trim(), type: f.type || 'text', options: f.type === 'select' ? (f.options || []) : [] };
+        });
+      }
+      if (typeof settings === 'undefined' || !settings) settings = {};
+      settings.chartTemplate = { patient: clean(_cfDraft.patient), visit: clean(_cfDraft.visit) };
+      saveSettingsToLocal(settings);
+      closeChartCustomizer();
+      showToast('تم حفظ تخصيص الاضبارة ✓', 'success');
     };
