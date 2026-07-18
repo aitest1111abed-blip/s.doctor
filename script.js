@@ -3938,22 +3938,17 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('modalCallBtn').href = 'tel:' + normalizePhone(p.phone || '');
       document.getElementById('chartAvatar').textContent = ((p.name || '؟').trim().charAt(0)) || '؟';
       var age = p.birthDate ? calculateAge(p.birthDate) : null;
-      function chip(label, val, color) {
-        return '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0;overflow:hidden;">'
-          + '<div style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">' + label + '</div>'
-          + '<div style="font-size:.86rem;font-weight:700;word-break:break-word;overflow-wrap:anywhere;color:' + (color || 'var(--text-primary)') + ';">' + (val || '-') + '</div></div>';
-      }
+      var visitsCount = String(p.totalVisits || (p.appointments ? p.appointments.length : 0));
       document.getElementById('chartInfoGrid').innerHTML =
-        chip('رقم الهاتف', '<span dir="ltr">' + escapeHtml(p.phone || '-') + '</span>')
-        + chip('تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '-')
-        + chip('العمر', age != null ? age + ' سنة' : '-')
-        + chip('زمرة الدم', p.bloodType ? escapeHtml(p.bloodType) : '-', p.bloodType ? '#dc2626' : 'var(--text-muted)')
-        + chip('العنوان', escapeHtml(p.address || '-'))
-        + chip('إجمالي الزيارات', String(p.totalVisits || (p.appointments ? p.appointments.length : 0)))
-        + renderPatientCustomChips(p.custom)   // حقول المريض المخصّصة (حسب التخصص)
-        + '<div style="grid-column:1/-1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0;">'
-          + '<div style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">أمراض مزمنة</div>'
-          + '<div style="font-size:.86rem;font-weight:700;word-break:break-word;overflow-wrap:anywhere;line-height:1.7;max-height:160px;overflow-y:auto;color:' + (p.chronicDiseases ? '#d97706' : 'var(--text-muted)') + ';">' + escapeHtml(p.chronicDiseases || 'لا يوجد') + '</div></div>';
+          renderAllergyBanner(p.custom)   // بانر تحذير الحساسية (إن وُجد حقل حساسية بقيمة)
+        + _cfIconCell('fa-phone', 'رقم الهاتف', '<span dir="ltr">' + escapeHtml(p.phone || '-') + '</span>')
+        + _cfIconCell('fa-calendar-day', 'تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '-')
+        + _cfIconCell('fa-hourglass-half', 'العمر', age != null ? age + ' سنة' : '-')
+        + _cfIconCell('fa-droplet', 'فصيلة الدم', p.bloodType ? escapeHtml(p.bloodType) : '-', { iconColor: '#dc2626', valColor: p.bloodType ? '#dc2626' : 'var(--text-muted)' })
+        + renderPatientCustomCells(p.custom)   // حقول المريض المخصّصة (حسب التخصص) بأيقونات
+        + _cfIconCell('fa-clock-rotate-left', 'إجمالي الزيارات', visitsCount)
+        + _cfIconCell('fa-location-dot', 'العنوان', escapeHtml(p.address || '-'))
+        + _cfIconCell('fa-heart-pulse', 'أمراض مزمنة', escapeHtml(p.chronicDiseases || 'لا يوجد'), { full: true, iconColor: '#d97706', valColor: p.chronicDiseases ? '#d97706' : 'var(--text-muted)' });
       renderChartVisits(pid);
       if (typeof chartResetBooking === 'function') chartResetBooking(pid);
       document.getElementById('patientDetailsModal').classList.remove('hidden');
@@ -4771,6 +4766,50 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return getChartTemplate().patient.map(function(f) {
         var d = _cfDisplayVal(f, custom[f.id]);
         return d === '' ? '' : _cfChip(f.label, escapeHtml(d));
+      }).join('');
+    }
+    // أيقونة افتراضية حسب نوع الحقل
+    function _cfTypeIcon(type) {
+      return type === 'number' ? 'fa-hashtag'
+        : type === 'date' ? 'fa-calendar-day'
+        : type === 'select' ? 'fa-list-ul'
+        : type === 'checkbox' ? 'fa-circle-check'
+        : 'fa-notes-medical';
+    }
+    // هل الحقل حساسية؟ (يُعرض كبانر تحذير بدل خلية عادية)
+    function _cfIsAllergy(f) { return /حساس|تحسس|allerg/i.test(f.label || ''); }
+    // خلية معلومة بأيقونة (نمط بطاقة معلومات المريض الجديد)
+    function _cfIconCell(icon, label, valueHtml, opts) {
+      opts = opts || {};
+      var full = opts.full ? 'grid-column:1/-1;' : '';
+      var iconColor = opts.iconColor || 'var(--primary)';
+      var valColor = opts.valColor || 'var(--text-primary)';
+      return '<div style="' + full + 'display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;min-width:0;">'
+        + '<div style="min-width:0;">'
+          + '<div style="font-size:.7rem;color:var(--text-muted);font-weight:600;margin-bottom:3px;">' + escapeHtml(label) + '</div>'
+          + '<div style="font-size:.9rem;font-weight:800;word-break:break-word;overflow-wrap:anywhere;color:' + valColor + ';">' + (valueHtml || '-') + '</div>'
+        + '</div>'
+        + '<span style="width:38px;height:38px;border-radius:11px;background:var(--primary-light);color:' + iconColor + ';display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;"><i class="fas ' + icon + '"></i></span>'
+      + '</div>';
+    }
+    // خلايا حقول المريض المخصّصة بأيقونات (عدا حقول الحساسية — تظهر كبانر)
+    function renderPatientCustomCells(custom) {
+      custom = custom || {};
+      return getChartTemplate().patient.filter(function(f) { return !_cfIsAllergy(f); }).map(function(f) {
+        var d = _cfDisplayVal(f, custom[f.id]);
+        return d === '' ? '' : _cfIconCell(_cfTypeIcon(f.type), f.label, escapeHtml(d));
+      }).join('');
+    }
+    // بانر تحذير الحساسية (أعلى بطاقة المريض) — يمتد كامل العرض، آمن للوضعين الفاتح/الداكن
+    function renderAllergyBanner(custom) {
+      custom = custom || {};
+      return getChartTemplate().patient.filter(_cfIsAllergy).map(function(f) {
+        var d = _cfDisplayVal(f, custom[f.id]);
+        if (d === '') return '';
+        return '<div style="grid-column:1/-1;display:flex;align-items:flex-start;gap:10px;background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.4);border-radius:14px;padding:12px 14px;">'
+          + '<span style="width:34px;height:34px;border-radius:10px;background:rgba(245,158,11,.2);color:#f59e0b;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-triangle-exclamation"></i></span>'
+          + '<div style="min-width:0;"><div style="font-size:.8rem;font-weight:800;color:#f59e0b;margin-bottom:2px;">' + escapeHtml(f.label) + '</div>'
+          + '<div style="font-size:.88rem;font-weight:700;color:var(--text-primary);word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(d) + '</div></div></div>';
       }).join('');
     }
     // شبكة حقول الزيارة المخصّصة (داخل بطاقة الزيارة في الأرشيف)
