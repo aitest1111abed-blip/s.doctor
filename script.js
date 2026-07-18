@@ -4834,7 +4834,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       + '</div>';
     }
     function _cfEmptyRows() {
-      return '<div style="text-align:center;padding:22px 14px;color:var(--text-muted);font-size:.82rem;border:1.5px dashed var(--border);border-radius:14px;"><i class="fas fa-inbox" style="font-size:1.4rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا توجد حقول بعد — اضغط «إضافة حقل» أو طبّق قالباً جاهزاً.</div>';
+      return '<div style="grid-column:1/-1;text-align:center;padding:22px 14px;color:var(--text-muted);font-size:.82rem;border:1.5px dashed var(--border);border-radius:14px;"><i class="fas fa-inbox" style="font-size:1.4rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا توجد حقول بعد — اضغط «إضافة حقل» أو طبّق قالباً جاهزاً.</div>';
     }
     function renderCustomizerRows() {
       var pc = document.getElementById('cfPatientRows'), vc = document.getElementById('cfVisitRows');
@@ -4864,11 +4864,17 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     window.cfApplyPreset = function(name) {
       var preset = CHART_PRESETS[name];
       if (!preset) { showToast('اختر تخصصاً أولاً', 'info'); return; }
-      if (_cfDraft.patient.length || _cfDraft.visit.length) {
-        if (!confirm('سيتم استبدال الحقول الحالية بحقول قالب «' + name + '». متابعة؟')) return;
+      function apply() {
+        _cfDraft = { patient: (preset.patient || []).map(_cfClone), visit: (preset.visit || []).map(_cfClone) };
+        renderCustomizerRows();
+        showToast('تم تطبيق قالب «' + name + '»', 'success');
       }
-      _cfDraft = { patient: (preset.patient || []).map(_cfClone), visit: (preset.visit || []).map(_cfClone) };
-      renderCustomizerRows();
+      if (_cfDraft.patient.length || _cfDraft.visit.length) {
+        // رسالة تأكيد داخل النظام (بدل نافذة المتصفح)
+        appConfirm('سيتم استبدال الحقول الحالية بحقول قالب «' + name + '». متابعة؟', 'استبدال').then(function(ok) { if (ok) apply(); });
+      } else {
+        apply();
+      }
     };
     window.saveChartTemplate = function() {
       function clean(arr) {

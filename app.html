@@ -1274,7 +1274,7 @@
                 <div><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>حقول ثابتة للمريض</h4><span style="font-size:.72rem;color:var(--text-muted);">تُدخل مرة وتبقى (لا تتغيّر كل زيارة)</span></div>
                 <button type="button" class="btn-primary" style="padding:7px 14px;font-size:.8rem;" onclick="cfAdd('patient')"><i class="fas fa-plus"></i> إضافة حقل</button>
               </div>
-              <div id="cfPatientRows" style="display:flex;flex-direction:column;gap:10px;"></div>
+              <div id="cfPatientRows" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;align-items:start;"></div>
             </div>
 
             <!-- حقول لكل زيارة -->
@@ -1283,7 +1283,7 @@
                 <div><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-folder-open" style="margin-left:6px;"></i>حقول لكل زيارة</h4><span style="font-size:.72rem;color:var(--text-muted);">قيمة جديدة كل زيارة (تُتابَع عبر الزمن)</span></div>
                 <button type="button" class="btn-primary" style="padding:7px 14px;font-size:.8rem;" onclick="cfAdd('visit')"><i class="fas fa-plus"></i> إضافة حقل</button>
               </div>
-              <div id="cfVisitRows" style="display:flex;flex-direction:column;gap:10px;"></div>
+              <div id="cfVisitRows" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;align-items:start;"></div>
             </div>
 
           </div>
@@ -1660,7 +1660,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=86"></script>
+  <script src="script.js?v=87"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
