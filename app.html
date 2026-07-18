@@ -939,9 +939,6 @@
         <div class="pf-cover">
           <div class="pf-cover-actions">
             <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-cbtn" title="إغلاق"><i class="fas fa-times"></i></button>
-            <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-cbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
-            <a id="modalCallBtn" href="#" class="pf-cbtn" title="اتصال"><i class="fas fa-phone"></i></a>
-            <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-cbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
           </div>
         </div>
         <div class="pf-head">
@@ -950,7 +947,11 @@
             <h3 id="modalPatientName" class="pf-name">-</h3>
             <p id="modalPatientPhone" class="pf-phone" dir="ltr"></p>
           </div>
-          <button class="pf-edit" onclick="openPatientInfoEditor(currentPatientIdForVisit)"><i class="fas fa-pen" style="font-size:.68rem;"></i> تعديل</button>
+          <div class="pf-head-actions">
+            <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-actbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
+            <a id="modalCallBtn" href="#" class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>
+            <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+          </div>
         </div>
         <div id="chartHeaderPills" class="pf-pills"></div>
       </div>
@@ -962,6 +963,7 @@
         <div class="glass-card chart-info-card" style="padding:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4>
+            <button onclick="openPatientInfoEditor(currentPatientIdForVisit)" style="display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;color:var(--primary);background:var(--primary-light);border:1.5px solid var(--border-strong);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit;"><i class="fas fa-pen" style="font-size:.68rem;"></i> تعديل</button>
           </div>
           <div id="chartInfoGrid" class="pf-tiles"></div>
         </div>
@@ -1814,7 +1816,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=93"></script>
+  <script src="script.js?v=94"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

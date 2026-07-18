@@ -2144,3 +2144,10 @@
 .pf-tl::before{content:"";position:absolute;inset-inline-start:5px;top:8px;bottom:8px;width:2px;background:var(--border-strong);}
 .pf-tl .chart-visit{position:relative;overflow:visible;}
 .pf-tl .chart-visit::before{content:"";position:absolute;inset-inline-start:-20px;top:16px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);z-index:1;}
+
+/* أزرار إجراءات الهيرو (طباعة/اتصال/واتساب) — مجموعة مرتّبة */
+.pf-head-actions{display:flex;gap:8px;align-self:flex-end;margin-bottom:4px;flex-shrink:0;flex-wrap:wrap;}
+.pf-actbtn{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--primary-light);color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;text-decoration:none;transition:filter .15s,transform .1s;}
+.pf-actbtn:hover{filter:brightness(.97);}
+.pf-actbtn:active{transform:scale(.94);}
+.pf-actbtn.wa{background:#16a34a;color:#fff;border-color:transparent;}
