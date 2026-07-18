@@ -966,15 +966,6 @@
         <!-- العمود الثاني: حجز الموعد القادم ثم أرشيف الزيارات أسفله -->
         <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
 
-        <!-- 🦷 مخطط الأسنان — يظهر فقط عندما يكون تخصص الطبيب أسنان -->
-        <div class="glass-card" id="dentalChartCard" style="padding:16px;display:none;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-            <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-tooth" style="margin-left:6px;"></i>مخطط الأسنان</h4>
-            <button onclick="openDentalChart(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-tooth"></i> فتح المخطط</button>
-          </div>
-          <p style="font-size:.74rem;color:var(--text-muted);margin:8px 0 0;line-height:1.6;">اضغط على أي سن لعرض تاريخه وتسجيل الحالات والإجراءات — النموذج ثابت للعرض والتسجيل فقط.</p>
-        </div>
-
         <!-- حجز الموعد القادم -->
         <div class="glass-card" style="padding:16px;">
           <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0 0 12px;"><i class="far fa-calendar-plus" style="margin-left:6px;"></i>حجز الموعد القادم</h4>
@@ -996,7 +987,10 @@
         <div class="glass-card" style="padding:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
             <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-folder-open" style="margin-left:6px;"></i>أرشيف الزيارات <span id="chartVisitsCount" style="font-size:.72rem;color:var(--text-muted);font-weight:600;"></span></h4>
-            <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="dentalArchiveBtn" onclick="openDentalChart(currentPatientIdForVisit)" style="display:none;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-tooth"></i> مخطط الأسنان</button>
+              <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
+            </div>
           </div>
           <div id="chartVisitsList" style="display:flex;flex-direction:column;gap:10px;"></div>
           <div id="modalVisitsTableBody" style="display:none;"></div>
@@ -1170,6 +1164,11 @@
 
           <!-- العمود الرئيسي: الفحص السريري + التشخيص + الوصفة -->
           <div style="display:flex;flex-direction:column;gap:16px;">
+            <!-- 🦷 شريط مخطط الأسنان (لكل زيارة) — يظهر عند تفعيل الأسنان -->
+            <div class="ve-card" id="dentalEditorBar" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#f0fdfa,#ccfbf1);border:1.5px solid #5eead4;">
+              <div style="font-size:.84rem;font-weight:800;color:#0f766e;line-height:1.6;display:flex;align-items:flex-start;gap:6px;"><i class="fas fa-tooth" style="color:#0d9488;margin-top:3px;"></i><span>حالات الأسنان تُسجَّل من المخطط مباشرة<br><span style="font-weight:600;font-size:.74rem;color:#0d9488;">اضغط على السن → اختر الإجراء → يُسجَّل تلقائياً</span></span></div>
+              <button onclick="openDentalChartFromEditor()" style="padding:9px 16px;font-size:.82rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(13,148,136,.3);">فتح المخطط</button>
+            </div>
             <!-- حقول الزيارة المخصّصة (قياسات حسب التخصص) — تُبنى ديناميكياً -->
             <div class="ve-card" id="noteCustomCard" style="display:none;">
               <label class="ve-label"><span class="ve-ico" style="background:#eef2ff;border-color:#c7d2fe;"><i class="fas fa-ruler-combined" style="font-size:.7rem;color:#4f46e5;"></i></span> قياسات وحقول مخصّصة</label>
@@ -1807,7 +1806,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=89"></script>
+  <script src="script.js?v=90"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
