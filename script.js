@@ -3955,9 +3955,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + '<div style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">أمراض مزمنة</div>'
           + '<div style="font-size:.86rem;font-weight:700;word-break:break-word;overflow-wrap:anywhere;line-height:1.7;max-height:160px;overflow-y:auto;color:' + (p.chronicDiseases ? '#d97706' : 'var(--text-muted)') + ';">' + escapeHtml(p.chronicDiseases || 'لا يوجد') + '</div></div>';
       renderChartVisits(pid);
-      // 🦷 بطاقة مخطط الأسنان تظهر فقط لتخصص الأسنان
+      // 🦷 بطاقة مخطط الأسنان: تظهر إذا كان الاختصاص أسنان أو عند تفعيل قالب الأسنان
       var _dcard = document.getElementById('dentalChartCard');
-      if (_dcard) _dcard.style.display = /أسنان|اسنان|dental/i.test((typeof settings !== 'undefined' && settings && settings.specialty) || '') ? '' : 'none';
+      if (_dcard) {
+        var _sp = (typeof settings !== 'undefined' && settings && settings.specialty) || '';
+        var _isDental = /أسنان|اسنان|dental/i.test(_sp) || !!(settings && settings.chartTemplate && settings.chartTemplate.dental);
+        _dcard.style.display = _isDental ? '' : 'none';
+      }
       if (typeof chartResetBooking === 'function') chartResetBooking(pid);
       document.getElementById('patientDetailsModal').classList.remove('hidden');
       var _rail = document.getElementById('mainRail'); if (_rail) _rail.style.display = 'none';   // إخفاء السايدبار أثناء فتح الإضبارة
@@ -4815,7 +4819,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     window.openChartCustomizer = function() {
       var t = getChartTemplate();
-      _cfDraft = { patient: t.patient.map(_cfClone), visit: t.visit.map(_cfClone) };
+      _cfDraft = { patient: t.patient.map(_cfClone), visit: t.visit.map(_cfClone), dental: !!(settings && settings.chartTemplate && settings.chartTemplate.dental) };
       // ملء قائمة القوالب الجاهزة
       var sel = document.getElementById('cfPresetSelect');
       if (sel) {
@@ -4883,9 +4887,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var preset = CHART_PRESETS[name];
       if (!preset) { showToast('اختر تخصصاً أولاً', 'info'); return; }
       function apply() {
-        _cfDraft = { patient: (preset.patient || []).map(_cfClone), visit: (preset.visit || []).map(_cfClone) };
+        _cfDraft = { patient: (preset.patient || []).map(_cfClone), visit: (preset.visit || []).map(_cfClone), dental: (name === 'أسنان') };
         renderCustomizerRows();
-        showToast('تم تطبيق قالب «' + name + '»', 'success');
+        showToast('تم تطبيق قالب «' + name + '»' + (name === 'أسنان' ? ' — سيظهر مخطط الأسنان في الاضبارة' : ''), 'success');
       }
       if (_cfDraft.patient.length || _cfDraft.visit.length) {
         // رسالة تأكيد داخل النظام (بدل نافذة المتصفح)
@@ -4901,7 +4905,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         });
       }
       if (typeof settings === 'undefined' || !settings) settings = {};
-      settings.chartTemplate = { patient: clean(_cfDraft.patient), visit: clean(_cfDraft.visit) };
+      settings.chartTemplate = { patient: clean(_cfDraft.patient), visit: clean(_cfDraft.visit), dental: !!_cfDraft.dental };
       saveSettingsToLocal(settings);
       closeChartCustomizer();
       showToast('تم حفظ تخصيص الاضبارة ✓', 'success');
