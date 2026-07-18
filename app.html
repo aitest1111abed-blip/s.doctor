@@ -934,21 +934,25 @@
   <!-- ===== إضبارة المريض (Patient Chart) ===== -->
   <div id="patientDetailsModal" class="hidden fixed inset-0 z-[150] modal-overlay">
     <div class="modal-content" style="max-width:none; width:100%; height:100%; max-height:100%; display:flex; flex-direction:column; overflow:hidden; border-radius:0;">
-      <!-- Header -->
-      <div style="padding:14px 18px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--surface);">
-        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-          <div id="chartAvatar" style="width:46px;height:46px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0;">؟</div>
-          <div style="min-width:0;">
-            <h3 id="modalPatientName" style="font-weight:800;font-size:1.05rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">-</h3>
-            <p id="modalPatientPhone" dir="ltr" style="color:var(--primary);font-size:.85rem;text-align:right;margin-top:1px;"></p>
+      <!-- Hero: بروفايل المريض -->
+      <div class="pf-hero">
+        <div class="pf-cover">
+          <div class="pf-cover-actions">
+            <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-cbtn" title="إغلاق"><i class="fas fa-times"></i></button>
+            <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-cbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
+            <a id="modalCallBtn" href="#" class="pf-cbtn" title="اتصال"><i class="fas fa-phone"></i></a>
+            <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-cbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <a id="modalWhatsappBtn" href="#" target="_blank" class="action-btn-large whatsapp-btn"><i class="fab fa-whatsapp"></i></a>
-          <a id="modalCallBtn" href="#" class="action-btn-large call-btn"><i class="fas fa-phone"></i></a>
-          <button onclick="printPatientChart(currentPatientIdForVisit)" title="طباعة الإضبارة (PDF)" style="width:36px;height:36px;border-radius:9px;border:1.5px solid var(--border-strong);background:var(--primary-light);color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-print"></i></button>
-          <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" title="إغلاق" style="width:36px;height:36px;border-radius:9px;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;"><i class="fas fa-times"></i></button>
+        <div class="pf-head">
+          <div id="chartAvatar" class="pf-avatar">؟</div>
+          <div class="pf-id">
+            <h3 id="modalPatientName" class="pf-name">-</h3>
+            <p id="modalPatientPhone" class="pf-phone" dir="ltr"></p>
+          </div>
+          <button class="pf-edit" onclick="openPatientInfoEditor(currentPatientIdForVisit)"><i class="fas fa-pen" style="font-size:.68rem;"></i> تعديل</button>
         </div>
+        <div id="chartHeaderPills" class="pf-pills"></div>
       </div>
       <!-- Body -->
       <div style="flex:1; overflow-y:auto; padding:20px; background:var(--bg);">
@@ -956,11 +960,10 @@
 
         <!-- معلومات المريض -->
         <div class="glass-card chart-info-card" style="padding:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4>
-            <button onclick="openPatientInfoEditor(currentPatientIdForVisit)" style="display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;color:var(--primary);background:var(--primary-light);border:1.5px solid var(--border-strong);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit;"><i class="fas fa-pen" style="font-size:.68rem;"></i> تعديل</button>
           </div>
-          <div id="chartInfoGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;"></div>
+          <div id="chartInfoGrid" class="pf-tiles"></div>
         </div>
 
         <!-- العمود الثاني: حجز الموعد القادم ثم أرشيف الزيارات أسفله -->
@@ -992,7 +995,7 @@
               <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
             </div>
           </div>
-          <div id="chartVisitsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <div id="chartVisitsList" class="pf-tl" style="display:flex;flex-direction:column;gap:10px;"></div>
           <div id="modalVisitsTableBody" style="display:none;"></div>
         </div>
 
@@ -1368,7 +1371,8 @@
 
         <!-- تسجيل حدث جديد -->
         <div class="te-card">
-          <div class="te-card-title"><i class="fas fa-plus-circle" style="color:var(--primary);"></i> تسجيل حدث جديد</div>
+          <div class="te-card-title"><i class="fas fa-plus-circle" style="color:var(--primary);"></i> تسجيل حالة جديدة</div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin:-2px 0 8px;line-height:1.5;">يمكنك اختيار <b>أكثر من حالة</b> معاً ثم «حفظ» — (حالات القلع/المفقود/الزرعة تُسجَّل وحدها).</div>
           <div class="te-group-lb"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> موجودات</div>
           <div class="te-events-grid" id="teEventsFindings"></div>
           <div class="te-group-lb" style="margin-top:10px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> معالجات</div>
@@ -1806,7 +1810,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=90"></script>
+  <script src="script.js?v=92"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
