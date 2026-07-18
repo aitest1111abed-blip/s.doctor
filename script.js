@@ -4568,74 +4568,89 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       { v: 'checkbox', label: 'نعم / لا' }
     ];
 
-    // قوالب جاهزة حسب التخصص (تُطبَّق ثم يعدّلها الطبيب)
+    // قوالب جاهزة حسب التخصص (وفق الممارسات السورية) — تُطبَّق ثم يعدّلها الطبيب
+    // ملاحظة: أُسقطت الحقول المكرّرة للحقول المدمجة أصلاً (زمرة الدم، الأمراض المزمنة)،
+    // وحقل رفع الصور (يحتاج تخزيناً خاصاً) — يمكن إضافتها يدوياً عند الحاجة.
     var CHART_PRESETS = {
-      'نسائية وتوليد': {
-        patient: [ { label: 'فصيلة دم الزوج', type: 'text' }, { label: 'حساسية أدوية', type: 'text' } ],
-        visit: [
-          { label: 'آخر دورة (LMP)', type: 'date' },
-          { label: 'الولادة المتوقعة (EDD)', type: 'date' },
+      'نسائية': {
+        patient: [
+          { label: 'القصة التوليدية (GPA)', type: 'text' },
           { label: 'عدد مرات الحمل (Gravida)', type: 'number' },
-          { label: 'عدد الولادات (Para)', type: 'number' },
-          { label: 'عمر الحمل (أسابيع)', type: 'number' },
-          { label: 'ضغط الدم', type: 'text' },
-          { label: 'الوزن (كغ)', type: 'number' }
+          { label: 'عدد مرات الولادة (Parity)', type: 'number' },
+          { label: 'عدد الإسقاطات', type: 'number' },
+          { label: 'السوابق القيصرية', type: 'textarea' },
+          { label: 'وسائل منع الحمل المستخدمة', type: 'text' }
+        ],
+        visit: [
+          { label: 'تاريخ آخر طمث (LMP)', type: 'date' },
+          { label: 'موعد الولادة المتوقع (EDD)', type: 'date' },
+          { label: 'نتائج فحص عنق الرحم (Pap Smear)', type: 'textarea' },
+          { label: 'الفحص بالصدى (Echo)', type: 'textarea' }
         ]
       },
       'أطفال': {
-        patient: [ { label: 'اسم الأم', type: 'text' }, { label: 'حساسية', type: 'text' } ],
+        patient: [
+          { label: 'الوزن عند الولادة (كغ)', type: 'number' },
+          { label: 'نوع الولادة', type: 'select', options: ['طبيعية', 'قيصرية', 'أخرى'] },
+          { label: 'وجود اختناق ولادي', type: 'checkbox' },
+          { label: 'نوع الإرضاع', type: 'select', options: ['طبيعي', 'صناعي', 'مختلط'] },
+          { label: 'سجل اللقاحات', type: 'textarea' },
+          { label: 'اسم ولي الأمر', type: 'text' },
+          { label: 'رقم هاتف ولي الأمر', type: 'text' }
+        ],
         visit: [
-          { label: 'الوزن (كغ)', type: 'number' },
-          { label: 'الطول (سم)', type: 'number' },
-          { label: 'محيط الرأس (سم)', type: 'number' },
-          { label: 'الحرارة (°م)', type: 'number' }
+          { label: 'التطور الروحي الحركي', type: 'textarea' },
+          { label: 'الوزن الحالي (كغ)', type: 'number' },
+          { label: 'الطول الحالي (سم)', type: 'number' },
+          { label: 'محيط الرأس (سم)', type: 'number' }
         ]
       },
       'باطنية': {
-        patient: [ { label: 'حساسية أدوية', type: 'text' } ],
+        patient: [
+          { label: 'عوامل الخطورة', type: 'textarea' }
+        ],
         visit: [
           { label: 'ضغط الدم', type: 'text' },
-          { label: 'السكر (mg/dl)', type: 'number' },
-          { label: 'النبض', type: 'number' },
-          { label: 'الوزن (كغ)', type: 'number' }
+          { label: 'مستوى السكر في الدم', type: 'number' },
+          { label: 'نتائج الفحوصات المخبرية', type: 'textarea' },
+          { label: 'نتائج الفحوصات الشعاعية', type: 'textarea' }
         ]
       },
       'قلبية': {
-        patient: [ { label: 'مدخّن', type: 'checkbox' } ],
+        patient: [
+          { label: 'تاريخ أمراض القلب', type: 'textarea' },
+          { label: 'الأدوية القلبية', type: 'textarea' }
+        ],
         visit: [
-          { label: 'ضغط الدم', type: 'text' },
-          { label: 'النبض', type: 'number' },
-          { label: 'تخطيط القلب (ECG)', type: 'textarea' }
+          { label: 'نتائج تخطيط القلب (ECG)', type: 'textarea' },
+          { label: 'نتائج إيكو القلب (Echo)', type: 'textarea' },
+          { label: 'اختبار الجهد', type: 'textarea' }
         ]
       },
       'جلدية': {
-        patient: [ { label: 'نوع البشرة', type: 'select', options: ['دهنية', 'جافة', 'مختلطة', 'عادية'] } ],
+        patient: [
+          { label: 'تاريخ الأمراض الجلدية', type: 'textarea' },
+          { label: 'العلاجات الجلدية السابقة', type: 'textarea' },
+          { label: 'تاريخ التعرض للشمس', type: 'textarea' }
+        ],
         visit: [
-          { label: 'نوع الآفة', type: 'text' },
-          { label: 'الموقع', type: 'text' }
-        ]
-      },
-      'أسنان': {
-        patient: [],
-        visit: [
-          { label: 'السن', type: 'text' },
-          { label: 'الإجراء', type: 'select', options: ['حشوة', 'قلع', 'تنظيف', 'عصب', 'تركيب'] }
-        ]
-      },
-      'عيون': {
-        patient: [ { label: 'يرتدي نظارة', type: 'checkbox' } ],
-        visit: [
-          { label: 'حدة الإبصار يمين', type: 'text' },
-          { label: 'حدة الإبصار يسار', type: 'text' },
-          { label: 'ضغط العين يمين', type: 'number' },
-          { label: 'ضغط العين يسار', type: 'number' }
+          { label: 'وصف الآفة الجلدية', type: 'textarea' },
+          { label: 'توزع الآفة', type: 'text' },
+          { label: 'شكل الآفة الأولية', type: 'select', options: ['حطاطة', 'بثرة', 'حويصلة', 'فقاعة', 'بقعة', 'لويحة', 'عقدة', 'ورم'] },
+          { label: 'الحكة', type: 'checkbox' }
         ]
       },
       'عظمية': {
-        patient: [],
+        patient: [
+          { label: 'تاريخ الإصابات العظمية', type: 'textarea' },
+          { label: 'العمليات الجراحية العظمية', type: 'textarea' }
+        ],
         visit: [
-          { label: 'المفصل / العظم', type: 'text' },
-          { label: 'مدى الحركة', type: 'text' }
+          { label: 'آلية الإصابة الحالية', type: 'textarea' },
+          { label: 'وصف الألم', type: 'textarea' },
+          { label: 'الوظيفة الحركية', type: 'textarea' },
+          { label: 'نتائج الأشعة', type: 'textarea' },
+          { label: 'العلاج الطبيعي', type: 'textarea' }
         ]
       }
     };
@@ -4770,8 +4785,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
       renderCustomizerRows();
       document.getElementById('chartCustomizerModal').classList.remove('hidden');
+      var _rail = document.getElementById('mainRail'); if (_rail) _rail.style.display = 'none';   // إخفاء السايدبار (ملء الشاشة)
     };
-    window.closeChartCustomizer = function() { document.getElementById('chartCustomizerModal').classList.add('hidden'); };
+    window.closeChartCustomizer = function() {
+      document.getElementById('chartCustomizerModal').classList.add('hidden');
+      var _rail = document.getElementById('mainRail'); if (_rail) _rail.style.display = '';   // إعادة إظهار السايدبار
+    };
 
     function _cfRowHtml(scope, f, idx) {
       var typeOpts = CF_TYPES.map(function(t) { return '<option value="' + t.v + '"' + (t.v === f.type ? ' selected' : '') + '>' + t.label + '</option>'; }).join('');
