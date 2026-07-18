@@ -4149,7 +4149,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       // حقول الزيارة المخصّصة (قياسات حسب التخصص)
       var _vf = getChartTemplate().visit;
       var _vcard = document.getElementById('noteCustomCard'); if (_vcard) _vcard.style.display = _vf.length ? '' : 'none';
-      buildCustomFieldInputs(document.getElementById('noteCustomFields'), _vf, v.custom);
+      buildCustomFieldInputs(document.getElementById('noteCustomFields'), _vf, v.custom, { variant: 'editor' });
       document.getElementById('visitEditorSub').textContent = (p ? (p.name || '') : '') + ' — ' + formatDateAr(v.date) + (v.slot ? ' · ' + slotTimeOf(v) : '');
       var m = document.getElementById('addNoteModal'); m.classList.remove('modal-hidden'); m.classList.add('modal-visible');
       document.body.classList.add('editor-open');
@@ -4668,44 +4668,60 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function _cfAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
     // ===== توليد عناصر الإدخال من تعريف الحقول وملؤها بالقيم الحالية =====
-    function buildCustomFieldInputs(container, fields, values, heading) {
+    // opts: { heading, variant }  — variant: 'form' (بطاقة المريض) | 'editor' (محرّر الزيارة: صناديق كبيرة بحدود)
+    function buildCustomFieldInputs(container, fields, values, opts) {
       if (!container) return;
+      opts = (typeof opts === 'string') ? { heading: opts } : (opts || {});   // توافق خلفي مع توقيع (heading)
+      var variant = opts.variant || 'form';
       container.innerHTML = '';
       if (!fields || !fields.length) { container.style.display = 'none'; return; }
       container.style.display = '';
       values = values || {};
-      if (heading) {
+      if (opts.heading) {
         var h = document.createElement('div');
-        h.style.cssText = 'font-size:.8rem;font-weight:800;color:var(--primary);margin:2px 0 8px;';
-        h.textContent = heading;
+        h.style.cssText = 'font-size:.8rem;font-weight:800;color:var(--primary);margin:2px 0 10px;';
+        h.textContent = opts.heading;
         container.appendChild(h);
       }
+      // شبكة مرنة: الحقول القصيرة بأعمدة تملأ العرض، الحقول الطويلة (textarea) بعرض كامل
+      var grid = document.createElement('div');
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;align-items:start;';
+      var labelCss = (variant === 'editor')
+        ? 'display:block;font-weight:700;font-size:.82rem;color:var(--text-primary);margin-bottom:6px;'
+        : 'display:block;font-size:.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:5px;';
+      var boxCss = 'width:100%;padding:12px 13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.9rem;box-sizing:border-box;';
+      function styleInput(el, extra) {
+        if (variant === 'editor') {
+          el.style.cssText = boxCss + (extra || '');
+          el.addEventListener('focus', function() { el.style.borderColor = 'var(--primary)'; });
+          el.addEventListener('blur', function() { el.style.borderColor = 'var(--border)'; });
+        } else {
+          el.className = 'form-input'; if (extra) el.style.cssText = extra;
+        }
+      }
       fields.forEach(function(f) {
-        var wrap = document.createElement('div');
-        wrap.style.marginTop = '10px';
+        var cell = document.createElement('div');
         var val = values[f.id];
         var el;
-        if (f.type === 'checkbox') {
-          // صف أفقي: عنوان + مفتاح
-          wrap.style.cssText = 'margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;';
-          var lblc = document.createElement('span');
-          lblc.style.cssText = 'font-size:.82rem;font-weight:700;color:var(--text-secondary);';
-          lblc.textContent = f.label || '(حقل)';
-          el = document.createElement('input');
-          el.type = 'checkbox';
+        if (f.type === 'textarea') {
+          cell.style.gridColumn = '1/-1';
+          var lblt = document.createElement('label'); lblt.style.cssText = labelCss; lblt.textContent = f.label || '(حقل)'; cell.appendChild(lblt);
+          el = document.createElement('textarea'); el.rows = (variant === 'editor') ? 3 : 2;
+          styleInput(el, 'resize:vertical;line-height:1.7;min-height:' + (variant === 'editor' ? '84px' : '60px') + ';');
+          el.value = (val != null ? val : '');
+        } else if (f.type === 'checkbox') {
+          // صندوق بحدود: عنوان + مفتاح
+          cell.style.cssText = (variant === 'editor')
+            ? 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;'
+            : 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:22px;';
+          var lblc = document.createElement('span'); lblc.style.cssText = 'font-weight:700;font-size:.82rem;color:var(--text-primary);'; lblc.textContent = f.label || '(حقل)'; cell.appendChild(lblc);
+          el = document.createElement('input'); el.type = 'checkbox';
           el.checked = (val === true || val === 'true' || val === 'نعم');
           el.style.cssText = 'width:20px;height:20px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;';
-          wrap.appendChild(lblc);
         } else {
-          var lbl = document.createElement('label');
-          lbl.style.cssText = 'display:block;font-size:.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:5px;';
-          lbl.textContent = f.label || '(حقل)';
-          wrap.appendChild(lbl);
-          if (f.type === 'textarea') {
-            el = document.createElement('textarea'); el.rows = 2; el.className = 'form-input';
-            el.style.resize = 'vertical'; el.value = (val != null ? val : '');
-          } else if (f.type === 'select') {
-            el = document.createElement('select'); el.className = 'form-input';
+          var lbl = document.createElement('label'); lbl.style.cssText = labelCss; lbl.textContent = f.label || '(حقل)'; cell.appendChild(lbl);
+          if (f.type === 'select') {
+            el = document.createElement('select'); styleInput(el);
             var blank = document.createElement('option'); blank.value = ''; blank.textContent = '—'; el.appendChild(blank);
             (f.options || []).forEach(function(o) {
               var op = document.createElement('option'); op.value = o; op.textContent = o;
@@ -4714,14 +4730,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           } else {
             el = document.createElement('input');
             el.type = (f.type === 'number') ? 'number' : (f.type === 'date' ? 'date' : 'text');
-            el.className = 'form-input'; el.value = (val != null ? val : '');
+            styleInput(el); el.value = (val != null ? val : '');
           }
         }
         el.setAttribute('data-cfid', f.id);
         el.setAttribute('data-cftype', f.type);
-        wrap.appendChild(el);
-        container.appendChild(wrap);
+        cell.appendChild(el);
+        grid.appendChild(cell);
       });
+      container.appendChild(grid);
     }
 
     // يقرأ القيم من الحاوية ويرجع كائن { fieldId: value } (يتجاهل الفارغ)
