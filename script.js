@@ -5526,7 +5526,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function teRenderEventGrids() {
       document.getElementById('teEventsFindings').innerHTML = DC_FINDINGS.map(teEventBtn).join('');
       document.getElementById('teEventsTreatments').innerHTML = DC_TREATMENTS.map(teEventBtn).join('');
+      teUpdateBadges();
     }
+    // عدّاد المختار في كل قائمة منسدلة
+    function teUpdateBadges() {
+      var f = 0, t = 0;
+      teEventTypes.forEach(function(k){ if (DC_FINDINGS.indexOf(k) > -1) f++; else if (DC_TREATMENTS.indexOf(k) > -1) t++; });
+      var fb = document.getElementById('teFindBadge'), tb = document.getElementById('teTreatBadge');
+      if (fb) fb.textContent = f ? String(f) : '';
+      if (tb) tb.textContent = t ? String(t) : '';
+    }
+    // فتح/طي القائمة المنسدلة + إعادة تموضع الـ Popover بعد تغيّر الارتفاع
+    window.teToggleDd = function(id) {
+      var dd = document.getElementById(id); if (!dd) return;
+      dd.classList.toggle('open');
+      if (typeof _repositionToothPopover === 'function') { _repositionToothPopover(); setTimeout(function(){ _repositionToothPopover(); }, 280); }
+    };
     // معاينة السن = الحالة الحالية + الحدث المُختار مطبَّقاً فوقها (بدون حفظ)
     function teBuildPreview() {
       var p = allPatients[dcCurrentPid];
@@ -5604,6 +5619,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('teTitle').textContent = 'السن ' + fdi + ' — ' + dcToothName(fdi);
       _setVal('teNote', '');
       _setVal('teDate', toLocalISODate(new Date()));
+      // الحالة الافتراضية للقوائم: «الموجودات» مفتوحة، «المعالجات» مطويّة
+      var _ddf = document.getElementById('teDdFind'); if (_ddf) _ddf.classList.add('open');
+      var _ddt = document.getElementById('teDdTreat'); if (_ddt) _ddt.classList.remove('open');
       teRenderEventGrids(); teRenderBigTooth(); teRenderCurrentChip(); teRenderHistory();
       document.getElementById('toothEditModal').classList.remove('hidden');
       _repositionToothPopover(true);

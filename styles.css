@@ -2155,3 +2155,16 @@
 /* ===== 🦷 قائمة تسجيل حالة السن — Popover مثبّت بجانب السن + أنيميشن ===== */
 .te-pop{opacity:0;transform:scale(.9);transform-origin:var(--teox,50%) var(--teoy,0%);transition:opacity .16s ease,transform .22s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 70px -20px rgba(13,148,136,.45),0 16px 34px -16px rgba(0,0,0,.32);}
 .te-pop.show{opacity:1;transform:scale(1);}
+
+/* ===== 🦷 قوائم منسدلة داخل قائمة السن (الموجودات / المعالجات) ===== */
+.te-dd{border:1.5px solid var(--border);border-radius:12px;margin-top:9px;overflow:hidden;background:var(--surface);}
+.te-dd-h{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);border:none;cursor:pointer;font-family:inherit;padding:11px 13px;font-weight:800;font-size:.84rem;color:var(--text-primary);}
+.te-dd-h:hover{background:var(--primary-light);}
+.te-dd-t{display:flex;align-items:center;gap:8px;color:var(--primary);}
+.te-dd-badge{background:var(--primary);color:#fff;border-radius:999px;font-size:.66rem;font-weight:800;min-width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}
+.te-dd-badge:empty{display:none;}
+.te-dd-caret{color:var(--text-muted);transition:transform .22s;font-size:.78rem;}
+.te-dd.open .te-dd-caret{transform:rotate(180deg);}
+.te-dd-body{max-height:0;overflow:hidden;transition:max-height .26s ease;}
+.te-dd.open .te-dd-body{max-height:460px;}
+.te-dd-body>.te-events-grid{padding:11px;}
