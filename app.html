@@ -1362,8 +1362,8 @@
     </div>
   </div>
 
-  <div id="toothEditModal" class="hidden fixed inset-0 z-[200] modal-overlay" onclick="if(event.target===this)closeToothEditor()">
-    <div class="modal-content" style="max-width:560px;width:94%;max-height:93vh;display:flex;flex-direction:column;overflow:hidden;border-radius:20px;">
+  <div id="toothEditModal" class="hidden fixed inset-0 z-[200]" style="background:rgba(15,23,42,.10);" onclick="if(event.target===this)closeToothEditor()">
+    <div id="teCard" class="modal-content te-pop" style="position:fixed;width:322px;max-width:calc(100vw - 20px);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;border-radius:18px;">
       <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;flex-shrink:0;">
         <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5c-1.6-1.8-4.1-2.3-6-1.1C4.1 5.6 3.5 7.9 4.2 9.9c.8 2.1 1.2 4.3 1.4 6.5.15 1.6.4 3.2 1.2 4.6.4.75 1.5.8 2 .1.8-1.2 1.1-2.7 1.5-4.1.3-1.1 1.9-1.1 2.2 0 .4 1.4.7 2.9 1.5 4.1.5.7 1.6.65 2-.1.8-1.4 1.05-3 1.2-4.6.2-2.2.6-4.4 1.4-6.5.7-2 .1-4.3-1.8-5.5-1.9-1.2-4.4-.7-6 1.1z"/></svg></div>
         <div style="flex:1;min-width:0;">
@@ -1385,15 +1385,15 @@
           <div class="te-events-grid" id="teEventsTreatments"></div>
         </div>
 
-        <!-- السطوح -->
-        <div class="te-card" id="teSurfaceCard">
+        <!-- السطوح (يظهر فقط عند اختيار تسوّس/حشوة) -->
+        <div class="te-card" id="teSurfaceCard" style="display:none;">
           <div class="te-card-title"><i class="fas fa-bullseye" style="color:var(--primary);"></i> السطوح المصابة <span style="font-weight:600;font-size:.7rem;color:var(--text-muted);">— اضغط على السطح مباشرة</span></div>
           <div style="display:flex;justify-content:center;"><div id="teBigTooth" style="width:190px;"></div></div>
           <div id="teSurfaceHint" style="text-align:center;font-size:.7rem;color:var(--text-muted);margin-top:2px;">O سطح المضغ · M أنسي · D وحشي · B شدقي · L لساني</div>
         </div>
 
-        <!-- التاريخ والملاحظة -->
-        <div class="te-card">
+        <!-- التاريخ والملاحظة (مخفي في القائمة المبسّطة — التاريخ = اليوم تلقائياً) -->
+        <div class="te-card" style="display:none;">
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <div style="display:flex;align-items:center;gap:7px;">
               <span style="font-size:.76rem;font-weight:800;color:var(--text-secondary);"><i class="far fa-calendar" style="color:var(--primary);"></i> تاريخ الحدث</span>
@@ -1403,8 +1403,8 @@
           </div>
         </div>
 
-        <!-- Timeline -->
-        <div class="te-card">
+        <!-- Timeline (مخفي في القائمة المبسّطة) -->
+        <div class="te-card" style="display:none;">
           <div class="te-card-title" style="justify-content:space-between;">
             <span style="display:flex;align-items:center;gap:6px;"><i class="fas fa-clock-rotate-left" style="color:var(--primary);"></i> الخط الزمني لهذا السن <span id="teTlCount" style="font-weight:600;font-size:.7rem;color:var(--text-muted);"></span></span>
             <button onclick="dcClearToothEvents()" style="border:1.5px solid #fecaca;background:#fef2f2;color:#dc2626;border-radius:8px;padding:4px 10px;font-size:.68rem;font-weight:800;cursor:pointer;font-family:inherit;"><i class="fas fa-broom" style="font-size:.6rem;"></i> مسح الكل</button>
@@ -1816,7 +1816,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=94"></script>
+  <script src="script.js?v=95"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
