@@ -3938,17 +3938,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('modalCallBtn').href = 'tel:' + normalizePhone(p.phone || '');
       document.getElementById('chartAvatar').textContent = ((p.name || '؟').trim().charAt(0)) || '؟';
       var age = p.birthDate ? calculateAge(p.birthDate) : null;
-      var visitsCount = String(p.totalVisits || (p.appointments ? p.appointments.length : 0));
+      function chip(label, val, color) {
+        return '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0;overflow:hidden;">'
+          + '<div style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">' + label + '</div>'
+          + '<div style="font-size:.86rem;font-weight:700;word-break:break-word;overflow-wrap:anywhere;color:' + (color || 'var(--text-primary)') + ';">' + (val || '-') + '</div></div>';
+      }
       document.getElementById('chartInfoGrid').innerHTML =
-          renderAllergyBanner(p.custom)   // بانر تحذير الحساسية (إن وُجد حقل حساسية بقيمة)
-        + _cfIconCell('fa-phone', 'رقم الهاتف', '<span dir="ltr">' + escapeHtml(p.phone || '-') + '</span>')
-        + _cfIconCell('fa-calendar-day', 'تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '-')
-        + _cfIconCell('fa-hourglass-half', 'العمر', age != null ? age + ' سنة' : '-')
-        + _cfIconCell('fa-droplet', 'فصيلة الدم', p.bloodType ? escapeHtml(p.bloodType) : '-', { iconColor: '#dc2626', valColor: p.bloodType ? '#dc2626' : 'var(--text-muted)' })
-        + renderPatientCustomCells(p.custom)   // حقول المريض المخصّصة (حسب التخصص) بأيقونات
-        + _cfIconCell('fa-clock-rotate-left', 'إجمالي الزيارات', visitsCount)
-        + _cfIconCell('fa-location-dot', 'العنوان', escapeHtml(p.address || '-'))
-        + _cfIconCell('fa-heart-pulse', 'أمراض مزمنة', escapeHtml(p.chronicDiseases || 'لا يوجد'), { full: true, iconColor: '#d97706', valColor: p.chronicDiseases ? '#d97706' : 'var(--text-muted)' });
+        chip('رقم الهاتف', '<span dir="ltr">' + escapeHtml(p.phone || '-') + '</span>')
+        + chip('تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '-')
+        + chip('العمر', age != null ? age + ' سنة' : '-')
+        + chip('زمرة الدم', p.bloodType ? escapeHtml(p.bloodType) : '-', p.bloodType ? '#dc2626' : 'var(--text-muted)')
+        + chip('العنوان', escapeHtml(p.address || '-'))
+        + chip('إجمالي الزيارات', String(p.totalVisits || (p.appointments ? p.appointments.length : 0)))
+        + renderPatientCustomChips(p.custom)   // حقول المريض المخصّصة (حسب التخصص)
+        + '<div style="grid-column:1/-1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0;">'
+          + '<div style="font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">أمراض مزمنة</div>'
+          + '<div style="font-size:.86rem;font-weight:700;word-break:break-word;overflow-wrap:anywhere;line-height:1.7;max-height:160px;overflow-y:auto;color:' + (p.chronicDiseases ? '#d97706' : 'var(--text-muted)') + ';">' + escapeHtml(p.chronicDiseases || 'لا يوجد') + '</div></div>';
       renderChartVisits(pid);
       if (typeof chartResetBooking === 'function') chartResetBooking(pid);
       document.getElementById('patientDetailsModal').classList.remove('hidden');
@@ -4768,50 +4773,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         return d === '' ? '' : _cfChip(f.label, escapeHtml(d));
       }).join('');
     }
-    // أيقونة افتراضية حسب نوع الحقل
-    function _cfTypeIcon(type) {
-      return type === 'number' ? 'fa-hashtag'
-        : type === 'date' ? 'fa-calendar-day'
-        : type === 'select' ? 'fa-list-ul'
-        : type === 'checkbox' ? 'fa-circle-check'
-        : 'fa-notes-medical';
-    }
-    // هل الحقل حساسية؟ (يُعرض كبانر تحذير بدل خلية عادية)
-    function _cfIsAllergy(f) { return /حساس|تحسس|allerg/i.test(f.label || ''); }
-    // خلية معلومة بأيقونة (نمط بطاقة معلومات المريض الجديد)
-    function _cfIconCell(icon, label, valueHtml, opts) {
-      opts = opts || {};
-      var full = opts.full ? 'grid-column:1/-1;' : '';
-      var iconColor = opts.iconColor || 'var(--primary)';
-      var valColor = opts.valColor || 'var(--text-primary)';
-      return '<div style="' + full + 'display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;min-width:0;">'
-        + '<div style="min-width:0;">'
-          + '<div style="font-size:.7rem;color:var(--text-muted);font-weight:600;margin-bottom:3px;">' + escapeHtml(label) + '</div>'
-          + '<div style="font-size:.9rem;font-weight:800;word-break:break-word;overflow-wrap:anywhere;color:' + valColor + ';">' + (valueHtml || '-') + '</div>'
-        + '</div>'
-        + '<span style="width:38px;height:38px;border-radius:11px;background:var(--primary-light);color:' + iconColor + ';display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;"><i class="fas ' + icon + '"></i></span>'
-      + '</div>';
-    }
-    // خلايا حقول المريض المخصّصة بأيقونات (عدا حقول الحساسية — تظهر كبانر)
-    function renderPatientCustomCells(custom) {
-      custom = custom || {};
-      return getChartTemplate().patient.filter(function(f) { return !_cfIsAllergy(f); }).map(function(f) {
-        var d = _cfDisplayVal(f, custom[f.id]);
-        return d === '' ? '' : _cfIconCell(_cfTypeIcon(f.type), f.label, escapeHtml(d));
-      }).join('');
-    }
-    // بانر تحذير الحساسية (أعلى بطاقة المريض) — يمتد كامل العرض، آمن للوضعين الفاتح/الداكن
-    function renderAllergyBanner(custom) {
-      custom = custom || {};
-      return getChartTemplate().patient.filter(_cfIsAllergy).map(function(f) {
-        var d = _cfDisplayVal(f, custom[f.id]);
-        if (d === '') return '';
-        return '<div style="grid-column:1/-1;display:flex;align-items:flex-start;gap:10px;background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.4);border-radius:14px;padding:12px 14px;">'
-          + '<span style="width:34px;height:34px;border-radius:10px;background:rgba(245,158,11,.2);color:#f59e0b;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-triangle-exclamation"></i></span>'
-          + '<div style="min-width:0;"><div style="font-size:.8rem;font-weight:800;color:#f59e0b;margin-bottom:2px;">' + escapeHtml(f.label) + '</div>'
-          + '<div style="font-size:.88rem;font-weight:700;color:var(--text-primary);word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(d) + '</div></div></div>';
-      }).join('');
-    }
     // شبكة حقول الزيارة المخصّصة (داخل بطاقة الزيارة في الأرشيف)
     function renderVisitCustomHtml(custom) {
       custom = custom || {};
@@ -4851,19 +4812,29 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function _cfRowHtml(scope, f, idx) {
       var typeOpts = CF_TYPES.map(function(t) { return '<option value="' + t.v + '"' + (t.v === f.type ? ' selected' : '') + '>' + t.label + '</option>'; }).join('');
       var showOpts = (f.type === 'select');
-      var btn = 'width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;flex-shrink:0;font-size:.8rem;';
-      return '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px;">'
-        + '<input class="form-input" style="flex:2;min-width:120px;" value="' + _cfAttr(f.label) + '" placeholder="اسم الحقل (مثال: ضغط الدم)" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'label\',this.value)">'
-        + '<select class="form-input" style="flex:1;min-width:96px;" onchange="cfEdit(\'' + scope + '\',' + idx + ',\'type\',this.value)">' + typeOpts + '</select>'
-        + '<input class="form-input" style="flex:2;min-width:120px;' + (showOpts ? '' : 'display:none;') + '" value="' + _cfAttr((f.options || []).join('، ')) + '" placeholder="خيارات مفصولة بفاصلة" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'options\',this.value)">'
-        + '<div style="display:flex;gap:4px;">'
-          + '<button title="أعلى" style="' + btn + '" onclick="cfMove(\'' + scope + '\',' + idx + ',-1)"><i class="fas fa-chevron-up"></i></button>'
-          + '<button title="أسفل" style="' + btn + '" onclick="cfMove(\'' + scope + '\',' + idx + ',1)"><i class="fas fa-chevron-down"></i></button>'
-          + '<button title="حذف" style="' + btn + 'color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="cfDelete(\'' + scope + '\',' + idx + ')"><i class="fas fa-trash"></i></button>'
-        + '</div></div>';
+      var btn = 'width:32px;height:32px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);cursor:pointer;flex-shrink:0;font-size:.82rem;';
+      var subLbl = 'font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:4px;';
+      // بطاقة حقل — بنفس هوية بطاقات الاضبارة: عنوان بارز أعلى، النوع والخيارات أسفله
+      return '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-sm);">'
+        + '<div style="display:flex;gap:8px;align-items:center;">'
+          + '<span style="width:32px;height:32px;border-radius:9px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.8rem;"><i class="fas fa-grip-vertical"></i></span>'
+          + '<input class="form-input" style="flex:1;min-width:0;font-weight:700;" value="' + _cfAttr(f.label) + '" placeholder="اسم الحقل (مثال: ضغط الدم)" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'label\',this.value)">'
+          + '<div style="display:flex;gap:4px;flex-shrink:0;">'
+            + '<button title="أعلى" style="' + btn + '" onclick="cfMove(\'' + scope + '\',' + idx + ',-1)"><i class="fas fa-chevron-up"></i></button>'
+            + '<button title="أسفل" style="' + btn + '" onclick="cfMove(\'' + scope + '\',' + idx + ',1)"><i class="fas fa-chevron-down"></i></button>'
+            + '<button title="حذف" style="' + btn + 'color:#dc2626;border-color:#fecaca;background:#fef2f2;" onclick="cfDelete(\'' + scope + '\',' + idx + ')"><i class="fas fa-trash"></i></button>'
+          + '</div>'
+        + '</div>'
+        + '<div style="display:flex;gap:10px;flex-wrap:wrap;padding-right:40px;">'
+          + '<div style="flex:1;min-width:130px;"><div style="' + subLbl + '">نوع الحقل</div>'
+            + '<select class="form-input" onchange="cfEdit(\'' + scope + '\',' + idx + ',\'type\',this.value)">' + typeOpts + '</select></div>'
+          + '<div style="flex:2;min-width:150px;' + (showOpts ? '' : 'display:none;') + '"><div style="' + subLbl + '">الخيارات (افصل بفاصلة)</div>'
+            + '<input class="form-input" value="' + _cfAttr((f.options || []).join('، ')) + '" placeholder="مثال: خيار 1، خيار 2، خيار 3" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'options\',this.value)"></div>'
+        + '</div>'
+      + '</div>';
     }
     function _cfEmptyRows() {
-      return '<div style="text-align:center;padding:14px;color:var(--text-muted);font-size:.8rem;border:1.5px dashed var(--border);border-radius:10px;">لا توجد حقول بعد — اضغط «إضافة حقل» أو طبّق قالباً جاهزاً.</div>';
+      return '<div style="text-align:center;padding:22px 14px;color:var(--text-muted);font-size:.82rem;border:1.5px dashed var(--border);border-radius:14px;"><i class="fas fa-inbox" style="font-size:1.4rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا توجد حقول بعد — اضغط «إضافة حقل» أو طبّق قالباً جاهزاً.</div>';
     }
     function renderCustomizerRows() {
       var pc = document.getElementById('cfPatientRows'), vc = document.getElementById('cfVisitRows');
