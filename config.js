@@ -15,11 +15,6 @@ window.FIREBASE_CONFIG = {
   messagingSenderId: "943515326256",
   appId: "1:943515326256:web:b1eff0fd8ea996eb73daf5"
 };
-/* المشروع السابق (مفتاحه لم يعد صالحاً — محفوظ للتراجع إن لزم):
-   apiKey: "AIzaSyBOiLLRqSykhwzYrrFrdRO2mzWTYDU2W1M",
-   projectId: "savedatatest-4dc4c", messagingSenderId: "64405748598",
-   appId: "1:64405748598:web:a0c2282d07d67c63a41857" */
-
 
 /* (2) حسابات جوجل للموظفين — نفس هذه الإيميلات يجب أن تُوضع في قواعد Firestore */
 window.DOCBOOK_ROLES = {
