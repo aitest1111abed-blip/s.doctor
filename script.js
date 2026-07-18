@@ -4258,6 +4258,23 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return s.trim() || 'مرحباً';
     }
 
+    // حذف الزيارة من داخل المحرّر (تأكيد داخل النظام ثم إغلاق وإعادة فتح الاضبارة)
+    window.deleteVisitCurrent = function() {
+      var pid = document.getElementById('notePatientId').value;
+      var idx = parseInt(document.getElementById('noteVisitIndex').value, 10);
+      var p = allPatients[pid]; if (!p || !p.appointments || !p.appointments[idx]) return;
+      var v = p.appointments[idx];
+      appConfirm('حذف هذه الزيارة نهائياً؟\n' + (v.visitType || 'زيارة') + ' — ' + formatDateAr(v.date) + '\nلا يمكن التراجع.', 'حذف الزيارة').then(function(ok) {
+        if (!ok) return;
+        p.appointments.splice(idx, 1);
+        if (typeof p.totalVisits === 'number') p.totalVisits = Math.max(0, p.totalVisits - 1);
+        window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
+          .then(function() { showToast('تم حذف الزيارة', 'success'); })
+          .catch(function(e) { showToast('فشل حذف الزيارة', 'error'); console.error(e); });
+        closeAddNoteModal();
+        openPatientDetailsModal(pid);
+      });
+    };
     window.saveVisit = function(sendWhatsapp, sendTo) {
       var pid = document.getElementById('notePatientId').value;
       var idx = parseInt(document.getElementById('noteVisitIndex').value, 10);
