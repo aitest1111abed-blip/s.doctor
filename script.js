@@ -5572,8 +5572,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (card) card.style.display = surfaceActive ? '' : 'none';
       var hint = document.getElementById('teSurfaceHint');
       if (hint) hint.textContent = 'اضغط على السطح المصاب — O مضغ · M أنسي · D وحشي · B شدقي · L لساني';
-      // إعادة ضبط موضع القائمة بعد تغيّر ارتفاعها (ظهور/إخفاء السطوح)
-      if (typeof _repositionToothPopover === 'function') _repositionToothPopover();
     }
     function teRenderCurrentChip() {
       var p = allPatients[dcCurrentPid]; if (!p || teCurrentTooth == null) return;
@@ -5610,49 +5608,26 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + '</div>';
       }).join('');
     }
-    var _teAnchor = null;   // عنصر السن الذي فُتحت القائمة عنده (للتموضع)
     window.openToothEditor = function(fdi, ev) {
       var p = allPatients[dcCurrentPid]; if (!p) return;
       teCurrentTooth = fdi;
       teEventTypes = []; teSurfaces = [];
-      _teAnchor = (ev && (ev.currentTarget || ev.target)) || null;
       document.getElementById('teTitle').textContent = 'السن ' + fdi + ' — ' + dcToothName(fdi);
       _setVal('teNote', '');
       _setVal('teDate', toLocalISODate(new Date()));
-      // الحالة الافتراضية للقوائم: «الموجودات» مفتوحة، «المعالجات» مطويّة
-      var _ddf = document.getElementById('teDdFind'); if (_ddf) _ddf.classList.add('open');
-      var _ddt = document.getElementById('teDdTreat'); if (_ddt) _ddt.classList.remove('open');
       teRenderEventGrids(); teRenderBigTooth(); teRenderCurrentChip(); teRenderHistory();
-      document.getElementById('toothEditModal').classList.remove('hidden');
-      _repositionToothPopover(true);
+      // إظهار لوحة الإجراءات في العمود الأيمن (بدل الطفو فوق الأسنان)
+      var emp = document.getElementById('teEmpty'), ed = document.getElementById('teEditor');
+      if (emp) emp.style.display = 'none';
+      if (ed) { ed.style.display = ''; ed.style.animation = 'none'; requestAnimationFrame(function(){ ed.style.animation = ''; }); ed.scrollTop = 0; }
+      // على الشاشات الضيّقة: اللوحة أسفل المخطط — انزل إليها
+      if (window.innerWidth < 1024) { var tp = document.getElementById('toothPanel'); if (tp && tp.scrollIntoView) tp.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     };
-    // تموضع القائمة كـ Popover بجانب السن + أنيميشن الظهور
-    function _repositionToothPopover(animate) {
-      var m = document.getElementById('toothEditModal');
-      var card = document.getElementById('teCard');
-      if (!card || !m || m.classList.contains('hidden')) return;
-      var vw = window.innerWidth, vh = window.innerHeight;
-      var pw = card.offsetWidth, ph = Math.min(card.offsetHeight, vh * 0.82);
-      var left, top, ox = '50%', oy = '0%';
-      var r = _teAnchor && _teAnchor.getBoundingClientRect ? _teAnchor.getBoundingClientRect() : null;
-      if (r && r.width) {
-        var cx = r.left + r.width / 2;
-        left = Math.max(10, Math.min(cx - pw / 2, vw - pw - 10));
-        if (r.bottom + 12 + ph <= vh - 6) { top = r.bottom + 12; oy = '0%'; }
-        else if (r.top - 12 - ph >= 6) { top = r.top - 12 - ph; oy = '100%'; }
-        else { top = Math.max(6, (vh - ph) / 2); }
-        ox = Math.max(14, Math.min(cx - left, pw - 14)) + 'px';
-      } else { left = (vw - pw) / 2; top = Math.max(6, (vh - ph) / 2); }
-      card.style.left = left + 'px';
-      card.style.top = top + 'px';
-      card.style.setProperty('--teox', ox);
-      card.style.setProperty('--teoy', oy);
-      if (animate) { card.classList.remove('show'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ card.classList.add('show'); }); }); }
-    }
     window.closeToothEditor = function() {
-      var card = document.getElementById('teCard'); if (card) card.classList.remove('show');
-      document.getElementById('toothEditModal').classList.add('hidden');
-      teCurrentTooth = null; teEventTypes = []; teSurfaces = []; _teAnchor = null;
+      var emp = document.getElementById('teEmpty'), ed = document.getElementById('teEditor');
+      if (ed) ed.style.display = 'none';
+      if (emp) emp.style.display = '';
+      teCurrentTooth = null; teEventTypes = []; teSurfaces = [];
     };
     window.teSelectEvent = function(k) {
       // تحديد متعدّد: تؤشّر عدّة حالات معاً. حالات الوجود (قلع/مفقود/زرعة/سليم) حصرية.
