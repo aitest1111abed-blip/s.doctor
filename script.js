@@ -327,7 +327,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
 
     // ── مستمعو Firestore ──
-    var _unsubAppt = null, _unsubPat = null, _unsubClosed = null, _unsubAlerts = null;
+    var _unsubAppt = null, _unsubPat = null, _unsubClosed = null, _unsubAlerts = null, _unsubNowServing = null;
     var _alertSeenAt = 0;
     var _shownAlertIds = new Set(); // منع التكرار بدلاً من _lastAcceptedAlertId
 
@@ -477,6 +477,19 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       // أُوقف نظام التنبيهات القادمة من الممرضة (تنبيهات المواعيد / إضافة موعد).
       // لم يَعُد يُنشأ مُستمع alerts ولا قناة البثّ — توفيراً للـ reads وإيقافاً للإشعارات.
       if (_unsubAlerts) { _unsubAlerts(); _unsubAlerts = null; }
+
+      // ── الممرّضة → الطبيب: فتح إضبارة المريض التالي تلقائياً (مستمع وثيقة واحدة، رخيص) ──
+      // عند تسجيل الممرّضة زيارةً، تكتب config/nowServing؛ يفتح الطبيب إضبارة المريض فوراً.
+      if (_unsubNowServing) _unsubNowServing();
+      var _nsSeen = false, _nsLastTs = 0;
+      _unsubNowServing = window._fb.onSnapshot(window._fb.docRef('config', 'nowServing'), function(snap) {
+        if (!snap.exists()) return;
+        var d = snap.data() || {}, ts = d.ts || 0;
+        if (!_nsSeen) { _nsSeen = true; _nsLastTs = ts; return; }   // تجاهل القيمة الموجودة وقت الإقلاع
+        if (ts <= _nsLastTs || !d.patientId) return;
+        _nsLastTs = ts;
+        _openServedPatient(d.patientId, d.name);
+      }, function(){});
 
       // الإعدادات (يدمج مع المحفوظ محلياً ويحدّثه)
       window._fb.getDoc('settings', 'doctor').then(function(snap) {
@@ -3928,6 +3941,19 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (!upcoming.length) { showToast('لا يوجد موعد قادم', 'info'); return; }
       openChartFromAppt(upcoming[0].id); // يفتح الإضبارة (وينشئها إن لزم) — أقل تكلفة
     };
+
+    // فتح إضبارة المريض الذي أرسلته الممرّضة (يجلبه من Firestore إن لم يكن محمّلاً)
+    function _openServedPatient(pid, name) {
+      if (!pid) return;
+      if (allPatients[pid]) { openPatientDetailsModal(pid); showToast('المريض التالي: ' + (name || allPatients[pid].name || ''), 'info'); return; }
+      window._fb.getDoc('patients', pid).then(function(s) {
+        if (s.exists()) {
+          allPatients[pid] = Object.assign({ id: pid }, s.data());
+          openPatientDetailsModal(pid);
+          showToast('المريض التالي: ' + (name || allPatients[pid].name || ''), 'info');
+        }
+      }).catch(function(e){ console.error(e); });
+    }
 
     // 🦷 هل تخصص الأسنان مُفعَّل؟ (اختصاص أسنان أو قالب الأسنان مطبّق)
     function _dentalEnabled() {
