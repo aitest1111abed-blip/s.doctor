@@ -934,24 +934,15 @@
   <!-- ===== إضبارة المريض (Patient Chart) ===== -->
   <div id="patientDetailsModal" class="hidden fixed inset-0 z-[150] modal-overlay">
     <div class="modal-content" style="max-width:none; width:100%; height:100%; max-height:100%; display:flex; flex-direction:column; overflow:hidden; border-radius:0;">
-      <!-- Hero: بروفايل المريض -->
+      <!-- Hero: بروفايل المريض (بلا غلاف ملوّن) -->
       <div class="pf-hero">
-        <div class="pf-cover">
-          <div class="pf-cover-actions">
-            <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-cbtn" title="إغلاق"><i class="fas fa-times"></i></button>
-          </div>
-        </div>
         <div class="pf-head">
           <div id="chartAvatar" class="pf-avatar">؟</div>
           <div class="pf-id">
             <h3 id="modalPatientName" class="pf-name">-</h3>
             <p id="modalPatientPhone" class="pf-phone" dir="ltr"></p>
           </div>
-          <div class="pf-head-actions">
-            <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-actbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
-            <a id="modalCallBtn" href="#" class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>
-            <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-          </div>
+          <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-close" title="إغلاق"><i class="fas fa-times"></i></button>
         </div>
         <div id="chartHeaderPills" class="pf-pills"></div>
       </div>
@@ -971,9 +962,16 @@
         <!-- العمود الثاني: حجز الموعد القادم ثم أرشيف الزيارات أسفله -->
         <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
 
-        <!-- حجز الموعد القادم -->
+        <!-- حجز الموعد القادم (مع أزرار الاتصال/الطباعة/واتساب) -->
         <div class="glass-card" style="padding:16px;">
-          <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0 0 12px;"><i class="far fa-calendar-plus" style="margin-left:6px;"></i>حجز الموعد القادم</h4>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;flex-wrap:wrap;">
+            <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="far fa-calendar-plus" style="margin-left:6px;"></i>حجز الموعد القادم</h4>
+            <div class="pf-head-actions">
+              <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+              <a id="modalCallBtn" href="#" class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>
+              <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-actbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
+            </div>
+          </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
             <div style="display:flex;flex-direction:column;gap:4px;">
               <label style="font-size:.72rem;font-weight:700;color:var(--text-secondary);">التاريخ</label>
@@ -1273,13 +1271,21 @@
 
           <!-- العمود الأيمن (ضيّق): القالب الجاهز + زر الحفظ -->
           <div style="position:sticky;top:0;display:flex;flex-direction:column;gap:14px;">
-            <div class="glass-card" style="padding:16px;">
-              <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0 0 12px;"><i class="fas fa-wand-magic-sparkles" style="margin-left:6px;"></i>قالب جاهز حسب التخصص</h4>
-              <select id="cfPresetSelect" class="form-input" style="width:100%;"><option value="">— اختر تخصصاً —</option></select>
-              <button type="button" class="btn-secondary" style="width:100%;justify-content:center;margin-top:8px;" onclick="cfApplyPreset(document.getElementById('cfPresetSelect').value)"><i class="fas fa-wand-magic-sparkles"></i> تطبيق القالب</button>
-              <p style="font-size:.74rem;color:var(--text-muted);line-height:1.6;margin:10px 0 0;">يملأ حقولاً مقترحة يمكنك تعديلها أو حذفها.</p>
+            <div class="glass-card" style="padding:0;overflow:hidden;">
+              <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(135deg,rgba(13,148,136,.12),rgba(15,118,110,.04));border-bottom:1.5px solid var(--border);">
+                <span style="width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,#0d9488,#115e59);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 14px -6px rgba(13,148,136,.6);"><i class="fas fa-wand-magic-sparkles"></i></span>
+                <div style="min-width:0;">
+                  <h4 style="font-weight:800;font-size:.9rem;color:var(--text-primary);margin:0;">قالب جاهز حسب التخصص</h4>
+                  <p style="font-size:.7rem;color:var(--text-muted);margin:1px 0 0;">ابدأ بحقول مقترحة ثم عدّلها</p>
+                </div>
+              </div>
+              <div style="padding:14px 16px;">
+                <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">اختر تخصّصك</label>
+                <select id="cfPresetSelect" class="form-input" style="width:100%;"><option value="">— اختر تخصصاً —</option></select>
+                <button type="button" class="cf-apply-btn" style="margin-top:10px;" onclick="cfApplyPreset(document.getElementById('cfPresetSelect').value)"><i class="fas fa-wand-magic-sparkles"></i> تطبيق القالب</button>
+              </div>
             </div>
-            <button onclick="saveChartTemplate()" class="btn-primary" style="width:100%;justify-content:center;gap:8px;padding:12px;"><i class="fas fa-floppy-disk"></i> حفظ التخصيص</button>
+            <button onclick="saveChartTemplate()" class="cf-save-btn"><i class="fas fa-floppy-disk"></i> حفظ التخصيص</button>
           </div>
 
           <!-- العمود الأيسر (واسع): فورم الحقول الثابتة + حقول كل زيارة -->
@@ -1785,7 +1791,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=99"></script>
+  <script src="script.js?v=101"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

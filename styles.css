@@ -1929,7 +1929,7 @@
 .dc-tl-del:hover{background:#fef2f2;color:#dc2626;}
 
 /* ===== 🦷 عرض القوس (Odontogram بيضوي) ===== */
-.dc-arch{position:relative;width:min(96%,420px);margin:4px auto;aspect-ratio:380/540;}
+.dc-arch{position:relative;aspect-ratio:380/540;height:min(54vh,500px);width:auto;max-width:96%;margin:4px auto;}
 .dc-arch-tooth{position:absolute;cursor:pointer;}
 .dc-arch-tooth svg{display:block;width:100%;height:100%;filter:drop-shadow(0 3px 5px rgba(15,23,42,.24));transition:transform .16s cubic-bezier(.34,1.56,.64,1),filter .16s;}
 .dc-arch-tooth:hover{z-index:20 !important;}
@@ -1939,7 +1939,7 @@
 .dc-arch-mid-h{position:absolute;left:9%;right:9%;top:50%;border-top:1.5px dashed var(--border);pointer-events:none;}
 .dc-arch-mid-v{position:absolute;top:5%;bottom:5%;left:50%;border-right:1.5px dashed var(--border);pointer-events:none;opacity:.7;}
 @media(max-width:480px){
-  .dc-arch{width:100%;}
+  .dc-arch{height:min(56vh,440px);max-width:100%;}
   .dc-arch-num{font-size:.58rem;}
 }
 
@@ -1988,7 +1988,7 @@
 .dc-head-toggle .sched-toggle button{display:inline-flex;align-items:center;gap:5px;}
 .dc-page-body{display:grid;grid-template-columns:1fr minmax(300px,360px);gap:14px;margin:0 auto;padding:16px;width:100%;align-items:start;}
 .dc-page-main{display:flex;flex-direction:column;gap:14px;min-width:0;}
-.dc-page-side{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:14px;align-items:start;grid-column:1/-1;}
+.dc-page-side{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:14px;align-items:start;grid-column:1;min-width:0;}
 .dc-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:14px;}
 .dc-card-title{display:flex;align-items:center;gap:7px;font-weight:800;font-size:.86rem;color:var(--primary);margin:0 0 10px;}
 .dc-count{font-size:.72rem;color:var(--text-muted);font-weight:600;}
@@ -2115,8 +2115,10 @@
 .pf-cbtn:active{transform:scale(.94);}
 .pf-cbtn.wa{background:#16a34a;border-color:transparent;}
 .pf-cbtn.wa:hover{filter:brightness(1.08);}
-.pf-head{display:flex;gap:16px;align-items:flex-end;padding:0 22px 14px;margin-top:-42px;position:relative;flex-wrap:wrap;}
-.pf-avatar{width:92px;height:92px;border-radius:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:2.1rem;font-weight:800;color:#fff;background:linear-gradient(140deg,#0d9488,#115e59);border:4px solid var(--surface);box-shadow:0 18px 40px -18px rgba(13,148,136,.6);}
+.pf-head{display:flex;gap:14px;align-items:center;padding:16px 20px;flex-wrap:wrap;}
+.pf-avatar{width:62px;height:62px;border-radius:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;color:#fff;background:linear-gradient(140deg,#0d9488,#115e59);box-shadow:0 10px 24px -12px rgba(13,148,136,.65);}
+.pf-close{width:38px;height:38px;border-radius:11px;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;margin-inline-start:auto;flex-shrink:0;transition:background .15s,color .15s;}
+.pf-close:hover{background:#fef2f2;color:#dc2626;}
 .pf-id{flex:1;min-width:0;padding-bottom:2px;}
 .pf-name{font-weight:800;font-size:1.35rem;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.25;}
 .pf-verline{font-size:.6rem;font-weight:800;color:var(--primary);background:var(--primary-light);border:1px solid var(--border-strong);border-radius:999px;padding:3px 10px;letter-spacing:.3px;white-space:nowrap;}
@@ -2147,7 +2149,7 @@
 .pf-tl .chart-visit::before{content:"";position:absolute;inset-inline-start:-20px;top:16px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);z-index:1;}
 
 /* أزرار إجراءات الهيرو (طباعة/اتصال/واتساب) — مجموعة مرتّبة */
-.pf-head-actions{display:flex;gap:8px;align-self:flex-end;margin-bottom:4px;flex-shrink:0;flex-wrap:wrap;}
+.pf-head-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
 .pf-actbtn{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--primary-light);color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;text-decoration:none;transition:filter .15s,transform .1s;}
 .pf-actbtn:hover{filter:brightness(.97);}
 .pf-actbtn:active{transform:scale(.94);}
@@ -2224,3 +2226,11 @@
 .te-editor .te-fl-pills .te-event-btn{opacity:1;transform:none;box-shadow:none;background:var(--bg);}
 .te-editor .te-fl-surf{margin-top:12px;box-shadow:none;border-radius:12px;}
 .te-editor .te-fl-save{margin-top:14px;}
+
+/* ===== أزرار مخصِّص الاضبارة (تطبيق القالب / حفظ التخصيص) — مصمّمة ===== */
+.cf-apply-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid var(--border-strong);border-radius:12px;padding:11px;font-family:inherit;font-weight:800;font-size:.84rem;cursor:pointer;background:var(--primary-light);color:var(--primary);transition:background .15s,color .15s,border-color .15s;}
+.cf-apply-btn:hover{background:var(--primary);color:#fff;border-color:transparent;}
+.cf-apply-btn:active{transform:scale(.98);}
+.cf-save-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:14px;padding:13px;font-family:inherit;font-weight:800;font-size:.9rem;cursor:pointer;background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;box-shadow:0 12px 26px -10px rgba(13,148,136,.7);transition:filter .15s,transform .1s;}
+.cf-save-btn:hover{filter:brightness(1.06);}
+.cf-save-btn:active{transform:translateY(1px);}
