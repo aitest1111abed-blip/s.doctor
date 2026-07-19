@@ -3930,19 +3930,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         .catch(function(e) { console.error(e); showToast('تعذّر إنشاء الإضبارة', 'error'); });
     };
 
-    // ── فتح ملف المريض التالي: يقرأ أقرب موعد قادم من الذاكرة (بلا قراءات إضافية) ويفتح إضبارته ──
-    window.openNextPatientChart = function() {
-      var todayS = todayStr;
-      var upcoming = (allRecords || []).filter(function(r) {
-        return r && r.Status === 'Accepted' && r.Date && normalizeDate(r.Date) >= todayS;
-      }).sort(function(a, b) {
-        var da = normalizeDate(a.Date), db = normalizeDate(b.Date);
-        if (da !== db) return da < db ? -1 : 1;
-        return slotMinutes(slotTimeOf(a)) - slotMinutes(slotTimeOf(b));
-      });
-      if (!upcoming.length) { showToast('لا يوجد موعد قادم', 'info'); return; }
-      openChartFromAppt(upcoming[0].id); // يفتح الإضبارة (وينشئها إن لزم) — أقل تكلفة
-    };
 
     // فتح إضبارة المريض الذي أرسلته الممرّضة (يجلبه من Firestore إن لم يكن محمّلاً)
     function _openServedPatient(pid, name) {

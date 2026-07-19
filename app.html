@@ -477,16 +477,6 @@
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
-                <!-- زر مثبّت بالأعلى: فتح إضبارة المريض التالي (أقرب موعد) -->
-                <div style="position:sticky; top:0; z-index:5; background:var(--surface); padding-bottom:10px; margin-bottom:4px;">
-                  <button onclick="openNextPatientChart()" title="يفتح إضبارة المريض صاحب أقرب موعد قادم"
-                    style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border:none;border-radius:12px;background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;font-family:inherit;font-weight:800;font-size:.85rem;cursor:pointer;box-shadow:0 3px 10px rgba(13,148,136,.3);transition:transform .15s,box-shadow .15s;"
-                    onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 5px 14px rgba(13,148,136,.4)'"
-                    onmouseout="this.style.transform='';this.style.boxShadow='0 3px 10px rgba(13,148,136,.3)'">
-                    <i class="fas fa-folder-open"></i>
-                    فتح إضبارة المريض التالي
-                  </button>
-                </div>
                 <div id="homeDayAgenda" style="display:flex;flex-direction:column;gap:14px;"></div>
                 <!-- عناصر مخفية للتوافق -->
                 <div style="display:none;"><span id="homePanelMorningCount"></span><div id="homePanelMorning"></div><span id="homePanelEveningCount"></span><div id="homePanelEvening"></div></div>
@@ -1791,7 +1781,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=105"></script>
+  <script src="script.js?v=106"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
