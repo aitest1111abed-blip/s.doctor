@@ -487,10 +487,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         if (_nsInit) { _nsInit = false; if (snap.exists()) _nsLastTs = (snap.data() || {}).ts || 0; return; }
         if (!snap.exists()) return;
         var d = snap.data() || {}, ts = d.ts || 0;
+        console.log('[nowServing] وصلت إشارة:', d);
         if (ts === _nsLastTs || !d.patientId) return;   // نفس الإشارة (إعادة اتصال) → تجاهل
         _nsLastTs = ts;
         showNextPatientNotif(d.patientId, d.name);
-      }, function(){});
+      }, function(e){ console.error('[nowServing] خطأ في المستمع (قد تكون قاعدة الأمان تمنع قراءة config):', e); });
 
       // الإعدادات (يدمج مع المحفوظ محلياً ويحدّثه)
       window._fb.getDoc('settings', 'doctor').then(function(snap) {
@@ -3960,7 +3961,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       el.className = 'next-patient-notif';
       el.innerHTML =
           '<div class="npn-body"><span class="npn-ic"><i class="fas fa-user-check"></i></span>'
-        + '<div class="npn-txt"><div class="npn-title">المريض التالي جاهز</div><div class="npn-name">' + escapeHtml(name || 'مريض') + '</div></div></div>'
+        + '<div class="npn-txt"><div class="npn-title">تم حضور المريض</div><div class="npn-name">' + escapeHtml(name || 'مريض') + '</div></div></div>'
         + '<div class="npn-actions"><button type="button" class="npn-open"><i class="fas fa-folder-open"></i> فتح الإضبارة</button>'
         + '<button type="button" class="npn-dismiss">إخفاء</button></div>';
       _getDocNotifContainer().appendChild(el);
