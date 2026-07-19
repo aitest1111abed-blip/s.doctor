@@ -1363,74 +1363,35 @@
   </div>
 
   <div id="toothEditModal" class="hidden fixed inset-0 z-[200]" style="background:rgba(15,23,42,.10);" onclick="if(event.target===this)closeToothEditor()">
-    <div id="teCard" class="modal-content te-pop" style="position:fixed;width:322px;max-width:calc(100vw - 20px);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;border-radius:18px;">
-      <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;flex-shrink:0;">
-        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5c-1.6-1.8-4.1-2.3-6-1.1C4.1 5.6 3.5 7.9 4.2 9.9c.8 2.1 1.2 4.3 1.4 6.5.15 1.6.4 3.2 1.2 4.6.4.75 1.5.8 2 .1.8-1.2 1.1-2.7 1.5-4.1.3-1.1 1.9-1.1 2.2 0 .4 1.4.7 2.9 1.5 4.1.5.7 1.6.65 2-.1.8-1.4 1.05-3 1.2-4.6.2-2.2.6-4.4 1.4-6.5.7-2 .1-4.3-1.8-5.5-1.9-1.2-4.4-.7-6 1.1z"/></svg></div>
-        <div style="flex:1;min-width:0;">
-          <h3 id="teTitle" style="font-weight:900;font-size:1.02rem;">السن —</h3>
-          <p id="teSub" style="font-size:.72rem;opacity:.85;margin-top:1px;"></p>
-        </div>
-        <span id="teCurrentChip" style="flex-shrink:0;background:rgba(255,255,255,.92);border-radius:999px;padding:5px 13px;font-size:.74rem;font-weight:900;display:flex;align-items:center;gap:6px;"></span>
-        <button onclick="closeToothEditor()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;flex-shrink:0;"><i class="fas fa-times"></i></button>
+    <div id="teCard" class="te-pop te-float" style="position:fixed;width:296px;max-width:calc(100vw - 18px);max-height:86vh;">
+      <!-- شريحة عنوان عائمة (رقم السن + حالته) -->
+      <div class="te-fl-title">
+        <span class="te-fl-tooth" id="teTitle">السن</span>
+        <span class="te-fl-st" id="teCurrentChip"></span>
+        <button class="te-fl-x" onclick="closeToothEditor()" title="إغلاق"><i class="fas fa-times"></i></button>
       </div>
-      <div style="flex:1;overflow-y:auto;padding:16px 20px;background:var(--bg);display:flex;flex-direction:column;gap:14px;">
+      <p id="teSub" style="display:none;"></p>
 
-        <!-- تسجيل حدث جديد -->
-        <div class="te-card">
-          <div class="te-card-title"><i class="fas fa-plus-circle" style="color:var(--primary);"></i> تسجيل حالة جديدة</div>
-          <div style="font-size:.71rem;color:var(--text-muted);margin:-2px 0 8px;line-height:1.5;">اختر من القوائم (يمكن أكثر من حالة) ثم «تسجيل».</div>
+      <!-- بتلات الموجودات (تطفو بجانب السن) -->
+      <div class="te-fl-lbl">الموجودات</div>
+      <div class="te-fl-pills" id="teEventsFindings"></div>
 
-          <!-- قائمة منسدلة: الموجودات -->
-          <div class="te-dd open" id="teDdFind">
-            <button type="button" class="te-dd-h" onclick="teToggleDd('teDdFind')">
-              <span class="te-dd-t"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> الموجودات <span class="te-dd-badge" id="teFindBadge"></span></span>
-              <i class="fas fa-plus te-dd-caret"></i>
-            </button>
-            <div class="te-dd-body"><div class="te-events-grid" id="teEventsFindings"></div></div>
-          </div>
+      <!-- بتلات المعالجات -->
+      <div class="te-fl-lbl">المعالجات</div>
+      <div class="te-fl-pills" id="teEventsTreatments"></div>
 
-          <!-- قائمة منسدلة: المعالجات -->
-          <div class="te-dd" id="teDdTreat">
-            <button type="button" class="te-dd-h" onclick="teToggleDd('teDdTreat')">
-              <span class="te-dd-t"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> المعالجات <span class="te-dd-badge" id="teTreatBadge"></span></span>
-              <i class="fas fa-plus te-dd-caret"></i>
-            </button>
-            <div class="te-dd-body"><div class="te-events-grid" id="teEventsTreatments"></div></div>
-          </div>
-        </div>
-
-        <!-- السطوح (يظهر فقط عند اختيار تسوّس/حشوة) -->
-        <div class="te-card" id="teSurfaceCard" style="display:none;">
-          <div class="te-card-title"><i class="fas fa-bullseye" style="color:var(--primary);"></i> السطوح المصابة <span style="font-weight:600;font-size:.7rem;color:var(--text-muted);">— اضغط على السطح مباشرة</span></div>
-          <div style="display:flex;justify-content:center;"><div id="teBigTooth" style="width:190px;"></div></div>
-          <div id="teSurfaceHint" style="text-align:center;font-size:.7rem;color:var(--text-muted);margin-top:2px;">O سطح المضغ · M أنسي · D وحشي · B شدقي · L لساني</div>
-        </div>
-
-        <!-- التاريخ والملاحظة (مخفي في القائمة المبسّطة — التاريخ = اليوم تلقائياً) -->
-        <div class="te-card" style="display:none;">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <div style="display:flex;align-items:center;gap:7px;">
-              <span style="font-size:.76rem;font-weight:800;color:var(--text-secondary);"><i class="far fa-calendar" style="color:var(--primary);"></i> تاريخ الحدث</span>
-              <input type="date" id="teDate" style="padding:7px 10px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text-primary);font-family:inherit;font-size:.82rem;">
-            </div>
-            <input type="text" id="teNote" style="flex:1;min-width:170px;padding:8px 12px;border:1.5px dashed var(--border);border-radius:10px;background:var(--bg);font-family:inherit;font-size:.82rem;color:var(--text-primary);outline:none;" placeholder="ملاحظة (اختياري)...">
-          </div>
-        </div>
-
-        <!-- Timeline (مخفي في القائمة المبسّطة) -->
-        <div class="te-card" style="display:none;">
-          <div class="te-card-title" style="justify-content:space-between;">
-            <span style="display:flex;align-items:center;gap:6px;"><i class="fas fa-clock-rotate-left" style="color:var(--primary);"></i> الخط الزمني لهذا السن <span id="teTlCount" style="font-weight:600;font-size:.7rem;color:var(--text-muted);"></span></span>
-            <button onclick="dcClearToothEvents()" style="border:1.5px solid #fecaca;background:#fef2f2;color:#dc2626;border-radius:8px;padding:4px 10px;font-size:.68rem;font-weight:800;cursor:pointer;font-family:inherit;"><i class="fas fa-broom" style="font-size:.6rem;"></i> مسح الكل</button>
-          </div>
-          <div id="teHistory" class="dc-tl"></div>
-        </div>
-
+      <!-- منتقي السطح (يطفو عند اختيار تسوّس/حشوة) -->
+      <div class="te-fl-surf" id="teSurfaceCard" style="display:none;">
+        <div style="font-size:.63rem;font-weight:800;color:var(--text-muted);text-align:center;margin-bottom:3px;">حدّد السطح المصاب</div>
+        <div id="teBigTooth" style="width:114px;margin:0 auto;"></div>
+        <div id="teSurfaceHint" style="display:none;"></div>
       </div>
-      <div style="padding:13px 20px;border-top:1.5px solid var(--border);background:var(--surface);flex-shrink:0;display:flex;gap:10px;">
-        <button onclick="closeToothEditor()" class="btn-secondary" style="flex:1;justify-content:center;">إغلاق</button>
-        <button onclick="saveToothEdit()" class="btn-primary" style="flex:2;justify-content:center;padding:12px;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));box-shadow:0 4px 14px rgba(13,148,136,.35);font-weight:800;"><i class="fas fa-check"></i> تسجيل الحدث</button>
-      </div>
+
+      <!-- عناصر مخفية للتوافق مع منطق المخطط -->
+      <div style="display:none;"><input type="date" id="teDate"><input type="text" id="teNote"><span id="teTlCount"></span><div id="teHistory"></div></div>
+
+      <!-- زر التسجيل العائم -->
+      <button class="te-fl-save" onclick="saveToothEdit()"><i class="fas fa-check"></i> تسجيل الحالة</button>
     </div>
   </div>
 
@@ -1830,7 +1791,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=97"></script>
+  <script src="script.js?v=98"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
