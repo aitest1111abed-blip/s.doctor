@@ -201,7 +201,7 @@
           </li>
         </ol>
 
-        <div class="ob-side-foot">يمكنك تعديل كل شيء لاحقاً من الإعدادات.</div>
+        <div class="ob-side-foot">يمكنك تعديل كل شيء لاحقاً من الإعدادات — عدا <b>التخصّص</b>، فيُختار مرّة واحدة.</div>
       </aside>
 
       <main class="ob-main">
@@ -212,6 +212,17 @@
           <button class="ob-btn primary" id="obNext" type="button">التالي <span aria-hidden="true">←</span></button>
         </div>
       </main>
+
+      <!-- معاينة شكل الاضبارة قبل الإنهاء -->
+      <div class="obp" id="obPreview">
+        <div class="obp-card">
+          <div class="obp-top">
+            <div><b>هكذا ستبدو الاضبارة</b><small>مريض تجريبي — للمعاينة فقط، لا يُحفظ</small></div>
+            <button class="obp-x" id="obPrevClose" type="button" aria-label="إغلاق المعاينة">✕</button>
+          </div>
+          <div class="obp-body" id="obPrevBody"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1826,7 +1837,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=108"></script>
+  <script src="script.js?v=110"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

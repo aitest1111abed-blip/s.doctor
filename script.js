@@ -5967,6 +5967,66 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return '<div class="ob-tip"><span class="i">i</span><p><b>' + t + '</b>' + b + '</p></div>';
     }
 
+    /* ── معاينة شكل الاضبارة قبل الإنهاء ──
+       تعرض مريضاً تجريبياً بالخانات المدمجة + الخانات المخصّصة الحالية،
+       ليرى الطبيب أين تظهر كل مجموعة قبل أن يعتمدها. لا تُحفظ أي بيانات. */
+    var _OB_BUILTIN = ['الاسم', 'العمر', 'الهاتف', 'زمرة الدم', 'الأمراض المزمنة'];
+
+    function _obOpenChartPreview() {
+      var st = _obState, box = document.getElementById('obPrevBody');
+      if (!box) return;
+
+      function tile(label, built) {
+        return '<div class="obp-tile' + (built ? ' built' : '') + '">' +
+          '<div class="k">' + _obEsc(label) +
+            '<span class="obp-badge' + (built ? '' : ' new') + '">' + (built ? 'مدمج' : 'خانتك') + '</span></div>' +
+          '<div class="v ph">—</div></div>';
+      }
+
+      var pf = st.fields.patient.filter(function(f) { return (f.label || '').trim(); });
+      var vf = st.fields.visit.filter(function(f) { return (f.label || '').trim(); });
+
+      var visitRows = vf.length
+        ? '<div class="obp-rows">' + vf.map(function(f) {
+            return '<div class="obp-row"><span class="k">' + _obEsc(f.label) + '</span><span class="v">—</span></div>';
+          }).join('') + '</div>'
+        : '<div class="obp-empty">لا خانات زيارة — سيظهر في الأرشيف نصّ الزيارة فقط.</div>';
+
+      var today = new Date();
+      var dstr = today.getFullYear() + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + String(today.getDate()).padStart(2, '0');
+
+      box.innerHTML =
+        '<div class="obp-hero">' +
+          '<div class="obp-av">م ت</div>' +
+          '<div><b>مريض تجريبي</b><span>٣٥ سنة · 07XX XXX XXXX</span></div>' +
+        '</div>' +
+
+        '<div class="obp-sec">' +
+          '<h4>معلومات المريض <span class="n">(ثابتة — تُكتب مرّة واحدة)</span></h4>' +
+          '<div class="obp-tiles">' +
+            _OB_BUILTIN.map(function(l) { return tile(l, true); }).join('') +
+            pf.map(function(f) { return tile(f.label, false); }).join('') +
+          '</div>' +
+          (pf.length ? '' : '<div class="obp-empty">لم تُضف خانات مريض — ستظهر الخانات المدمجة فقط.</div>') +
+        '</div>' +
+
+        '<div class="obp-sec">' +
+          '<h4>أرشيف الزيارات <span class="n">(تتكرّر — لكل زيارة قيمها وتاريخها)</span></h4>' +
+          '<div class="obp-visit"><div class="obp-vdate">زيارة اليوم — ' + dstr + '</div>' + visitRows + '</div>' +
+          '<div class="obp-visit" style="opacity:.55"><div class="obp-vdate">زيارة سابقة</div>' + visitRows + '</div>' +
+        '</div>' +
+
+        '<div class="obp-note">لاحظ الفرق: خانات المريض ظهرت <b>مرّة واحدة</b> في الأعلى، بينما تكرّرت خانات الزيارة مع <b>كل زيارة</b> بقيم مستقلّة — فتستطيع مقارنة تطوّر الحالة بين موعد وآخر.</div>';
+
+      var pane = document.getElementById('obPreview');
+      if (pane) pane.classList.add('show');
+    }
+
+    function _obCloseChartPreview() {
+      var pane = document.getElementById('obPreview');
+      if (pane) pane.classList.remove('show');
+    }
+
     function _obRender(focusScope, focusIdx) {
       var body = document.getElementById('obBody');
       if (!body) return;
@@ -5987,7 +6047,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
               '<select id="obSpec"><option value="" disabled' + (st.specialty ? '' : ' selected') + '>اختر تخصّصك</option>' + opts + '</select>' +
               '<span class="help accent">عليه تُبنى خانات الاضبارة الجاهزة.</span></div>' +
           '</div>' +
-          _obTip('تنويه: ', 'اختيار التخصّص يجهّز خانات الاضبارة المناسبة له. تستطيع تعديل الخانات في أي وقت لاحقاً من الإعدادات ← «خصّص اضبارتك».') +
+          _obTip('تنويه مهم: ', 'التخصّص <b style="display:inline">يُختار مرّة واحدة</b> — عليه تُبنى خانات الاضبارة وتقارير العيادة. أمّا بقية الإعدادات (الاسم، العنوان، الأرقام، الصورة، الخانات) فتعدّلها متى شئت من الإعدادات.') +
         '</div>';
 
         document.getElementById('obName').oninput = function() { st.title = this.value; _obSyncChrome(); };
@@ -6090,10 +6150,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           '<div class="ob-f"><label>القوالب الجاهزة</label>' +
             '<div class="ob-chips">' + chips + '</div>' +
             '<span class="help">اختيار قالب يستبدل الخانات الحالية بخانات ذلك التخصّص.</span></div>' +
-          grp('patient', 'خانات المريض', 'تُملأ مرّة واحدة وتبقى في ملفه — كالسوابق والقصة المرضية.') +
-          grp('visit', 'خانات الزيارة', 'تُملأ في كل زيارة على حدة — كالفحوص والقياسات.') +
-          _obTip('ملاحظة: ', 'الخانات المدمجة (الاسم، العمر، الهاتف، زمرة الدم، الأمراض المزمنة) موجودة أصلاً — أضف هنا ما يخصّ تخصّصك فقط.') +
+          _obTip('ما الفرق بين النوعين؟ ',
+            '<b style="display:inline;color:var(--primary)">خانات المريض</b> ثابتة: تكتبها مرّة واحدة وتبقى في ملفه مهما تكرّرت زياراته — كزمرة الدم والسوابق الجراحية. ' +
+            'و<b style="display:inline;color:var(--primary)">خانات الزيارة</b> متغيّرة: تُملأ من جديد في كل زيارة وتُحفظ مع تاريخها، فتبني سجلاً زمنياً تتابع فيه تطوّر الحالة — كضغط الدم ونتيجة تحليل.<br>' +
+            '<b style="display:inline">القاعدة:</b> اسأل نفسك «هل تتغيّر هذه المعلومة بين زيارة وأخرى؟» — إن كان الجواب نعم فهي خانة زيارة، وإلا فهي خانة مريض.') +
+          grp('patient', 'خانات المريض', 'تُكتب مرّة واحدة وتبقى ثابتة في أعلى الاضبارة — مثل: السوابق الجراحية، الحساسية من دواء، التاريخ العائلي.') +
+          grp('visit', 'خانات الزيارة', 'تتكرّر مع كل زيارة ويُحفظ لكلٍّ تاريخها في أرشيف الزيارات — مثل: الوزن اليوم، نتيجة فحص، الدواء الموصوف.') +
+          '<div class="ob-prevbar">' +
+            '<button class="ob-prevbtn" type="button" id="obPrevBtn">👁 معاينة شكل الاضبارة</button>' +
+            '<span class="ob-prevhint">شاهد كيف ستظهر هذه الخانات في ملف المريض قبل أن تنهي.</span>' +
+          '</div>' +
+          _obTip('ملاحظة: ', 'الخانات المدمجة (الاسم، العمر، الهاتف، زمرة الدم، الأمراض المزمنة) موجودة أصلاً في كل اضبارة — أضف هنا ما يخصّ تخصّصك فقط.') +
         '</div>';
+
+        var prevBtn = document.getElementById('obPrevBtn');
+        if (prevBtn) prevBtn.onclick = _obOpenChartPreview;
 
         Array.prototype.forEach.call(body.querySelectorAll('.ob-chip'), function(b) {
           b.onclick = function() { _obApplyPreset(this.getAttribute('data-p')); _obRender(); };
@@ -6123,7 +6194,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
       else {
         body.innerHTML = '<div class="ob-pane ob-done">' +
-          '<div class="ob-seal"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></div>' +
+          '<div class="ob-seal">' +
+            '<svg class="ring" viewBox="0 0 104 104"><circle cx="52" cy="52" r="49"/></svg>' +
+            '<div class="mark"><img src="./icon-192.png" alt="DocBook" onerror="this.style.display=\'none\'"></div>' +
+          '</div>' +
           '<h2>عيادتك جاهزة</h2>' +
           '<p>حُفظت الإعدادات. لن تظهر هذه الشاشة مرّة أخرى — يفتح التطبيق مباشرةً في كل دخول.</p>' +
           '<dl class="ob-recap">' +
@@ -6191,6 +6265,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+      var px = document.getElementById('obPrevClose'), pane = document.getElementById('obPreview');
+      if (px) px.onclick = _obCloseChartPreview;
+      if (pane) pane.onclick = function(e) { if (e.target === this) _obCloseChartPreview(); };
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && pane && pane.classList.contains('show')) _obCloseChartPreview();
+      });
+
       var next = document.getElementById('obNext'), back = document.getElementById('obBack');
       if (next) next.onclick = function() {
         if (!_obState) return;
