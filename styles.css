@@ -2545,52 +2545,28 @@
 #onboardOverlay .obp-x:hover{background:var(--border); color:var(--text-primary);}
 #onboardOverlay .obp-body{padding:20px; overflow-y:auto;}
 
-/* ترويسة المريض التجريبي */
-#onboardOverlay .obp-hero{display:flex; align-items:center; gap:13px; margin-bottom:18px;}
-#onboardOverlay .obp-av{
-  width:52px; height:52px; border-radius:50%; flex-shrink:0;
-  background:linear-gradient(135deg,#0d9488,#14b8a6); color:#fff;
-  display:flex; align-items:center; justify-content:center; font-size:1.05rem; font-weight:800;
+/* قسم: عنوانه ثم نسخة طبق الأصل من نموذج الاضبارة الحقيقي */
+#onboardOverlay .obp-sec{margin-bottom:16px;}
+#onboardOverlay .obp-cap{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin:0 0 10px; font-size:.88rem; font-weight:800; color:var(--text-primary);
 }
-#onboardOverlay .obp-hero b{display:block; font-size:1.02rem; font-weight:800; color:var(--text-primary);}
-#onboardOverlay .obp-hero span{display:block; font-size:.79rem; color:var(--text-muted); margin-top:2px;}
+#onboardOverlay .obp-cap i{color:var(--primary);}
+#onboardOverlay .obp-cap span{font-size:.74rem; font-weight:600; color:var(--text-muted);}
 
-#onboardOverlay .obp-sec{
-  background:var(--surface); border:1px solid var(--border); border-radius:12px;
-  padding:16px 18px; margin-bottom:14px;
+/* حاوية تحاكي جسم مودال معلومات المريض (نفس التباعد والحشو) */
+#onboardOverlay .obp-mock{
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  padding:18px 20px; display:flex; flex-direction:column; gap:14px;
 }
-#onboardOverlay .obp-sec>h4{
-  margin:0 0 13px; font-size:.87rem; font-weight:800; color:var(--text-primary);
-  display:flex; align-items:center; gap:8px;
-}
-#onboardOverlay .obp-sec>h4 .n{font-size:.74rem; font-weight:700; color:var(--text-muted);}
-
-#onboardOverlay .obp-tiles{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:9px;}
-#onboardOverlay .obp-tile{
-  background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:10px 12px;
-}
-#onboardOverlay .obp-tile .k{font-size:.71rem; color:var(--text-muted); margin-bottom:4px; display:flex; align-items:center; gap:5px;}
-#onboardOverlay .obp-tile .v{font-size:.87rem; font-weight:700; color:var(--text-primary);}
-#onboardOverlay .obp-tile .v.ph{color:var(--text-muted); font-weight:400; opacity:.7;}
-#onboardOverlay .obp-tile.built{opacity:.75;}
-#onboardOverlay .obp-badge{
-  font-size:.62rem; font-weight:700; padding:1px 5px; border-radius:4px;
-  background:var(--border); color:var(--text-muted);
-}
-#onboardOverlay .obp-badge.new{background:var(--primary-light); color:var(--primary);}
-
-/* الزيارات */
-#onboardOverlay .obp-visit{border-inline-start:2px solid var(--primary); padding-inline-start:13px; margin-bottom:14px;}
-#onboardOverlay .obp-visit:last-child{margin-bottom:0;}
-#onboardOverlay .obp-vdate{font-size:.79rem; font-weight:700; color:var(--primary); margin-bottom:9px;}
-#onboardOverlay .obp-rows{display:flex; flex-direction:column; gap:7px;}
-#onboardOverlay .obp-row{
-  display:flex; justify-content:space-between; gap:14px; font-size:.83rem;
-  padding:8px 11px; background:var(--bg); border-radius:8px;
-}
-#onboardOverlay .obp-row .k{color:var(--text-muted);}
-#onboardOverlay .obp-row .v{color:var(--text-muted); opacity:.7;}
-#onboardOverlay .obp-empty{font-size:.83rem; color:var(--text-muted); text-align:center; padding:16px;}
+#onboardOverlay .obp-vwrap{margin-bottom:12px;}
+#onboardOverlay .obp-vwrap:last-child{margin-bottom:0;}
+#onboardOverlay .obp-vdate{font-size:.79rem; font-weight:700; color:var(--primary); margin-bottom:7px;}
+#onboardOverlay .obp-empty{font-size:.82rem; color:var(--text-muted); text-align:center; padding:14px;}
+/* المعاينة غير تفاعلية — تُعرض كما هي دون إيحاء بإمكان التعبئة */
+#onboardOverlay .obp-mock input, #onboardOverlay .obp-mock select,
+#onboardOverlay .obp-mock textarea, #onboardOverlay .obp-vwrap input,
+#onboardOverlay .obp-vwrap select, #onboardOverlay .obp-vwrap textarea{cursor:default;}
 
 #onboardOverlay .obp-note{
   font-size:.79rem; color:var(--text-muted); line-height:1.7;

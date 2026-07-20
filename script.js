@@ -5968,55 +5968,80 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
 
     /* ── معاينة شكل الاضبارة قبل الإنهاء ──
-       تعرض مريضاً تجريبياً بالخانات المدمجة + الخانات المخصّصة الحالية،
-       ليرى الطبيب أين تظهر كل مجموعة قبل أن يعتمدها. لا تُحفظ أي بيانات. */
-    var _OB_BUILTIN = ['الاسم', 'العمر', 'الهاتف', 'زمرة الدم', 'الأمراض المزمنة'];
-
+       لا ترسم شكلاً مشابهاً، بل تستعمل **نفس** buildCustomFieldInputs التي تبني
+       الحقول في الاضبارة الحقيقية (نموذج معلومات المريض ومحرّر الزيارة)، مع نسخة
+       طبق الأصل من ترميز الحقول المدمجة في patientInfoModal / ve-card.
+       فما يراه الطبيب هنا هو حرفياً ما سيظهر له بعد الحفظ. لا تُحفظ أي بيانات. */
     function _obOpenChartPreview() {
       var st = _obState, box = document.getElementById('obPrevBody');
       if (!box) return;
 
-      function tile(label, built) {
-        return '<div class="obp-tile' + (built ? ' built' : '') + '">' +
-          '<div class="k">' + _obEsc(label) +
-            '<span class="obp-badge' + (built ? '' : ' new') + '">' + (built ? 'مدمج' : 'خانتك') + '</span></div>' +
-          '<div class="v ph">—</div></div>';
-      }
-
       var pf = st.fields.patient.filter(function(f) { return (f.label || '').trim(); });
       var vf = st.fields.visit.filter(function(f) { return (f.label || '').trim(); });
 
-      var visitRows = vf.length
-        ? '<div class="obp-rows">' + vf.map(function(f) {
-            return '<div class="obp-row"><span class="k">' + _obEsc(f.label) + '</span><span class="v">—</span></div>';
-          }).join('') + '</div>'
-        : '<div class="obp-empty">لا خانات زيارة — سيظهر في الأرشيف نصّ الزيارة فقط.</div>';
-
-      var today = new Date();
-      var dstr = today.getFullYear() + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + String(today.getDate()).padStart(2, '0');
+      // ve-card واحدة لخانات الزيارة — مطابقة لبطاقة «قياسات وحقول مخصّصة» في محرّر الزيارة
+      function visitCard(id, title, dim) {
+        return '<div class="obp-vwrap"' + (dim ? ' style="opacity:.6"' : '') + '>' +
+          '<div class="obp-vdate">' + title + '</div>' +
+          '<div class="ve-card">' +
+            '<label class="ve-label"><span class="ve-ico" style="background:#eef2ff;border-color:#c7d2fe;">' +
+              '<i class="fas fa-ruler-combined" style="font-size:.7rem;color:#4f46e5;"></i></span> قياسات وحقول مخصّصة</label>' +
+            '<div id="' + id + '"></div>' +
+            (vf.length ? '' : '<div class="obp-empty">لم تُضف خانات زيارة — لن تظهر هذه البطاقة أصلاً.</div>') +
+          '</div>' +
+        '</div>';
+      }
 
       box.innerHTML =
-        '<div class="obp-hero">' +
-          '<div class="obp-av">م ت</div>' +
-          '<div><b>مريض تجريبي</b><span>٣٥ سنة · 07XX XXX XXXX</span></div>' +
-        '</div>' +
-
         '<div class="obp-sec">' +
-          '<h4>معلومات المريض <span class="n">(ثابتة — تُكتب مرّة واحدة)</span></h4>' +
-          '<div class="obp-tiles">' +
-            _OB_BUILTIN.map(function(l) { return tile(l, true); }).join('') +
-            pf.map(function(f) { return tile(f.label, false); }).join('') +
+          '<div class="obp-cap"><i class="fas fa-id-card"></i> معلومات المريض' +
+            '<span>ثابتة — تُكتب مرّة واحدة وتبقى في ملفه</span></div>' +
+          '<div class="obp-mock">' +
+            '<div><label class="form-label">الاسم</label>' +
+              '<input type="text" class="form-input" value="مريض تجريبي" readonly></div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+              '<div><label class="form-label">رقم الهاتف</label>' +
+                '<input type="tel" class="form-input" dir="ltr" value="09XXXXXXXX" readonly></div>' +
+              '<div><label class="form-label">تاريخ الميلاد ' +
+                '<span style="color:var(--primary);font-weight:800;">(٢٥ سنة)</span></label>' +
+                '<input type="text" class="form-input" style="direction:ltr;" value="2001-01-01" readonly></div>' +
+            '</div>' +
+            '<div><label class="form-label">العنوان</label>' +
+              '<input type="text" class="form-input" placeholder="المدينة / الحي" readonly></div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+              '<div><label class="form-label"><i class="fas fa-droplet" style="color:#dc2626;margin-left:4px;"></i> زمرة الدم</label>' +
+                '<select class="form-input" disabled><option>— غير محدد —</option></select></div>' +
+              '<div></div>' +
+            '</div>' +
+            '<div><label class="form-label"><i class="fas fa-heart-pulse" style="color:#d97706;margin-left:4px;"></i> أمراض مزمنة</label>' +
+              '<textarea class="form-input" rows="2" style="resize:vertical;" placeholder="مثال: سكري، ضغط، ربو... (افصل بفاصلة)" readonly></textarea></div>' +
+            '<div id="obPrevPatientCF"></div>' +
+            (pf.length ? '' : '<div class="obp-empty">لم تُضف خانات مريض — سيظهر النموذج بحقوله المدمجة فقط.</div>') +
           '</div>' +
-          (pf.length ? '' : '<div class="obp-empty">لم تُضف خانات مريض — ستظهر الخانات المدمجة فقط.</div>') +
         '</div>' +
 
         '<div class="obp-sec">' +
-          '<h4>أرشيف الزيارات <span class="n">(تتكرّر — لكل زيارة قيمها وتاريخها)</span></h4>' +
-          '<div class="obp-visit"><div class="obp-vdate">زيارة اليوم — ' + dstr + '</div>' + visitRows + '</div>' +
-          '<div class="obp-visit" style="opacity:.55"><div class="obp-vdate">زيارة سابقة</div>' + visitRows + '</div>' +
+          '<div class="obp-cap"><i class="fas fa-notes-medical"></i> أرشيف الزيارات' +
+            '<span>تتكرّر — لكل زيارة قيمها وتاريخها</span></div>' +
+          visitCard('obPrevVisitCF1', 'زيارة اليوم', false) +
+          visitCard('obPrevVisitCF2', 'زيارة سابقة', true) +
         '</div>' +
 
-        '<div class="obp-note">لاحظ الفرق: خانات المريض ظهرت <b>مرّة واحدة</b> في الأعلى، بينما تكرّرت خانات الزيارة مع <b>كل زيارة</b> بقيم مستقلّة — فتستطيع مقارنة تطوّر الحالة بين موعد وآخر.</div>';
+        '<div class="obp-note">لاحظ الفرق: خانات المريض ظهرت <b>مرّة واحدة</b> في نموذج معلوماته، ' +
+        'بينما تكرّرت خانات الزيارة مع <b>كل زيارة</b> بقيم مستقلّة — فتقارن تطوّر الحالة بين موعد وآخر.</div>';
+
+      // ★ نفس الدالة التي تبني الحقول في الاضبارة الحقيقية — ومن ثمّ تطابق مضمون
+      if (typeof buildCustomFieldInputs === 'function') {
+        buildCustomFieldInputs(document.getElementById('obPrevPatientCF'), pf, {}, 'حقول مخصّصة');
+        buildCustomFieldInputs(document.getElementById('obPrevVisitCF1'), vf, {}, { variant: 'editor' });
+        buildCustomFieldInputs(document.getElementById('obPrevVisitCF2'), vf, {}, { variant: 'editor' });
+      }
+      // معاينة فقط: تُعطّل كل المدخلات المبنيّة حتى لا يظنّها الطبيب قابلة للتعبئة
+      Array.prototype.forEach.call(box.querySelectorAll('input,select,textarea'), function(el) {
+        el.setAttribute('tabindex', '-1');
+        if (el.type === 'checkbox' || el.tagName === 'SELECT') el.disabled = true;
+        else el.readOnly = true;
+      });
 
       var pane = document.getElementById('obPreview');
       if (pane) pane.classList.add('show');
