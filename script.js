@@ -4661,8 +4661,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           { label: 'عوامل الخطورة', type: 'textarea' }
         ],
         visit: [
-          { label: 'ضغط الدم', type: 'text' },
-          { label: 'مستوى السكر في الدم', type: 'number' },
+          { label: 'ضغط الدم (mmHg)', type: 'text' },
+          { label: 'مستوى السكر في الدم (ملغ/دل)', type: 'number' },
           { label: 'نتائج الفحوصات المخبرية', type: 'textarea' },
           { label: 'نتائج الفحوصات الشعاعية', type: 'textarea' }
         ]
@@ -5857,6 +5857,58 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    /* ── اقتراح وحدة القياس تلقائياً حسب اسم الخانة ──
+       الوحدة تُضاف داخل الاسم بين قوسين — وهو العرف المتّبع في CHART_PRESETS
+       («الوزن الحالي (كغ)»). ميزته أنه يعمل فوراً في الاضبارة والطباعة وتطبيق
+       الممرّضة بلا أي تغيير في بنية البيانات. يغطّي التخصّصات السبعة كلها. */
+    var _OB_UNITS = [
+      // عامة / باطنية
+      { k: ['ضغط الدم', 'الضغط الشرياني', 'ضغط شرياني'], u: 'mmHg' },
+      { k: ['السكر', 'سكر الدم', 'غلوكوز'],               u: 'ملغ/دل' },
+      { k: ['الحرارة', 'حرارة'],                          u: '°م' },
+      { k: ['النبض', 'نبض'],                              u: 'ن/د' },
+      { k: ['التنفس', 'تنفّس', 'تنفس'],                    u: 'ن/د' },
+      { k: ['الأكسجين', 'إشباع', 'اشباع', 'أكسجة'],        u: '٪' },
+      { k: ['الهيموغلوبين', 'الخضاب', 'خضاب'],             u: 'غ/دل' },
+      { k: ['الكرياتينين', 'كرياتينين'],                   u: 'ملغ/دل' },
+      { k: ['اليوريا', 'يوريا', 'البولة'],                 u: 'ملغ/دل' },
+      { k: ['الكوليسترول', 'كوليسترول', 'الشحوم', 'الدهون الثلاثية'], u: 'ملغ/دل' },
+      { k: ['كتلة الجسم', 'BMI'],                          u: 'كغ/م²' },
+      { k: ['الوزن', 'وزن'],                               u: 'كغ' },
+      { k: ['الطول', 'القامة'],                            u: 'سم' },
+      { k: ['محيط'],                                       u: 'سم' },
+      { k: ['الجرعة', 'جرعة'],                             u: 'ملغ' },
+      // قلبية
+      { k: ['الجزء المقذوف', 'الكسر القذفي', 'EF'],        u: '٪' },
+      // نسائية
+      { k: ['أسبوع الحمل', 'عمر الحمل'],                   u: 'أسبوع' },
+      { k: ['بطانة الرحم', 'سماكة البطانة'],               u: 'ملم' },
+      { k: ['حجم الكيس', 'قطر الكيس', 'المبيض'],           u: 'ملم' },
+      // أطفال
+      { k: ['محيط الرأس'],                                 u: 'سم' },
+      // جلدية
+      { k: ['قطر الآفة', 'حجم الآفة', 'مساحة الآفة'],      u: 'ملم' },
+      // عظمية
+      { k: ['مدى الحركة', 'الزاوية', 'زاوية'],             u: 'درجة' },
+      // أسنان
+      { k: ['عمق الجيب', 'الجيب اللثوي'],                  u: 'ملم' }
+    ];
+
+    // الوحدة تُقترح للنصّ والرقم فقط — لا معنى لها في التاريخ أو نعم/لا أو القائمة
+    function _obUnitAllowed(type) { return type === 'text' || type === 'number'; }
+
+    function _obSuggestUnit(label) {
+      var s = String(label == null ? '' : label).trim();
+      if (!s) return '';
+      if (/\([^)]*\)\s*$/.test(s)) return '';   // فيه قوسان أصلاً (وحدة أو إيضاح) ⇒ لا نقترح
+      for (var i = 0; i < _OB_UNITS.length; i++) {
+        for (var j = 0; j < _OB_UNITS[i].k.length; j++) {
+          if (s.indexOf(_OB_UNITS[i].k[j]) !== -1) return _OB_UNITS[i].u;
+        }
+      }
+      return '';
+    }
+
     // هل هذا حساب لم يُعدّ بعد؟
     function _obNeedsSetup() {
       var s = (typeof settings !== 'undefined' && settings) || {};
@@ -6158,7 +6210,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
                   '<input class="ob-cfin" type="text" value="' + _obEsc(f.label) + '" placeholder="اسم الخانة" aria-label="اسم الخانة">' +
                   '<button class="ob-cfdel" type="button" aria-label="حذف خانة">✕</button>' +
                   '<select class="ob-cfsel" aria-label="نوع الخانة">' + o + '</select>' +
-                  ((f.options && f.options.length) ? '<div class="ob-cfopts">الخيارات: ' + _obEsc(f.options.join('، ')) + '</div>' : '') +
+                  // حقل الخيارات — بنفس صيغة المخصِّص في الإعدادات (يُفصل بفاصلة)
+                  '<input class="ob-cfopt" type="text" aria-label="خيارات القائمة" ' +
+                    'placeholder="الخيارات (افصل بفاصلة) — مثال: خفيف، متوسط، شديد" ' +
+                    'value="' + _obEsc((f.options || []).join('، ')) + '"' +
+                    (f.type === 'select' ? '' : ' style="display:none"') + '>' +
+                  '<div class="ob-cfwarn"' +
+                    ((f.type === 'select' && !(f.options || []).length) ? '' : ' style="display:none"') +
+                    '>اكتب خيارات القائمة، وإلا ظهرت فارغة في الاضبارة.</div>' +
+                  // اقتراح وحدة القياس — يُضاف داخل الاسم بضغطة
+                  (function() {
+                    var sug = _obUnitAllowed(f.type) ? _obSuggestUnit(f.label) : '';
+                    return '<div class="ob-cfunit"' + (sug ? '' : ' style="display:none"') + '>' +
+                      '<span>الوحدة المعتادة:</span>' +
+                      '<button type="button" class="ob-unitbtn" data-u="' + _obEsc(sug) + '">' +
+                        'أضف (' + _obEsc(sug) + ')</button></div>';
+                  })() +
                 '</div>';
               }).join('')
             : '<div class="ob-cfempty">لا توجد خانات هنا بعد.</div>';
@@ -6204,11 +6271,49 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         });
         Array.prototype.forEach.call(body.querySelectorAll('.ob-cfrow'), function(row) {
           var sc = row.getAttribute('data-s'), i = +row.getAttribute('data-i'), f = st.fields[sc][i];
-          row.querySelector('.ob-cfin').oninput = function() { f.label = this.value; _obUnmarkPreset(); };
+          var optIn = row.querySelector('.ob-cfopt'), warn = row.querySelector('.ob-cfwarn');
+
+          var nameIn = row.querySelector('.ob-cfin');
+          var unitWrap = row.querySelector('.ob-cfunit'), unitBtn = row.querySelector('.ob-unitbtn');
+
+          function syncOptState() {
+            var isSel = (f.type === 'select');
+            optIn.style.display = isSel ? '' : 'none';
+            warn.style.display = (isSel && !(f.options || []).length) ? '' : 'none';
+          }
+          function syncUnit() {
+            var sug = _obUnitAllowed(f.type) ? _obSuggestUnit(f.label) : '';
+            if (sug) {
+              unitBtn.textContent = 'أضف (' + sug + ')';
+              unitBtn.setAttribute('data-u', sug);
+              unitWrap.style.display = '';
+            } else {
+              unitWrap.style.display = 'none';
+            }
+          }
+
+          nameIn.oninput = function() { f.label = this.value; syncUnit(); _obUnmarkPreset(); };
+          unitBtn.onclick = function() {
+            var u = this.getAttribute('data-u');
+            if (!u) return;
+            f.label = (f.label || '').trim() + ' (' + u + ')';
+            nameIn.value = f.label;
+            syncUnit();
+            _obUnmarkPreset();
+          };
           row.querySelector('.ob-cfsel').onchange = function() {
             f.type = this.value;
-            if (f.type !== 'select') f.options = [];
+            if (f.type !== 'select') { f.options = []; optIn.value = ''; }
             row.querySelector('.ob-cftype').textContent = _obICONS[this.value] || 'أ';
+            syncOptState();
+            syncUnit();
+            if (f.type === 'select') optIn.focus();   // الخيارات هي الخطوة التالية طبيعياً
+            _obUnmarkPreset();
+          };
+          // نفس تحليل المخصِّص: يقبل الفاصلة العربية والإنجليزية
+          optIn.oninput = function() {
+            f.options = this.value.split(/[،,]/).map(function(s) { return s.trim(); }).filter(Boolean);
+            syncOptState();
             _obUnmarkPreset();
           };
           row.querySelector('.ob-cfdel').onclick = function() {
