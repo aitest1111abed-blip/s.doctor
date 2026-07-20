@@ -170,6 +170,51 @@
       </div>
     </div>
   </div>
+  <!-- ===== شاشة إعداد العيادة لأول تسجيل دخول (Onboarding) — تُدار من script.js ===== -->
+  <div id="onboardOverlay">
+    <div class="ob-card">
+      <aside class="ob-side">
+        <div class="ob-brand">
+          <div class="ob-blogo"><img src="./icon-192.png" alt="DocBook" onerror="this.style.display='none'"></div>
+          <div class="ob-wm"><b>DocBook</b><span>لوحة الطبيب</span></div>
+        </div>
+
+        <h1>إعداد عيادتك</h1>
+        <p>أكمل هذه الخطوات الأربع البسيطة لتجهيز عيادتك.</p>
+
+        <ol class="ob-steps">
+          <li class="ob-step current" data-step="0">
+            <div class="ob-dot"><span class="num">١</span><span class="tick">✓</span></div>
+            <div><b>معلومات الطبيب</b><small>الاسم والتخصّص</small></div>
+          </li>
+          <li class="ob-step" data-step="1">
+            <div class="ob-dot"><span class="num">٢</span><span class="tick">✓</span></div>
+            <div><b>بيانات العيادة</b><small>العنوان والتواصل</small></div>
+          </li>
+          <li class="ob-step" data-step="2">
+            <div class="ob-dot"><span class="num">٣</span><span class="tick">✓</span></div>
+            <div><b>تخصيص الاضبارة</b><small>خانات ملف المريض</small></div>
+          </li>
+          <li class="ob-step" data-step="3">
+            <div class="ob-dot"><span class="num">٤</span><span class="tick">✓</span></div>
+            <div><b>المراجعة</b><small>تأكيد وبدء العمل</small></div>
+          </li>
+        </ol>
+
+        <div class="ob-side-foot">يمكنك تعديل كل شيء لاحقاً من الإعدادات.</div>
+      </aside>
+
+      <main class="ob-main">
+        <div class="ob-prog"><i id="obProg" style="width:25%"></i></div>
+        <div id="obBody"></div>
+        <div class="ob-foot" id="obFoot">
+          <button class="ob-btn ghost" id="obBack" type="button">السابق</button>
+          <button class="ob-btn primary" id="obNext" type="button">التالي <span aria-hidden="true">←</span></button>
+        </div>
+      </main>
+    </div>
+  </div>
+
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
@@ -1781,7 +1826,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=106"></script>
+  <script src="script.js?v=108"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

@@ -500,6 +500,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {}
           applySettings();
         }
+        // حساب جديد بلا تخصّص ولا علامة onboarded ⇒ تُعرض شاشة الإعداد مرّة واحدة
+        if (typeof maybeStartOnboarding === 'function') maybeStartOnboarding();
       }).catch(function(){});
 
       // التنبيه المخصص
@@ -5803,3 +5805,384 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     // ===== أدوات عامة للنماذج =====
     function _setVal(id, v){ var el = document.getElementById(id); if (el) el.value = v || ''; }
     function _getVal(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+    /* =====================================================================
+       شاشة إعداد العيادة لأول تسجيل دخول (Onboarding)
+       ---------------------------------------------------------------------
+       متى تظهر؟ عند الإقلاع بعد تحميل settings، إن لم تكن هناك علامة
+       settings.onboarded ولا settings.specialty (أي حساب جديد تماماً).
+       الحسابات القائمة — وفيها تخصّص أصلاً — تُعتبر مُعدّة فلا تظهر لها.
+
+       ماذا تحفظ؟ في وثيقة settings/doctor نفسها عبر saveSettingsToLocal:
+         title · specialty · address · mobile · landline · logo
+         chartTemplate {patient,visit} · onboarded:true · onboardedAt
+       لا قواعد أمان جديدة ولا ترحيل بيانات — نفس الوثيقة ونفس دالة الحفظ.
+
+       للمعاينة وقتما شئت من الـConsole:  resetOnboarding()
+       وزر «خصّص اضبارتك» يبقى في الإعدادات كما هو.
+       ===================================================================== */
+
+    /* ⚠️⚠️⚠️ مفتاح مؤقّت للمعاينة — يجب إطفاؤه قبل التسليم ⚠️⚠️⚠️
+       عندما يكون true تظهر شاشة الإعداد في *كل* دخول مهما كانت الإعدادات،
+       فتستطيع تجربتها بتسجيل خروج ثم دخول بلا لمس قاعدة البيانات.
+       للإطفاء: بدّله إلى false (سطر واحد) — أو اطلب مني إزالة المفتاح كلياً. */
+    var _OB_ALWAYS_SHOW = true;
+
+    var _obState = null;
+    var _obAR = ['١', '٢', '٣', '٤'];
+    var _obICONS = { text: 'أ', textarea: '¶', number: '#', date: '📅', select: '▾', checkbox: '☑' };
+
+    // تسميات الأنواع وترتيبها — مشتقّة من CF_TYPES نفسها فلا تفترقان أبداً
+    function _obTypeList() {
+      return (typeof CF_TYPES !== 'undefined' && CF_TYPES.length)
+        ? CF_TYPES
+        : [{ v: 'text', label: 'نص' }];
+    }
+    function _obTypeLabel(t) {
+      var l = _obTypeList().filter(function(x) { return x.v === t; })[0];
+      return l ? l.label : 'نص';
+    }
+
+    function _obEsc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // هل هذا حساب لم يُعدّ بعد؟
+    function _obNeedsSetup() {
+      var s = (typeof settings !== 'undefined' && settings) || {};
+      return !s.onboarded && !(s.specialty || '').trim();
+    }
+
+    // يُستدعى بعد تحميل الإعدادات عند الإقلاع
+    function maybeStartOnboarding() {
+      // ⚠️ مؤقّت: يتجاوز الشرط ويعرضها دائماً — يُحذف مع _OB_ALWAYS_SHOW
+      if (_OB_ALWAYS_SHOW) {
+        console.warn('[onboarding] وضع المعاينة مفعّل (_OB_ALWAYS_SHOW) — الشاشة تظهر في كل دخول. أطفئه قبل التسليم.');
+        openOnboarding();
+        return;
+      }
+      if (!_obNeedsSetup()) return;
+      openOnboarding();
+    }
+
+    window.resetOnboarding = function() {
+      openOnboarding();
+      console.log('[onboarding] فُتحت شاشة الإعداد للمعاينة — الإنهاء يحفظ الإعدادات من جديد.');
+    };
+
+    function openOnboarding() {
+      var s = (typeof settings !== 'undefined' && settings) || {};
+      var t = (s.chartTemplate && typeof s.chartTemplate === 'object') ? s.chartTemplate : {};
+      _obState = {
+        step: 0,
+        title: (s.title && s.title !== 'لوحة الطبيب') ? s.title : '',
+        specialty: s.specialty || '',
+        address: s.address || '',
+        mobile: s.mobile || '',
+        landline: s.landline || '',
+        logo: s.logo || null,
+        preset: '',
+        fields: {
+          patient: Array.isArray(t.patient) ? t.patient.map(_obCloneField) : [],
+          visit: Array.isArray(t.visit) ? t.visit.map(_obCloneField) : []
+        }
+      };
+      var ov = document.getElementById('onboardOverlay');
+      if (!ov) { console.error('[onboarding] عنصر #onboardOverlay غير موجود في app.html'); return; }
+      ov.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      _obRender();
+    }
+
+    function _obCloneField(f) {
+      return { id: f.id, label: f.label || '', type: f.type || 'text', options: (f.options || []).slice() };
+    }
+
+    function closeOnboarding() {
+      var ov = document.getElementById('onboardOverlay');
+      if (ov) ov.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function _obApplyPreset(name) {
+      var p = (typeof CHART_PRESETS !== 'undefined' && CHART_PRESETS[name]) || { patient: [], visit: [] };
+      _obState.preset = name;
+      _obState.fields = {
+        patient: (p.patient || []).map(_obCloneField),
+        visit: (p.visit || []).map(_obCloneField)
+      };
+    }
+
+    // إلغاء تمييز القالب بعد تعديل يدوي — بلا إعادة رسم حتى لا يُفقد التركيز
+    function _obUnmarkPreset() {
+      if (!_obState.preset) return;
+      _obState.preset = '';
+      Array.prototype.forEach.call(document.querySelectorAll('#onboardOverlay .ob-chip.on'), function(b) {
+        b.classList.remove('on');
+      });
+    }
+
+    function _obSyncChrome() {
+      Array.prototype.forEach.call(document.querySelectorAll('#onboardOverlay .ob-step'), function(li) {
+        var i = +li.getAttribute('data-step');
+        li.classList.toggle('current', i === _obState.step);
+        li.classList.toggle('done', i < _obState.step);
+      });
+      var prog = document.getElementById('obProg');
+      if (prog) prog.style.width = ((_obState.step + 1) / 4 * 100) + '%';
+
+      var back = document.getElementById('obBack'), next = document.getElementById('obNext'),
+          foot = document.getElementById('obFoot');
+      if (back) back.style.visibility = _obState.step === 0 ? 'hidden' : 'visible';
+      if (next) {
+        next.innerHTML = (_obState.step === 2 ? 'إنهاء الإعداد' : 'التالي') + ' <span aria-hidden="true">←</span>';
+        // لا يمكن تجاوز الخطوة الأولى بلا اسم وتخصّص
+        next.disabled = (_obState.step === 0 && !(_obState.title.trim() && _obState.specialty));
+      }
+      if (foot) foot.style.display = _obState.step === 3 ? 'none' : 'flex';
+    }
+
+    function _obHead(n, title, lede) {
+      return '<p class="ob-stepno">الخطوة ' + _obAR[n] + ' من ٤</p>' +
+        '<h2 class="ob-h' + (lede ? ' tight' : '') + '">' + title + '</h2>' +
+        (lede ? '<p class="ob-lede">' + lede + '</p>' : '');
+    }
+    function _obTip(t, b) {
+      return '<div class="ob-tip"><span class="i">i</span><p><b>' + t + '</b>' + b + '</p></div>';
+    }
+
+    function _obRender(focusScope, focusIdx) {
+      var body = document.getElementById('obBody');
+      if (!body) return;
+      var st = _obState;
+
+      if (st.step === 0) {
+        var names = (typeof CHART_PRESETS !== 'undefined') ? Object.keys(CHART_PRESETS) : [];
+        var opts = names.map(function(s) {
+          return '<option' + (s === st.specialty ? ' selected' : '') + '>' + _obEsc(s) + '</option>';
+        }).join('');
+        body.innerHTML = '<div class="ob-pane ob-body">' +
+          _obHead(0, 'معلومات الطبيب') +
+          '<div class="ob-grid">' +
+            '<div class="ob-f"><label for="obName">الاسم الكامل</label>' +
+              '<input id="obName" type="text" placeholder="مثال: د. أحمد الخالدي" value="' + _obEsc(st.title) + '">' +
+              '<span class="help">كما تريده أن يظهر للمرضى وفي ترويسة الوصفات.</span></div>' +
+            '<div class="ob-f"><label for="obSpec">التخصّص</label>' +
+              '<select id="obSpec"><option value="" disabled' + (st.specialty ? '' : ' selected') + '>اختر تخصّصك</option>' + opts + '</select>' +
+              '<span class="help accent">عليه تُبنى خانات الاضبارة الجاهزة.</span></div>' +
+          '</div>' +
+          _obTip('تنويه: ', 'اختيار التخصّص يجهّز خانات الاضبارة المناسبة له. تستطيع تعديل الخانات في أي وقت لاحقاً من الإعدادات ← «خصّص اضبارتك».') +
+        '</div>';
+
+        document.getElementById('obName').oninput = function() { st.title = this.value; _obSyncChrome(); };
+        document.getElementById('obSpec').onchange = function() {
+          st.specialty = this.value;
+          _obApplyPreset(this.value);
+          _obSyncChrome();
+        };
+      }
+
+      else if (st.step === 1) {
+        body.innerHTML = '<div class="ob-pane ob-body">' +
+          _obHead(1, 'بيانات العيادة') +
+          '<div class="ob-grid">' +
+            '<div class="ob-f wide"><label for="obAddr">العنوان</label>' +
+              '<input id="obAddr" type="text" placeholder="المدينة، المنطقة، أقرب نقطة دالّة" value="' + _obEsc(st.address) + '">' +
+              '<span class="help">يظهر في صفحة الحجز وفي رسائل التذكير.</span></div>' +
+            '<div class="ob-f"><label for="obMob">رقم الجوال</label>' +
+              '<input id="obMob" type="tel" dir="ltr" placeholder="07XX XXX XXXX" value="' + _obEsc(st.mobile) + '">' +
+              '<span class="help accent">يُستخدم لإشعارات واتساب.</span></div>' +
+            '<div class="ob-f"><label for="obTel">الهاتف الأرضي <span class="opt">(اختياري)</span></label>' +
+              '<input id="obTel" type="tel" dir="ltr" placeholder="0XX XXX XXXX" value="' + _obEsc(st.landline) + '">' +
+              '<span class="help">للمرضى الذين يفضّلون الاتصال الأرضي.</span></div>' +
+            '<div class="ob-f wide"><label>صورة الطبيب <span class="opt">(اختياري)</span></label>' +
+              '<div class="ob-photo">' +
+                '<div class="ob-ph' + (st.logo ? ' filled' : '') + '" id="obPhotoBox">' +
+                  (st.logo ? '<img src="' + _obEsc(st.logo) + '" alt="صورة الطبيب">' : '<i class="fas fa-user-md"></i>') +
+                '</div>' +
+                '<div><button class="ob-photo-btn" type="button" id="obPhotoBtn">' +
+                  (st.logo ? 'تغيير الصورة' : 'اختيار صورة') + '</button>' +
+                  '<span class="help">تظهر في ترويسة الطباعة وفي أعلى لوحتك. PNG أو JPG.</span></div>' +
+              '</div>' +
+              '<input type="file" id="obPhotoInput" accept="image/*" style="display:none">' +
+            '</div>' +
+          '</div>' +
+          _obTip('نصيحة: ', 'أدخل العنوان كما يعرفه المرضى لا كما هو رسمياً — أقرب نقطة دالّة تختصر عليهم الطريق أكثر من اسم الشارع.') +
+        '</div>';
+
+        document.getElementById('obAddr').oninput = function() { st.address = this.value; };
+        document.getElementById('obMob').oninput  = function() { st.mobile  = this.value; };
+        document.getElementById('obTel').oninput  = function() { st.landline = this.value; };
+
+        var fileInput = document.getElementById('obPhotoInput');
+        document.getElementById('obPhotoBtn').onclick = function() { fileInput.click(); };
+        fileInput.onchange = function(e) {
+          var file = e.target.files[0];
+          if (!file) return;
+          if (!file.type.startsWith('image/')) { showToast('الرجاء اختيار ملف صورة', 'error'); return; }
+          if (file.size > 5 * 1024 * 1024) { showToast('حجم الصورة يجب أن يكون أقل من 5 ميغابايت', 'error'); return; }
+          var btn = document.getElementById('obPhotoBtn');
+          btn.disabled = true; btn.textContent = 'جارٍ الرفع…';
+          window._fb.uploadLogo('doctor', file).then(function(url) {
+            st.logo = url;
+            var box = document.getElementById('obPhotoBox');
+            box.innerHTML = '<img src="' + _obEsc(url) + '" alt="صورة الطبيب">';
+            box.classList.add('filled');
+            btn.disabled = false; btn.textContent = 'تغيير الصورة';
+            showToast('تم رفع الصورة بنجاح', 'success');
+          }).catch(function(err) {
+            btn.disabled = false; btn.textContent = 'اختيار صورة';
+            showToast('فشل رفع الصورة', 'error');
+            console.error('[onboarding] فشل رفع الصورة', err);
+          });
+        };
+      }
+
+      else if (st.step === 2) {
+        var pnames = (typeof CHART_PRESETS !== 'undefined') ? Object.keys(CHART_PRESETS) : [];
+        var chips = pnames.map(function(s) {
+          return '<button class="ob-chip' + (s === st.preset ? ' on' : '') + '" type="button" data-p="' + _obEsc(s) + '">' +
+            _obEsc(s) + (s === st.specialty ? '<span class="tag">مقترح</span>' : '') + '</button>';
+        }).join('');
+
+        function grp(scope, title, note) {
+          var arr = st.fields[scope];
+          var rows = arr.length
+            ? arr.map(function(f, i) {
+                var o = _obTypeList().map(function(t) {
+                  return '<option value="' + t.v + '"' + (t.v === f.type ? ' selected' : '') + '>' + t.label + '</option>';
+                }).join('');
+                return '<div class="ob-cfrow" data-s="' + scope + '" data-i="' + i + '">' +
+                  '<div class="ob-cftype" aria-hidden="true">' + (_obICONS[f.type] || 'أ') + '</div>' +
+                  '<input class="ob-cfin" type="text" value="' + _obEsc(f.label) + '" placeholder="اسم الخانة" aria-label="اسم الخانة">' +
+                  '<button class="ob-cfdel" type="button" aria-label="حذف خانة">✕</button>' +
+                  '<select class="ob-cfsel" aria-label="نوع الخانة">' + o + '</select>' +
+                  ((f.options && f.options.length) ? '<div class="ob-cfopts">الخيارات: ' + _obEsc(f.options.join('، ')) + '</div>' : '') +
+                '</div>';
+              }).join('')
+            : '<div class="ob-cfempty">لا توجد خانات هنا بعد.</div>';
+          return '<div class="ob-cfsec"><p class="ob-cfhead">' + title +
+              (arr.length ? ' <span style="font-weight:400;opacity:.6;">(' + arr.length + ')</span>' : '') + '</p>' +
+            '<p class="ob-cfnote">' + note + '</p>' +
+            '<div class="ob-cflist">' + rows +
+              '<button class="ob-cfadd" type="button" data-add="' + scope + '">＋ إضافة خانة</button>' +
+            '</div></div>';
+        }
+
+        body.innerHTML = '<div class="ob-pane ob-body">' +
+          _obHead(2, 'تخصيص الاضبارة', 'ابدأ من قالب جاهز ثم عدّله كما تشاء — القالب نقطة انطلاق، لا قيد.') +
+          '<div class="ob-f"><label>القوالب الجاهزة</label>' +
+            '<div class="ob-chips">' + chips + '</div>' +
+            '<span class="help">اختيار قالب يستبدل الخانات الحالية بخانات ذلك التخصّص.</span></div>' +
+          grp('patient', 'خانات المريض', 'تُملأ مرّة واحدة وتبقى في ملفه — كالسوابق والقصة المرضية.') +
+          grp('visit', 'خانات الزيارة', 'تُملأ في كل زيارة على حدة — كالفحوص والقياسات.') +
+          _obTip('ملاحظة: ', 'الخانات المدمجة (الاسم، العمر، الهاتف، زمرة الدم، الأمراض المزمنة) موجودة أصلاً — أضف هنا ما يخصّ تخصّصك فقط.') +
+        '</div>';
+
+        Array.prototype.forEach.call(body.querySelectorAll('.ob-chip'), function(b) {
+          b.onclick = function() { _obApplyPreset(this.getAttribute('data-p')); _obRender(); };
+        });
+        Array.prototype.forEach.call(body.querySelectorAll('.ob-cfadd'), function(b) {
+          b.onclick = function() {
+            var sc = this.getAttribute('data-add');
+            st.fields[sc].push({ label: '', type: 'text', options: [] });
+            st.preset = '';
+            _obRender(sc, st.fields[sc].length - 1);
+          };
+        });
+        Array.prototype.forEach.call(body.querySelectorAll('.ob-cfrow'), function(row) {
+          var sc = row.getAttribute('data-s'), i = +row.getAttribute('data-i'), f = st.fields[sc][i];
+          row.querySelector('.ob-cfin').oninput = function() { f.label = this.value; _obUnmarkPreset(); };
+          row.querySelector('.ob-cfsel').onchange = function() {
+            f.type = this.value;
+            if (f.type !== 'select') f.options = [];
+            row.querySelector('.ob-cftype').textContent = _obICONS[this.value] || 'أ';
+            _obUnmarkPreset();
+          };
+          row.querySelector('.ob-cfdel').onclick = function() {
+            st.fields[sc].splice(i, 1); st.preset = ''; _obRender();
+          };
+        });
+      }
+
+      else {
+        body.innerHTML = '<div class="ob-pane ob-done">' +
+          '<div class="ob-seal"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></div>' +
+          '<h2>عيادتك جاهزة</h2>' +
+          '<p>حُفظت الإعدادات. لن تظهر هذه الشاشة مرّة أخرى — يفتح التطبيق مباشرةً في كل دخول.</p>' +
+          '<dl class="ob-recap">' +
+            '<div><dt>الطبيب</dt><dd>' + (_obEsc(st.title) || '—') + '</dd></div>' +
+            '<div><dt>التخصّص</dt><dd>' + (_obEsc(st.specialty) || '—') + '</dd></div>' +
+            '<div><dt>العنوان</dt><dd>' + (_obEsc(st.address) || '—') + '</dd></div>' +
+            '<div><dt>خانات المريض</dt><dd>' + st.fields.patient.length + ' خانة</dd></div>' +
+            '<div><dt>خانات الزيارة</dt><dd>' + st.fields.visit.length + ' خانة</dd></div>' +
+          '</dl>' +
+          '<button class="ob-btn primary" type="button" id="obStart">ابدأ الآن</button>' +
+        '</div>';
+        document.getElementById('obStart').onclick = closeOnboarding;
+      }
+
+      _obSyncChrome();
+
+      // الخانة المضافة حديثاً: تمرير إليها ووضع المؤشّر في اسمها
+      if (focusScope) {
+        var nrow = body.querySelector('.ob-cfrow[data-s="' + focusScope + '"][data-i="' + focusIdx + '"]');
+        if (nrow) {
+          var inp = nrow.querySelector('.ob-cfin');
+          if (inp) { try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } }
+          var soft = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+          // حارس: بعض الـwebviews القديمة لا تعرّف scrollIntoView — لا نُسقط مسار الإضافة لأجله
+          if (typeof nrow.scrollIntoView === 'function') {
+            nrow.scrollIntoView({ behavior: soft ? 'smooth' : 'auto', block: 'center' });
+          }
+        }
+      }
+    }
+
+    // حفظ نهائي — نفس مسار الحفظ القائم (settings/doctor عبر setDoc merge)
+    function _obFinish() {
+      var st = _obState;
+      function clean(arr) {
+        return arr.filter(function(f) { return (f.label || '').trim(); }).map(function(f) {
+          return {
+            id: f.id || (typeof _cfNewId === 'function' ? _cfNewId() : ('f' + Date.now() + Math.random().toString(36).slice(2, 7))),
+            label: f.label.trim(),
+            type: f.type || 'text',
+            options: f.type === 'select' ? (f.options || []) : []
+          };
+        });
+      }
+      if (typeof settings === 'undefined' || !settings) settings = {};
+      settings.title     = st.title.trim() || 'لوحة الطبيب';
+      settings.specialty = st.specialty || '';
+      settings.address   = st.address.trim();
+      settings.mobile    = st.mobile.trim();
+      settings.landline  = st.landline.trim();
+      if (st.logo) settings.logo = st.logo;
+      settings.chartTemplate = {
+        patient: clean(st.fields.patient),
+        visit: clean(st.fields.visit),
+        dental: /أسنان|اسنان|dental/i.test(st.specialty || '')
+      };
+      settings.onboarded = true;
+      settings.onboardedAt = Date.now();
+
+      saveSettingsToLocal(settings);
+      if (typeof applySettings === 'function') applySettings();
+
+      st.step = 3;
+      _obRender();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var next = document.getElementById('obNext'), back = document.getElementById('obBack');
+      if (next) next.onclick = function() {
+        if (!_obState) return;
+        if (_obState.step === 2) { _obFinish(); return; }
+        if (_obState.step < 3) { _obState.step++; _obRender(); }
+      };
+      if (back) back.onclick = function() {
+        if (_obState && _obState.step > 0) { _obState.step--; _obRender(); }
+      };
+    });
