@@ -3985,8 +3985,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var _pills = document.getElementById('chartHeaderPills'); if (_pills) _pills.innerHTML = renderChartHeaderPills(p);
       document.getElementById('chartInfoGrid').innerHTML = renderChartInfoTiles(p);
       renderChartVisits(pid);
-      // ★ الأداة السريرية للتخصّص — تظهر فقط إن وُجد حقل بزيارتين فأكثر فيهما قيم
-      if (typeof renderChartSpecialtyTool === 'function') renderChartSpecialtyTool(pid);
+      // ★ زر الأداة السريرية في رأس الأرشيف: يظهر فقط إن وُجد حقل بزيارتين فأكثر فيهما قيم (يفتح مودال openSpecialtyTool)
+      var _sbtn = document.getElementById('specialtyToolBtn');
+      if (_sbtn) _sbtn.style.display = (typeof _scBuildBody === 'function' && _scBuildBody(pid)) ? 'inline-flex' : 'none';
       // 🦷 زر مخطط الأسنان في رأس الأرشيف: يظهر عند تفعيل الأسنان
       var _dbtn = document.getElementById('dentalArchiveBtn');
       if (_dbtn) _dbtn.style.display = _dentalEnabled() ? 'inline-flex' : 'none';
@@ -5043,7 +5044,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // جدول مقارنة عام: يجمع كل الحقول غير القابلة للرسم (نصّ/نصّ طويل/نعم-لا) عموداً فعموداً عبر الزيارات
     function _scTable(cols, rows) {
-      // الجدول يُغلَّف دوماً بصندوق var(--bg) (renderChartSpecialtyTool) — فترويسته تستعمل var(--surface) لتتباين عنه
+      // الجدول يُغلَّف دوماً بصندوق var(--bg) (_scBuildBody) — فترويسته تستعمل var(--surface) لتتباين عنه
       var head = '<tr><th style="padding:8px 10px;text-align:start;font-size:.72rem;font-weight:700;color:var(--text-muted);background:var(--surface);white-space:nowrap;">الزيارة</th>' +
         cols.map(function(c) { return '<th style="padding:8px 10px;text-align:start;font-size:.72rem;font-weight:700;color:var(--text-muted);background:var(--surface);white-space:nowrap;">' + escapeHtml(c) + '</th>'; }).join('') + '</tr>';
       var body = rows.map(function(r) {
@@ -5065,11 +5066,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return out;
     }
 
-    window.renderChartSpecialtyTool = function(pid) {
-      var container = document.getElementById('chartSpecialtyTool');
-      if (!container) return;
+    // يبني محتوى الأداة السريرية (بلا غلاف بطاقة/رأس — المودال في specialtyToolModal يوفّرهما) أو '' إن لم توجد بيانات كافية.
+    // مستقلّة عن أي عنصر DOM لتُستعمل مرّتين: فحص إظهار الزر، وتعبئة جسم المودال عند الفتح.
+    function _scBuildBody(pid) {
       var p = allPatients[pid];
-      if (!p) { container.innerHTML = ''; return; }
+      if (!p) return '';
 
       var visits = (p.appointments || []).filter(function(v) { return v.date; })
         .sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });   // تصاعدي: عكس ترتيب الأرشيف النازل
@@ -5150,16 +5151,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           '<div style="font-size:.85rem;font-weight:700;color:var(--text-primary);margin-bottom:10px;">مقارنة عبر الزيارات</div>' + _scTable(tableCols, rows) + '</div>';
       }
 
-      if (!lmpBlock && !charts && !tableHtml) { container.innerHTML = ''; return; }
+      if (!lmpBlock && !charts && !tableHtml) return '';
+      return lmpBlock + charts + tableHtml;
+    }
 
+    // ★ فتح/إغلاق مودال الأداة السريرية — بنفس آلية مودال مخطّط الأسنان (openDentalChart/closeDentalChart):
+    // مودال ملء الشاشة (dc-page) فوق اضبارة المريض، بلا حاجة لإخفاء mainRail لأنه يغطّي الشاشة بالكامل.
+    window.openSpecialtyTool = function(pid) {
+      var p = allPatients[pid]; if (!p) return;
+      var body = _scBuildBody(pid);
+      if (!body) { showToast('لا توجد بيانات كافية بعد لعرض الأداة السريرية — تحتاج زيارتين فأكثر بقيم', 'info'); return; }
       var meta = _scSpecialtyMeta();
-      container.innerHTML = '<div class="glass-card" style="padding:16px;">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
-          '<span style="width:34px;height:34px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + _scIcon(meta.icon) + '</span>' +
-          '<h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;">' + escapeHtml(meta.title) + '</h4>' +
-        '</div>' + lmpBlock + charts + tableHtml +
-      '</div>';
+      document.getElementById('scIcon').innerHTML = _scIcon(meta.icon);
+      document.getElementById('scTitle').textContent = meta.title;
+      document.getElementById('scPatientName').textContent = (p.name || '') + ' — مقارنة القياسات عبر الزيارات';
+      document.getElementById('scBody').innerHTML = body;
+      document.getElementById('specialtyToolModal').classList.remove('hidden');
     };
+    window.closeSpecialtyTool = function() { document.getElementById('specialtyToolModal').classList.add('hidden'); };
 
     /* ===== مُخصِّص الاضبارة (نافذة الإعدادات) ===== */
     var _cfDraft = { patient: [], visit: [] };

@@ -1032,14 +1032,13 @@
           <div id="chartNextHint" style="font-size:.74rem;color:var(--text-muted);margin-top:9px;"></div>
         </div>
 
-        <!-- ★ الأداة السريرية للتخصّص — تُبنى/تُفرَّغ بالكامل عبر renderChartSpecialtyTool، لا شيء ثابتاً هنا -->
-        <div id="chartSpecialtyTool"></div>
-
         <!-- أرشيف الزيارات -->
         <div class="glass-card" style="padding:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
             <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-folder-open" style="margin-left:6px;"></i>أرشيف الزيارات <span id="chartVisitsCount" style="font-size:.72rem;color:var(--text-muted);font-weight:600;"></span></h4>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <!-- ★ الأداة السريرية للتخصّص — تظهر فقط إن وُجدت بيانات كافية (renderChartSpecialtyTool سابقاً، الآن مودال ملء الشاشة كمخطّط الأسنان) -->
+              <button id="specialtyToolBtn" onclick="openSpecialtyTool(currentPatientIdForVisit)" style="display:none;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-chart-line"></i> الأداة السريرية</button>
               <button id="dentalArchiveBtn" onclick="openDentalChart(currentPatientIdForVisit)" style="display:none;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-tooth"></i> مخطط الأسنان</button>
               <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
             </div>
@@ -1368,6 +1367,21 @@
 
   <!-- ========== 🦷 مخطط الأسنان ========== -->
   <!-- 🦷 مخطط الأسنان — صفحة كاملة -->
+  <!-- ★ مودال الأداة السريرية للتخصّص — بنفس هيكل مودال مخطّط الأسنان (dc-page) -->
+  <div id="specialtyToolModal" class="hidden fixed inset-0 z-[190] dc-page">
+    <div class="dc-page-head">
+      <button onclick="closeSpecialtyTool()" class="dc-back" title="رجوع"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+      <span class="dc-head-ic" id="scIcon"></span>
+      <div class="dc-head-txt">
+        <h3 id="scTitle"></h3>
+        <p id="scPatientName"></p>
+      </div>
+    </div>
+    <div class="dc-page-body" style="display:block;max-width:760px;margin:0 auto;width:100%;">
+      <div id="scBody"></div>
+    </div>
+  </div>
+
   <div id="dentalChartModal" class="hidden fixed inset-0 z-[190] dc-page">
     <div class="dc-page-head">
       <button onclick="closeDentalChart()" class="dc-back" title="رجوع"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
@@ -1840,7 +1854,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=115"></script>
+  <script src="script.js?v=116"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
