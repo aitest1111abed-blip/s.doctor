@@ -3371,6 +3371,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   // ── تسجيل الخروج عبر Firebase ──
   // زر تسجيل الخروج للعرض فقط — معطّل (لا يسجّل خروجاً)
   window.docbookSignOut = function() {
+    // ⚠️ مؤقّت: علامة تجعل شاشة الإعداد تظهر عند الدخول التالي (للمعاينة).
+    //    تُحذف هذه الأسطر الثلاثة مع _OB_PREVIEW_AFTER_LOGOUT عند انتهاء التجربة.
+    try {
+      if (typeof _OB_PREVIEW_AFTER_LOGOUT !== 'undefined' && _OB_PREVIEW_AFTER_LOGOUT) {
+        localStorage.setItem(_OB_PREVIEW_KEY, '1');
+      }
+    } catch (e) {}
     function go(){ location.replace('index.html'); }
     try { window._fb.signOut().then(go).catch(go); } catch(e){ go(); }
   };
@@ -5822,11 +5829,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
        وزر «خصّص اضبارتك» يبقى في الإعدادات كما هو.
        ===================================================================== */
 
-    /* ⚠️⚠️⚠️ مفتاح مؤقّت للمعاينة — يجب إطفاؤه قبل التسليم ⚠️⚠️⚠️
-       عندما يكون true تظهر شاشة الإعداد في *كل* دخول مهما كانت الإعدادات،
-       فتستطيع تجربتها بتسجيل خروج ثم دخول بلا لمس قاعدة البيانات.
-       للإطفاء: بدّله إلى false (سطر واحد) — أو اطلب مني إزالة المفتاح كلياً. */
-    var _OB_ALWAYS_SHOW = true;
+    /* ⚠️⚠️⚠️ وضع المعاينة المؤقّت — يجب إطفاؤه قبل التسليم ⚠️⚠️⚠️
+       الشاشة تظهر بعد دورة «تسجيل خروج ← دخول» فقط، ولا تظهر عند تحديث الصفحة:
+       docbookSignOut() تكتب علامة في localStorage، و maybeStartOnboarding()
+       تستهلكها مرّة واحدة عند الدخول التالي ثم تمحوها.
+       للإطفاء: بدّله إلى false — أو اطلب مني إزالة الوضع كلياً. */
+    var _OB_PREVIEW_AFTER_LOGOUT = true;
+    var _OB_PREVIEW_KEY = 'obPreviewAfterLogout';
 
     var _obState = null;
     var _obAR = ['١', '٢', '٣', '٤'];
@@ -5856,11 +5865,17 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // يُستدعى بعد تحميل الإعدادات عند الإقلاع
     function maybeStartOnboarding() {
-      // ⚠️ مؤقّت: يتجاوز الشرط ويعرضها دائماً — يُحذف مع _OB_ALWAYS_SHOW
-      if (_OB_ALWAYS_SHOW) {
-        console.warn('[onboarding] وضع المعاينة مفعّل (_OB_ALWAYS_SHOW) — الشاشة تظهر في كل دخول. أطفئه قبل التسليم.');
-        openOnboarding();
-        return;
+      // ⚠️ مؤقّت: عرض بعد تسجيل الخروج فقط — يُحذف مع _OB_PREVIEW_AFTER_LOGOUT
+      if (_OB_PREVIEW_AFTER_LOGOUT) {
+        var _obFlagged = false;
+        try { _obFlagged = localStorage.getItem(_OB_PREVIEW_KEY) === '1'; } catch (e) {}
+        if (_obFlagged) {
+          // تُستهلك مرّة واحدة: تحديث الصفحة بعدها لا يعيد الشاشة
+          try { localStorage.removeItem(_OB_PREVIEW_KEY); } catch (e) {}
+          console.warn('[onboarding] معاينة بعد تسجيل الخروج — لن تتكرر عند تحديث الصفحة. أطفئ _OB_PREVIEW_AFTER_LOGOUT قبل التسليم.');
+          openOnboarding();
+          return;
+        }
       }
       if (!_obNeedsSetup()) return;
       openOnboarding();
