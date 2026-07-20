@@ -18,6 +18,9 @@
 
       --text-primary: #0f172a; --text-secondary: #334155; --text-muted: #64748b;
 
+      /* سلسلة ثانية للمنحنيات ثنائية القيمة (كالضغط الانبساطي) — لون بيانات محايد، لا تُستخدم --red لأنها مخصّصة للخطر/الحذف */
+      --chart-accent-2: #e34948;
+
       --red:       #dc2626; --red-light: #fee2e2;
       --green:     #16a34a; --green-light:#dcfce7;
       --amber:     #d97706; --amber-light:#fef3c7;

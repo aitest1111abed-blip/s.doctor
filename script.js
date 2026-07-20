@@ -3985,6 +3985,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var _pills = document.getElementById('chartHeaderPills'); if (_pills) _pills.innerHTML = renderChartHeaderPills(p);
       document.getElementById('chartInfoGrid').innerHTML = renderChartInfoTiles(p);
       renderChartVisits(pid);
+      // ★ الأداة السريرية للتخصّص — تظهر فقط إن وُجد حقل بزيارتين فأكثر فيهما قيم
+      if (typeof renderChartSpecialtyTool === 'function') renderChartSpecialtyTool(pid);
       // 🦷 زر مخطط الأسنان في رأس الأرشيف: يظهر عند تفعيل الأسنان
       var _dbtn = document.getElementById('dentalArchiveBtn');
       if (_dbtn) _dbtn.style.display = _dentalEnabled() ? 'inline-flex' : 'none';
@@ -4633,7 +4635,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           { label: 'وسائل منع الحمل المستخدمة', type: 'text' }
         ],
         visit: [
-          { label: 'تاريخ آخر طمث (LMP)', type: 'date' },
+          { label: 'تاريخ آخر طمث (LMP)', type: 'date', role: 'lmp' },
           { label: 'موعد الولادة المتوقع (EDD)', type: 'date' },
           { label: 'نتائج فحص عنق الرحم (Pap Smear)', type: 'textarea' },
           { label: 'الفحص بالصدى (Echo)', type: 'textarea' }
@@ -4912,9 +4914,210 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:12px;">' + items.join('') + '</div>';
     }
 
+    /* ============================================================
+       ★ الأداة السريرية لكل تخصّص — بطاقة في اضبارة المريض
+       ------------------------------------------------------------
+       لا كود خاص بكل تخصّص: تقرأ getChartTemplate().visit وتقرّر شكل
+       العرض من نوع كل حقل — رقم(منحنى) · نص"رقم/رقم"(منحنيان) ·
+       قائمة(شرائح) · تاريخ role=lmp(بطاقة حمل مشتقّة) · الباقي(جدول).
+       تعمل مع أي حقل يضيفه الطبيب بنفسه، لا فقط قوالب CHART_PRESETS.
+       ============================================================ */
+
+    // تاريخ مختصر لمحور الرسم (يوم/شهر) — formatDateAr مطوّل جداً لمحور بستّ نقاط
+    function _scShortDate(iso) {
+      if (!iso) return '';
+      var d = parseLocalISODate(iso);
+      return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'numeric' });
+    }
+
+    var _SC_ICONS = {
+      pregnancy: '<circle cx="12" cy="13" r="7.2"/><path d="M7.6 13h2l1.3-2.7 1.7 5.2 1-2.5h2.6"/>',
+      baby:      '<path d="M4 19V9M9.5 19V6M15 19V10M20 19v-5"/><circle cx="4" cy="6" r="1.4"/><circle cx="9.5" cy="3" r="1.4"/><circle cx="15" cy="7" r="1.4"/><circle cx="20" cy="11" r="1.4"/>',
+      pulse:     '<path d="M3 12h4l2-7 4 14 2-7h6"/>',
+      heart:     '<path d="M12 20.5s-7.5-4.6-9.7-9.4C.7 7.6 2.3 4 5.8 3.4 8.1 3 10.4 4.1 12 6.4 13.6 4.1 15.9 3 18.2 3.4c3.5.6 5.1 4.2 3.5 7.7C19.5 15.9 12 20.5 12 20.5Z"/>',
+      lens:      '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/><circle cx="10.5" cy="10.5" r="1.6"/>',
+      rom:       '<path d="M6 18l6-6 6 3"/><path d="M12 12V6.6" stroke-dasharray="2.3 2.3" opacity=".55"/><path d="M9.6 11.2a3.3 3.3 0 0 0 2 3.6"/>'
+    };
+    function _scIcon(name) {
+      return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (_SC_ICONS[name] || _SC_ICONS.pulse) + '</svg>';
+    }
+    // يحدّد أيقونة/عنوان البطاقة حسب تخصّص الطبيب — بنفس أسلوب مطابقة _dentalEnabled التقريبية
+    function _scSpecialtyMeta() {
+      var sp = (typeof settings !== 'undefined' && settings && settings.specialty) || '';
+      if (/نسائ|توليد/.test(sp))            return { icon: 'pregnancy', title: 'متابعة الحمل' };
+      if (/أطفال|اطفال/.test(sp))           return { icon: 'baby',      title: 'مخطّط النمو' };
+      if (/قلب/.test(sp))                    return { icon: 'heart',     title: 'سجلّ الفحوص القلبية' };
+      if (/جلد/.test(sp))                    return { icon: 'lens',      title: 'تطوّر الحالة الجلدية' };
+      if (/عظم|عظام/.test(sp))               return { icon: 'rom',       title: 'متابعة الإصابة' };
+      return { icon: 'pulse', title: 'منحنى القياسات' };   // باطنية وأي تخصّص آخر
+    }
+
+    // رسم خطّي بسيط: سلسلة أو سلسلتان بنفس الوحدة — لا محورين أبداً
+    function _scLineChart(cfg) {
+      var W = 560, H = 168, PL = 8, PR = 46, PT = 14, PB = 24;
+      var all = []; cfg.series.forEach(function(s) { all = all.concat(s.v); });
+      var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+      var pad = (mx - mn) * 0.18 || 1; mn -= pad; mx += pad;
+      var n = cfg.labels.length;
+      var X = function(i) { return PL + (W - PL - PR) * (n < 2 ? 0.5 : i / (n - 1)); };
+      var Y = function(v) { return PT + (H - PT - PB) * (1 - (v - mn) / (mx - mn)); };
+
+      var grid = '';
+      for (var t = 0; t < 3; t++) {
+        var gy = PT + (H - PT - PB) * t / 2, gv = mx - (mx - mn) * t / 2;
+        grid += '<line x1="' + PL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + gy.toFixed(1) + '" stroke="var(--border)" stroke-width="1" opacity=".6"/>' +
+          '<text x="' + (W - PR + 8) + '" y="' + (gy + 4).toFixed(1) + '" font-size="10.5" fill="var(--text-muted)">' + (Math.round(gv * 10) / 10) + '</text>';
+      }
+      var xl = '';
+      cfg.labels.forEach(function(l, i) {
+        xl += '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" font-size="10.5" fill="var(--text-muted)" text-anchor="middle">' + escapeHtml(l) + '</text>';
+      });
+      var marks = '';
+      cfg.series.forEach(function(s) {
+        var pts = s.v.map(function(v, i) { return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ');
+        marks += '<polyline points="' + pts + '" fill="none" stroke="' + s.color + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+        s.v.forEach(function(v, i) {
+          marks += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(v).toFixed(1) + '" r="4" fill="' + s.color + '" stroke="var(--surface)" stroke-width="2"/>';
+        });
+        var li = s.v.length - 1;
+        marks += '<text x="' + (X(li) + 8) + '" y="' + (Y(s.v[li]) + 4).toFixed(1) + '" font-size="11.5" font-weight="700" fill="' + s.color + '">' + s.v[li] + '</text>';
+      });
+      var leg = '';
+      if (cfg.series.length > 1) {
+        leg = '<div style="display:flex;gap:14px;margin-bottom:6px;">' + cfg.series.map(function(s) {
+          return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;color:var(--text-secondary);">' +
+            '<i style="width:10px;height:10px;border-radius:3px;background:' + s.color + ';display:inline-block;"></i>' + escapeHtml(s.n) + '</span>';
+        }).join('') + '</div>';
+      }
+      return '<div style="margin-bottom:16px;">' +
+        '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap;">' +
+          '<b style="font-size:.85rem;font-weight:700;color:var(--text-primary);">' + escapeHtml(cfg.title) + '</b>' +
+          '<span style="font-size:.72rem;color:var(--text-muted);">' + escapeHtml(cfg.unit || '') + '</span>' +
+        '</div>' + leg +
+        '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block;" role="img" aria-label="' + _cfAttr(cfg.title) + '">' +
+          grid + marks + xl +
+        '</svg></div>';
+    }
+
+    // جدول مقارنة عام: يجمع كل الحقول غير القابلة للرسم (نصّ/نصّ طويل/نعم-لا) عموداً فعموداً عبر الزيارات
+    function _scTable(cols, rows) {
+      var head = '<tr><th style="padding:8px 10px;text-align:start;font-size:.72rem;font-weight:700;color:var(--text-muted);background:var(--bg);white-space:nowrap;">الزيارة</th>' +
+        cols.map(function(c) { return '<th style="padding:8px 10px;text-align:start;font-size:.72rem;font-weight:700;color:var(--text-muted);background:var(--bg);white-space:nowrap;">' + escapeHtml(c) + '</th>'; }).join('') + '</tr>';
+      var body = rows.map(function(r) {
+        return '<tr><td style="padding:9px 10px;font-size:.8rem;font-weight:700;color:var(--primary);white-space:nowrap;border-top:1px solid var(--border);">' + escapeHtml(r.date) + '</td>' +
+          r.vals.map(function(v) { return '<td style="padding:9px 10px;font-size:.8rem;color:var(--text-primary);border-top:1px solid var(--border);max-width:220px;">' + escapeHtml(v || '—') + '</td>'; }).join('') + '</tr>';
+      }).join('');
+      return '<div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;">' +
+        '<table style="width:100%;border-collapse:collapse;min-width:420px;"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+    }
+
+    // يستخرج {date,value} لحقل واحد عبر الزيارات المرتّبة تصاعدياً، متجاهلاً الفراغ
+    function _scFieldSeries(visits, fieldId) {
+      var out = [];
+      visits.forEach(function(v) {
+        var raw = v.custom && v.custom[fieldId];
+        var s = (raw == null) ? '' : String(raw).trim();
+        if (s !== '') out.push({ date: v.date, value: s });
+      });
+      return out;
+    }
+
+    window.renderChartSpecialtyTool = function(pid) {
+      var container = document.getElementById('chartSpecialtyTool');
+      if (!container) return;
+      var p = allPatients[pid];
+      if (!p) { container.innerHTML = ''; return; }
+
+      var visits = (p.appointments || []).filter(function(v) { return v.date; })
+        .sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });   // تصاعدي: عكس ترتيب الأرشيف النازل
+      var fields = getChartTemplate().visit;
+
+      var lmpBlock = '', charts = '', tableCols = [], tableRows = null;
+
+      fields.forEach(function(f) {
+        var series = _scFieldSeries(visits, f.id);
+
+        if (f.type === 'date' && f.role === 'lmp') {
+          if (!series.length) return;
+          var lmp = parseLocalISODate(series[series.length - 1].value);
+          var today = new Date();
+          var gestDays = Math.round((today - lmp) / 86400000);
+          var gestWeeks = Math.floor(gestDays / 7);
+          if (gestWeeks < 0 || gestWeeks > 44) return;   // بيانات غير منطقية — لا نعرض رقماً مضلّلاً
+          var edd = new Date(lmp.getTime() + 280 * 86400000);
+          var tri = gestWeeks < 13 ? 'الأول' : (gestWeeks < 27 ? 'الثاني' : 'الثالث');
+          var fmt = function(d) { return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long' }); };
+          lmpBlock = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;">' +
+            '<div style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;"><div style="font-size:.7rem;color:var(--text-muted);margin-bottom:4px;">عمر الحمل</div><div style="font-size:1.05rem;font-weight:800;color:var(--text-primary);">' + Math.floor(gestWeeks) + ' أسبوع</div></div>' +
+            '<div style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;"><div style="font-size:.7rem;color:var(--text-muted);margin-bottom:4px;">الثلث</div><div style="font-size:1.05rem;font-weight:800;color:var(--text-primary);">' + tri + '</div></div>' +
+            '<div style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;"><div style="font-size:.7rem;color:var(--text-muted);margin-bottom:4px;">الولادة المتوقّعة</div><div style="font-size:1.05rem;font-weight:800;color:var(--text-primary);">' + fmt(edd) + '</div></div>' +
+          '</div>' +
+          '<div style="font-size:.76rem;color:var(--text-muted);margin:-6px 0 16px;">محسوبة تلقائياً من «' + escapeHtml(f.label) + '» — لا تُدخَل يدوياً.</div>';
+          return;
+        }
+
+        if (f.type === 'number' && series.length >= 2) {
+          var nums = series.map(function(s) { return parseFloat(s.value); });
+          if (nums.some(isNaN)) { /* قيمة غير رقمية سقطت سهواً — تُعامَل كنصّ في الجدول أدناه */ }
+          else {
+            charts += _scLineChart({
+              title: f.label, unit: '', labels: series.map(function(s) { return _scShortDate(s.date); }),
+              series: [{ n: f.label, color: 'var(--primary)', v: nums }]
+            });
+            return;
+          }
+        }
+
+        if (f.type === 'text' && series.length >= 2) {
+          var bp = series.map(function(s) { return /^(\d+)\s*\/\s*(\d+)$/.exec(s.value); });
+          if (bp.every(Boolean)) {
+            charts += _scLineChart({
+              title: f.label, unit: '', labels: series.map(function(s) { return _scShortDate(s.date); }),
+              series: [
+                { n: 'الرقم الأول', color: 'var(--primary)', v: bp.map(function(m) { return +m[1]; }) },
+                { n: 'الرقم الثاني', color: 'var(--chart-accent-2)', v: bp.map(function(m) { return +m[2]; }) }
+              ]
+            });
+            return;
+          }
+        }
+
+        // الباقي (نص عام، نص طويل، نعم/لا، قائمة، أو رقم/نص لم يصلح لمنحنى) → عمود في جدول المقارنة المشترك
+        // بزيارتين فأكثر فقط — جدول بصفّ واحد لا يقارن شيئاً ويكرّر ما تعرضه بطاقة الزيارة نفسها أصلاً
+        if (series.length >= 2) {
+          if (!tableRows) tableRows = {};
+          tableCols.push(f.label);
+          series.forEach(function(s) {
+            if (!tableRows[s.date]) tableRows[s.date] = {};
+            tableRows[s.date][f.label] = (f.type === 'checkbox') ? (s.value ? 'نعم' : '') : s.value;
+          });
+        }
+      });
+
+      var tableHtml = '';
+      if (tableRows) {
+        var dates = Object.keys(tableRows).sort().reverse();   // الأحدث أولاً في الجدول (يقرأه الطبيب من الأعلى)
+        var rows = dates.map(function(d) {
+          return { date: formatDateAr(d), vals: tableCols.map(function(c) { return tableRows[d][c] || ''; }) };
+        });
+        tableHtml = '<div style="margin-top:4px;"><div style="font-size:.85rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;">مقارنة عبر الزيارات</div>' + _scTable(tableCols, rows) + '</div>';
+      }
+
+      if (!lmpBlock && !charts && !tableHtml) { container.innerHTML = ''; return; }
+
+      var meta = _scSpecialtyMeta();
+      container.innerHTML = '<div class="glass-card" style="padding:16px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
+          '<span style="width:34px;height:34px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + _scIcon(meta.icon) + '</span>' +
+          '<h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;">' + escapeHtml(meta.title) + '</h4>' +
+        '</div>' + lmpBlock + charts + tableHtml +
+      '</div>';
+    };
+
     /* ===== مُخصِّص الاضبارة (نافذة الإعدادات) ===== */
     var _cfDraft = { patient: [], visit: [] };
-    function _cfClone(f) { return { id: f.id || _cfNewId(), label: f.label || '', type: f.type || 'text', options: (f.options || []).slice() }; }
+    function _cfClone(f) { return { id: f.id || _cfNewId(), label: f.label || '', type: f.type || 'text', options: (f.options || []).slice(), role: f.role || '' }; }
 
     window.openChartCustomizer = function() {
       var t = getChartTemplate();
@@ -4939,6 +5142,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var showOpts = (f.type === 'select');
       var btn = 'width:32px;height:32px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);cursor:pointer;flex-shrink:0;font-size:.82rem;';
       var subLbl = 'font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:4px;';
+      var showLmp = (scope === 'visit' && f.type === 'date');
       // بطاقة حقل — بنفس هوية بطاقات الاضبارة: عنوان بارز أعلى، النوع والخيارات أسفله
       return '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-sm);">'
         + '<div style="display:flex;gap:8px;align-items:center;">'
@@ -4952,6 +5156,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + '<div style="flex:2;min-width:150px;' + (showOpts ? '' : 'display:none;') + '"><div style="' + subLbl + '">الخيارات (افصل بفاصلة)</div>'
             + '<input class="form-input" value="' + _cfAttr((f.options || []).join('، ')) + '" placeholder="مثال: خيار 1، خيار 2، خيار 3" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'options\',this.value)"></div>'
         + '</div>'
+        + (showLmp
+            ? '<label style="display:flex;align-items:center;gap:8px;padding-right:40px;font-size:.78rem;font-weight:700;color:var(--text-secondary);cursor:pointer;">'
+                + '<input type="checkbox" ' + (f.role === 'lmp' ? 'checked' : '') + ' onchange="cfSetLmpRole(\'' + scope + '\',' + idx + ',this.checked)" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;">'
+                + '🤰 استخدم هذا التاريخ لحساب أسبوع الحمل تلقائياً'
+              + '</label>'
+            : '')
       + '</div>';
     }
     function _cfEmptyRows() {
@@ -4969,7 +5179,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       else f[key] = val;
     };
     window.cfAdd = function(scope) {
-      _cfDraft[scope].push({ id: _cfNewId(), label: '', type: 'text', options: [] });
+      _cfDraft[scope].push({ id: _cfNewId(), label: '', type: 'text', options: [], role: '' });
+      renderCustomizerRows();
+    };
+    // 🤰 حقل واحد فقط في الاضبارة يجوز أن يحمل role:'lmp' — تفعيله على حقل يُلغيه عن كل الحقول الأخرى
+    window.cfSetLmpRole = function(scope, idx, on) {
+      var arr = _cfDraft[scope]; if (!arr) return;
+      arr.forEach(function(f, i) { f.role = (on && i === idx) ? 'lmp' : (f.role === 'lmp' ? '' : f.role); });
       renderCustomizerRows();
     };
     window.cfDelete = function(scope, idx) {
@@ -5000,7 +5216,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     window.saveChartTemplate = function() {
       function clean(arr) {
         return arr.filter(function(f) { return (f.label || '').trim(); }).map(function(f) {
-          return { id: f.id || _cfNewId(), label: f.label.trim(), type: f.type || 'text', options: f.type === 'select' ? (f.options || []) : [] };
+          return { id: f.id || _cfNewId(), label: f.label.trim(), type: f.type || 'text', options: f.type === 'select' ? (f.options || []) : [], role: (f.type === 'date' && f.role) ? f.role : '' };
         });
       }
       if (typeof settings === 'undefined' || !settings) settings = {};

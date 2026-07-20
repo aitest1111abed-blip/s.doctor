@@ -1032,6 +1032,9 @@
           <div id="chartNextHint" style="font-size:.74rem;color:var(--text-muted);margin-top:9px;"></div>
         </div>
 
+        <!-- ★ الأداة السريرية للتخصّص — تُبنى/تُفرَّغ بالكامل عبر renderChartSpecialtyTool، لا شيء ثابتاً هنا -->
+        <div id="chartSpecialtyTool"></div>
+
         <!-- أرشيف الزيارات -->
         <div class="glass-card" style="padding:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
@@ -1837,7 +1840,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=113"></script>
+  <script src="script.js?v=114"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
