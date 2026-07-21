@@ -4633,7 +4633,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       { v: 'weight', label: 'الوزن — لمنحنى النموّ',           types: ['number'], scope: 'visit' },
       { v: 'height', label: 'الطول — لمنحنى النموّ',           types: ['number'], scope: 'visit' },
       { v: 'hc',     label: 'محيط الرأس — لمنحنى النموّ',      types: ['number'], scope: 'visit' },
-      { v: 'bp',     label: 'ضغط الدم — لتصنيف الضغط',        types: ['text'],   scope: 'visit' }
+      { v: 'bp',     label: 'ضغط الدم — لتصنيف الضغط',        types: ['text'],   scope: 'visit' },
+      // 👁 العينان: كل عين دور مستقلّ ليُرسما معاً على منحنى واحد فتُقارَنا مباشرةً
+      { v: 'va_od',  label: 'حدة الإبصار — العين اليمنى (OD)', types: ['text'],   scope: 'visit' },
+      { v: 'va_os',  label: 'حدة الإبصار — العين اليسرى (OS)', types: ['text'],   scope: 'visit' },
+      { v: 'iop_od', label: 'ضغط العين — اليمنى (OD)',        types: ['number'], scope: 'visit' },
+      { v: 'iop_os', label: 'ضغط العين — اليسرى (OS)',        types: ['number'], scope: 'visit' }
     ];
 
     function _cfRoleDef(role) {
@@ -4742,6 +4747,29 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           { label: 'الوظيفة الحركية', type: 'textarea' },
           { label: 'نتائج الأشعة', type: 'textarea' },
           { label: 'العلاج الطبيعي', type: 'textarea' }
+        ]
+      },
+      'عيون': {
+        patient: [
+          { label: 'سوابق جراحة عينية', type: 'textarea' },
+          { label: 'استعمال عدسات لاصقة', type: 'select', options: ['لا', 'نهارية', 'ممتدة'] },
+          { label: 'تاريخ عائلي (ماء زرقاء/أمراض عينية)', type: 'textarea' }
+        ],
+        visit: [
+          // حدة الإبصار نصّ لأنها تُكتب كسراً (6/6، 6/12) أو عشرياً (1.0، 0.5) — كلاهما مقبول
+          { label: 'حدة الإبصار — اليمنى (OD)', type: 'text', role: 'va_od' },
+          { label: 'حدة الإبصار — اليسرى (OS)', type: 'text', role: 'va_os' },
+          { label: 'ضغط العين — اليمنى (mmHg)', type: 'number', role: 'iop_od' },
+          { label: 'ضغط العين — اليسرى (mmHg)', type: 'number', role: 'iop_os' },
+          // وصفة النظارة: نصّ لأن القيم تحمل إشارة وكسوراً ربعية (-2.25، +1.50)
+          { label: 'كروي Sph — اليمنى', type: 'text' },
+          { label: 'كروي Sph — اليسرى', type: 'text' },
+          { label: 'أسطواني Cyl — اليمنى', type: 'text' },
+          { label: 'أسطواني Cyl — اليسرى', type: 'text' },
+          { label: 'المحور Axis — اليمنى', type: 'number' },
+          { label: 'المحور Axis — اليسرى', type: 'number' },
+          { label: 'إضافة القرب (Add)', type: 'text' },
+          { label: 'فحص قعر العين', type: 'textarea' }
         ]
       },
       'أسنان': {
@@ -4985,7 +5013,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       pulse:     '<path d="M3 12h4l2-7 4 14 2-7h6"/>',
       heart:     '<path d="M12 20.5s-7.5-4.6-9.7-9.4C.7 7.6 2.3 4 5.8 3.4 8.1 3 10.4 4.1 12 6.4 13.6 4.1 15.9 3 18.2 3.4c3.5.6 5.1 4.2 3.5 7.7C19.5 15.9 12 20.5 12 20.5Z"/>',
       lens:      '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/><circle cx="10.5" cy="10.5" r="1.6"/>',
-      rom:       '<path d="M6 18l6-6 6 3"/><path d="M12 12V6.6" stroke-dasharray="2.3 2.3" opacity=".55"/><path d="M9.6 11.2a3.3 3.3 0 0 0 2 3.6"/>'
+      rom:       '<path d="M6 18l6-6 6 3"/><path d="M12 12V6.6" stroke-dasharray="2.3 2.3" opacity=".55"/><path d="M9.6 11.2a3.3 3.3 0 0 0 2 3.6"/>',
+      eye:       '<path d="M2.2 12S5.8 5.6 12 5.6 21.8 12 21.8 12 18.2 18.4 12 18.4 2.2 12 2.2 12Z"/><circle cx="12" cy="12" r="3.1"/>'
     };
     function _scIcon(name) {
       return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" ' +
@@ -4997,6 +5026,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (/نسائ|توليد/.test(sp))            return { icon: 'pregnancy', title: 'متابعة الحمل' };
       if (/أطفال|اطفال/.test(sp))           return { icon: 'baby',      title: 'مخطّط النمو' };
       if (/قلب/.test(sp))                    return { icon: 'heart',     title: 'سجلّ الفحوص القلبية' };
+      if (/عيون|عين|بصر/.test(sp))           return { icon: 'eye',       title: 'متابعة البصر' };
       if (/جلد/.test(sp))                    return { icon: 'lens',      title: 'تطوّر الحالة الجلدية' };
       if (/عظم|عظام/.test(sp))               return { icon: 'rom',       title: 'متابعة الإصابة' };
       return { icon: 'pulse', title: 'منحنى القياسات' };   // باطنية وأي تخصّص آخر
@@ -5025,6 +5055,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var innerW = W - padX * 2, innerH = H - padTop - padBot;
       var n = cfg.labels.length;
       var all = []; cfg.series.forEach(function(s) { all = all.concat(s.v); });
+      // النطاق المرجعي يدخل في حساب المقياس، وإلا خرج خارج الإطار فلم يُرَ
+      if (cfg.band) all = all.concat([cfg.band.from, cfg.band.to]);
       var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
       var pad = (mx - mn) * 0.22 || 1; mn -= pad; mx += pad;
       var X = function(i) { return padX + (n < 2 ? innerW / 2 : ((n - 1 - i) / (n - 1)) * innerW); };   // يمين=الأقدم
@@ -5037,7 +5069,17 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         (single ? '<linearGradient id="' + uid + 'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + cfg.series[0].color + '" stop-opacity=".26"/><stop offset="65%" stop-color="' + cfg.series[0].color + '" stop-opacity=".05"/><stop offset="100%" stop-color="' + cfg.series[0].color + '" stop-opacity="0"/></linearGradient>' : '') +
         '</defs>';
 
+      // شريط النطاق الطبيعي خلف المنحنى — هو ما يحوّل الرقم إلى معنى سريري
       var paths = '', overlay = '';
+      if (cfg.band) {
+        var by1 = Y(cfg.band.to), by2 = Y(cfg.band.from);
+        paths += '<rect x="0" y="' + by1.toFixed(1) + '" width="' + W + '" height="' + Math.abs(by2 - by1).toFixed(1) +
+          '" fill="var(--primary)" opacity=".08"></rect>' +
+          '<line x1="0" y1="' + by1.toFixed(1) + '" x2="' + W + '" y2="' + by1.toFixed(1) +
+            '" stroke="var(--primary)" stroke-width=".8" stroke-dasharray="3 3" opacity=".45"></line>' +
+          '<line x1="0" y1="' + by2.toFixed(1) + '" x2="' + W + '" y2="' + by2.toFixed(1) +
+            '" stroke="var(--primary)" stroke-width=".8" stroke-dasharray="3 3" opacity=".45"></line>';
+      }
       cfg.series.forEach(function(s) {
         var pts = s.v.map(function(v, i) { return { x: X(i), y: Y(v) }; });
         var line = _scSmoothPath(pts);
@@ -5092,6 +5134,63 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         '<table style="width:100%;border-collapse:collapse;min-width:420px;"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
+    /* ── 👁 كتلة العينين ──
+       حدة الإبصار وضغط العين: العينان على منحنى واحد بلونين، فيُقارَنان مباشرةً
+       ويظهر تراجعُ إحداهما فوراً. تُقرأ الحقول بأدوارها لا بأسمائها. */
+
+    // حدة الإبصار تُكتب كسراً (6/6، 6/12، 20/40) أو عشرياً (1.0، 0.5) — كلاهما يؤول إلى كسر عشري
+    function _scParseVA(s) {
+      s = String(s == null ? '' : s).trim();
+      if (!s) return null;
+      var m = /^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/.exec(s);
+      if (m) { var den = parseFloat(m[2]); return den > 0 ? parseFloat(m[1]) / den : null; }
+      var n = parseFloat(s.replace(',', '.'));
+      return (isFinite(n) && n >= 0 && n <= 2) ? n : null;   // نطاق الكسر العشري المعقول
+    }
+    function _scParseNum(s) { var n = parseFloat(String(s).replace(',', '.')); return isFinite(n) ? n : null; }
+
+    // يوائم قياسي العينين على تواريخ مشتركة (تُقاسان في الزيارة نفسها عادةً)
+    function _scEyePair(visits, fOD, fOS, parse) {
+      var mapOD = {}, mapOS = {};
+      if (fOD) _scFieldSeries(visits, fOD.id).forEach(function(x) { var v = parse(x.value); if (v != null) mapOD[x.date] = v; });
+      if (fOS) _scFieldSeries(visits, fOS.id).forEach(function(x) { var v = parse(x.value); if (v != null) mapOS[x.date] = v; });
+      var hasOD = Object.keys(mapOD).length, hasOS = Object.keys(mapOS).length, dates;
+      if (hasOD && hasOS) dates = Object.keys(mapOD).filter(function(d) { return Object.prototype.hasOwnProperty.call(mapOS, d); });
+      else if (hasOD) { dates = Object.keys(mapOD); fOS = null; }
+      else if (hasOS) { dates = Object.keys(mapOS); fOD = null; }
+      else return null;
+      dates.sort();
+      if (dates.length < 2) return null;   // نقطة واحدة لا تُظهر اتجاهاً
+      var series = [];
+      if (fOD) series.push({ n: 'اليمنى (OD)', color: 'var(--primary)',         v: dates.map(function(d) { return mapOD[d]; }) });
+      if (fOS) series.push({ n: 'اليسرى (OS)', color: 'var(--chart-accent-2)',  v: dates.map(function(d) { return mapOS[d]; }) });
+      return { labels: _scDateLabels(dates), series: series };
+    }
+
+    // يبني منحنيي العينين ويسجّل الحقول المستهلَكة كي لا يعيدها المحرّك العام في الجدول
+    function _scEyeBlock(visits, fields, consumed) {
+      function byRole(r) {
+        for (var i = 0; i < fields.length; i++) if (fields[i].role === r) return fields[i];
+        return null;
+      }
+      var out = '';
+      [
+        { od: 'va_od',  os: 'va_os',  parse: _scParseVA,  title: 'حدة الإبصار',
+          unit: 'كسر عشري — 1.0 إبصار تام', band: null },
+        { od: 'iop_od', os: 'iop_os', parse: _scParseNum, title: 'ضغط العين',
+          unit: 'mmHg — النطاق الطبيعي ١٠–٢١', band: { from: 10, to: 21 } }
+      ].forEach(function(cfg) {
+        var fOD = byRole(cfg.od), fOS = byRole(cfg.os);
+        if (!fOD && !fOS) return;
+        var pair = _scEyePair(visits, fOD, fOS, cfg.parse);
+        if (pair) out += _scLineChart({ title: cfg.title, unit: cfg.unit, labels: pair.labels, series: pair.series, band: cfg.band });
+        // تُستهلَك حتى لو لم يكفِ عدد القياسات لمنحنى — فلا تُرسم كأرقام عامّة مضلّلة
+        if (fOD) consumed[fOD.id] = 1;
+        if (fOS) consumed[fOS.id] = 1;
+      });
+      return out;
+    }
+
     // يستخرج {date,value} لحقل واحد عبر الزيارات المرتّبة تصاعدياً، متجاهلاً الفراغ
     function _scFieldSeries(visits, fieldId) {
       var out = [];
@@ -5115,7 +5214,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
       var lmpBlock = '', charts = '', tableCols = [], tableRows = null;
 
+      // 👁 العينان أولاً: تُقرأ بالأدوار وتُستهلَك حقولها قبل أي تخمين من النوع أو الصيغة.
+      // حاسم: حدة الإبصار «6/12» تطابق نمط ضغط الدم أدناه، فلولا الاستهلاك المسبق
+      // لرُسمت كمنحنيَي «الرقم الأول/الثاني» — خطأ سريري صريح.
+      var consumed = {};
+      var eyeBlock = _scEyeBlock(visits, fields, consumed);
+
       fields.forEach(function(f) {
+        if (consumed[f.id]) return;
         var series = _scFieldSeries(visits, f.id);
 
         if (f.type === 'date' && f.role === 'lmp') {
@@ -5188,8 +5294,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           '<div style="font-size:.85rem;font-weight:700;color:var(--text-primary);margin-bottom:10px;">مقارنة عبر الزيارات</div>' + _scTable(tableCols, rows) + '</div>';
       }
 
-      if (!lmpBlock && !charts && !tableHtml) return '';
-      return lmpBlock + charts + tableHtml;
+      if (!lmpBlock && !eyeBlock && !charts && !tableHtml) return '';
+      return lmpBlock + eyeBlock + charts + tableHtml;
     }
 
     // ★ فتح/إغلاق مودال الأداة السريرية — بنفس آلية مودال مخطّط الأسنان (openDentalChart/closeDentalChart):
@@ -6196,6 +6302,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     var _OB_UNITS = [
       // عامة / باطنية
       { k: ['ضغط الدم', 'الضغط الشرياني', 'ضغط شرياني'], u: 'mmHg' },
+      { k: ['ضغط العين', 'التوتر داخل العين'],            u: 'mmHg' },
       { k: ['السكر', 'سكر الدم', 'غلوكوز'],               u: 'ملغ/دل' },
       { k: ['الحرارة', 'حرارة'],                          u: '°م' },
       { k: ['النبض', 'نبض'],                              u: 'ن/د' },
