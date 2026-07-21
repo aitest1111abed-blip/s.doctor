@@ -5027,9 +5027,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (/أطفال|اطفال/.test(sp))           return { icon: 'baby',      title: 'مخطّط النمو' };
       if (/قلب/.test(sp))                    return { icon: 'heart',     title: 'سجلّ الفحوص القلبية' };
       if (/عيون|عين|بصر/.test(sp))           return { icon: 'eye',       title: 'متابعة البصر' };
-      if (/جلد/.test(sp))                    return { icon: 'lens',      title: 'تطوّر الحالة الجلدية' };
-      if (/عظم|عظام/.test(sp))               return { icon: 'rom',       title: 'متابعة الإصابة' };
-      return { icon: 'pulse', title: 'منحنى القياسات' };   // باطنية وأي تخصّص آخر
+      if (/عيون|عين|بصر/.test(sp))           return { icon: 'eye',       title: 'متابعة البصر' };
+      if (/جلد/.test(sp))                    return { icon: 'lens',      title: 'مقارنة القياسات' };
+      if (/عظم|عظام/.test(sp))               return { icon: 'rom',       title: 'مقارنة القياسات' };
+      return { icon: 'pulse', title: 'مقارنة القياسات' };   // باطنية وأي تخصّص آخر
     }
 
     // نفس تقنية مخطّط «توزيع الأيام» في الرئيسية (منحنى Catmull-Rom ناعم + توهّج + تعبئة متدرّجة) —
@@ -5109,8 +5110,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         }).join('') + '</div>';
       }
 
-      // كل منحنى «بقسم لحاله»: صندوق مستقلّ بحدود وخلفية هادئة، لا تتراكم الرسوم في مساحة واحدة
-      return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;">' +
+      // خلية في شبكة الرسوم: بلا هامش سفلي (الفراغ من gap) وبارتفاع كامل لتتساوى الخلايا
+      return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;height:100%;box-sizing:border-box;">' +
         '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap;">' +
           '<b style="font-size:.85rem;font-weight:700;color:var(--text-primary);">' + escapeHtml(cfg.title) + '</b>' +
           '<span style="font-size:.72rem;color:var(--text-muted);">' + escapeHtml(cfg.unit || '') + '</span>' +
@@ -5149,6 +5150,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
     function _scParseNum(s) { var n = parseFloat(String(s).replace(',', '.')); return isFinite(n) ? n : null; }
 
+    // قيم دورانية (زاوية ٠–١٨٠): اتجاهها الزمني بلا معنى سريري — تُقارَن في الجدول لا بمنحنى
+    var _SC_NO_CHART = /محور|axis/i;
+
     // يوائم قياسي العينين على تواريخ مشتركة (تُقاسان في الزيارة نفسها عادةً)
     function _scEyePair(visits, fOD, fOS, parse) {
       var mapOD = {}, mapOS = {};
@@ -5167,13 +5171,29 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return { labels: _scDateLabels(dates), series: series };
     }
 
-    // يبني منحنيي العينين ويسجّل الحقول المستهلَكة كي لا يعيدها المحرّك العام في الجدول
-    function _scEyeBlock(visits, fields, consumed) {
+    /* بطاقة «لم تُسجَّل بعد» — تحتلّ خلية الشبكة نفسها بحدود متقطّعة.
+       قرار مقصود: الخانة غير المعبّأة لا تُرسم صفراً. الصفر رقم حقيقي والفراغ ليس صفراً —
+       ضغط عين 0 mmHg يعني عيناً منتهية، ووزن 0 كغ مستحيل، والمنحنى سيهوي في كل زيارة
+       غير معبّأة فيبدو المريض متدهوراً وهو بخير. تلفيق البيانات في سجلّ طبّي غير مقبول. */
+    function _scEmptyCard(title, note) {
+      return '<div style="background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;height:100%;min-height:140px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:6px;">' +
+        '<b style="font-size:.85rem;font-weight:700;color:var(--text-primary);">' + escapeHtml(title) + '</b>' +
+        '<span style="font-size:.76rem;color:var(--text-muted);line-height:1.65;">' + escapeHtml(note) + '</span>' +
+      '</div>';
+    }
+    // نصّ الحالة حسب عدد القياسات المتاحة
+    function _scEmptyNote(count, lastVal) {
+      if (!count) return 'لم تُسجَّل بعد';
+      return 'قياس واحد فقط (' + lastVal + ') — يلزم قياسان لرسم المنحنى';
+    }
+
+    // يبني بطاقتي العينين (منحنى أو حالة فارغة) ويسجّل الحقول المستهلَكة كي لا يعيدها المحرّك العام
+    function _scEyeBlock(visits, fields, consumed, state) {
       function byRole(r) {
         for (var i = 0; i < fields.length; i++) if (fields[i].role === r) return fields[i];
         return null;
       }
-      var out = '';
+      var cards = [];
       [
         { od: 'va_od',  os: 'va_os',  parse: _scParseVA,  title: 'حدة الإبصار',
           unit: 'كسر عشري — 1.0 إبصار تام', band: null },
@@ -5182,13 +5202,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       ].forEach(function(cfg) {
         var fOD = byRole(cfg.od), fOS = byRole(cfg.os);
         if (!fOD && !fOS) return;
-        var pair = _scEyePair(visits, fOD, fOS, cfg.parse);
-        if (pair) out += _scLineChart({ title: cfg.title, unit: cfg.unit, labels: pair.labels, series: pair.series, band: cfg.band });
-        // تُستهلَك حتى لو لم يكفِ عدد القياسات لمنحنى — فلا تُرسم كأرقام عامّة مضلّلة
+        // تُستهلَك دائماً — حتى بلا قياسات كافية — فلا يلتقطها فرع ضغط الدم أو الجدول
         if (fOD) consumed[fOD.id] = 1;
         if (fOS) consumed[fOS.id] = 1;
+
+        var pair = _scEyePair(visits, fOD, fOS, cfg.parse);
+        if (pair) {
+          state.hasData = true;
+          cards.push(_scLineChart({ title: cfg.title, unit: cfg.unit, labels: pair.labels, series: pair.series, band: cfg.band }));
+          return;
+        }
+        // بلا قياسين مشتركين: بطاقة حالة توضّح ما ينقص لكل عين
+        var nOD = fOD ? _scFieldSeries(visits, fOD.id).length : 0;
+        var nOS = fOS ? _scFieldSeries(visits, fOS.id).length : 0;
+        var note = (!nOD && !nOS) ? 'لم تُسجَّل بعد'
+          : 'القياسات غير مكتملة (اليمنى ' + nOD + ' · اليسرى ' + nOS + ') — يلزم قياسان في زيارتين لكلتا العينين';
+        cards.push(_scEmptyCard(cfg.title, note));
       });
-      return out;
+      return cards;
     }
 
     // يستخرج {date,value} لحقل واحد عبر الزيارات المرتّبة تصاعدياً، متجاهلاً الفراغ
@@ -5212,13 +5243,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         .sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });   // تصاعدي: عكس ترتيب الأرشيف النازل
       var fields = getChartTemplate().visit;
 
-      var lmpBlock = '', charts = '', tableCols = [], tableRows = null;
+      var lmpBlock = '', cards = [], tableCols = [], tableRows = null;
+      // hasData يفصل «بيانات حقيقية» عن «بطاقات فارغة»: الزرّ في رأس الأرشيف يظهر
+      // بالأولى فقط، وإلا ظهر لكل مريض بلا قياس واحد لمجرّد وجود خانات في القالب.
+      var state = { hasData: false };
 
       // 👁 العينان أولاً: تُقرأ بالأدوار وتُستهلَك حقولها قبل أي تخمين من النوع أو الصيغة.
       // حاسم: حدة الإبصار «6/12» تطابق نمط ضغط الدم أدناه، فلولا الاستهلاك المسبق
       // لرُسمت كمنحنيَي «الرقم الأول/الثاني» — خطأ سريري صريح.
       var consumed = {};
-      var eyeBlock = _scEyeBlock(visits, fields, consumed);
+      cards = cards.concat(_scEyeBlock(visits, fields, consumed, state));
 
       fields.forEach(function(f) {
         if (consumed[f.id]) return;
@@ -5231,6 +5265,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           var gestDays = Math.round((today - lmp) / 86400000);
           var gestWeeks = Math.floor(gestDays / 7);
           if (gestWeeks < 0 || gestWeeks > 44) return;   // بيانات غير منطقية — لا نعرض رقماً مضلّلاً
+          state.hasData = true;
           var edd = new Date(lmp.getTime() + 280 * 86400000);
           var tri = gestWeeks < 13 ? 'الأول' : (gestWeeks < 27 ? 'الثاني' : 'الثالث');
           var fmt = function(d) { return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long' }); };
@@ -5246,28 +5281,38 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           return;
         }
 
-        if (f.type === 'number' && series.length >= 2) {
+        // كل حقل رقمي يستحقّ خلية في الشبكة — بمنحنى إن كفت القياسات، وإلا ببطاقة حالة.
+        // يُستثنى المحور Axis: زاوية ٠–١٨٠ اتجاهها الزمني بلا معنى سريري، فمكانها الجدول.
+        if (f.type === 'number' && !_SC_NO_CHART.test(f.label || '')) {
           var nums = series.map(function(s) { return parseFloat(s.value); });
-          if (nums.some(isNaN)) { /* قيمة غير رقمية سقطت سهواً — تُعامَل كنصّ في الجدول أدناه */ }
-          else {
-            charts += _scLineChart({
+          if (series.length >= 2 && !nums.some(isNaN)) {
+            state.hasData = true;
+            cards.push(_scLineChart({
               title: f.label, unit: '', labels: _scDateLabels(series.map(function(s) { return s.date; })),
               series: [{ n: f.label, color: 'var(--primary)', v: nums }]
-            });
+            }));
             return;
           }
+          if (series.length < 2) {
+            // البطاقة تُعرض إن فُتحت الأداة، لكنها لا ترفع hasData: قياس واحد لا يبرّر
+            // فتح شاشة كاملة تقول «لا يكفي» — التنبيه في openSpecialtyTool يكفي لذلك.
+            cards.push(_scEmptyCard(f.label, _scEmptyNote(series.length, series.length ? series[0].value : '')));
+            return;
+          }
+          // قيمة غير رقمية سقطت سهواً — تُعامَل كنصّ في الجدول أدناه
         }
 
         if (f.type === 'text' && series.length >= 2) {
           var bp = series.map(function(s) { return /^(\d+)\s*\/\s*(\d+)$/.exec(s.value); });
           if (bp.every(Boolean)) {
-            charts += _scLineChart({
+            state.hasData = true;
+            cards.push(_scLineChart({
               title: f.label, unit: '', labels: _scDateLabels(series.map(function(s) { return s.date; })),
               series: [
                 { n: 'الرقم الأول', color: 'var(--primary)', v: bp.map(function(m) { return +m[1]; }) },
                 { n: 'الرقم الثاني', color: 'var(--chart-accent-2)', v: bp.map(function(m) { return +m[2]; }) }
               ]
-            });
+            }));
             return;
           }
         }
@@ -5275,6 +5320,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         // الباقي (نص عام، نص طويل، نعم/لا، قائمة، أو رقم/نص لم يصلح لمنحنى) → عمود في جدول المقارنة المشترك
         // بزيارتين فأكثر فقط — جدول بصفّ واحد لا يقارن شيئاً ويكرّر ما تعرضه بطاقة الزيارة نفسها أصلاً
         if (series.length >= 2) {
+          state.hasData = true;
           if (!tableRows) tableRows = {};
           tableCols.push(f.label);
           series.forEach(function(s) {
@@ -5294,8 +5340,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           '<div style="font-size:.85rem;font-weight:700;color:var(--text-primary);margin-bottom:10px;">مقارنة عبر الزيارات</div>' + _scTable(tableCols, rows) + '</div>';
       }
 
-      if (!lmpBlock && !eyeBlock && !charts && !tableHtml) return '';
-      return lmpBlock + eyeBlock + charts + tableHtml;
+      // بلا قياس حقيقي واحد لا تُفتح الأداة أصلاً (وزرّها يبقى مخفياً) — البطاقات
+      // الفارغة وحدها ليست سبباً كافياً لفتح شاشة تخلو من أي معلومة.
+      if (!state.hasData) return '';
+
+      // شبكة ٢×٢ للرسوم؛ بطاقة الحمل والجدول بعرض كامل (الجدول عريض بطبيعته)
+      var grid = cards.length
+        ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:12px;">' + cards.join('') + '</div>'
+        : '';
+      return lmpBlock + grid + tableHtml;
     }
 
     // ★ فتح/إغلاق مودال الأداة السريرية — بنفس آلية مودال مخطّط الأسنان (openDentalChart/closeDentalChart):
@@ -6301,6 +6354,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
        الممرّضة بلا أي تغيير في بنية البيانات. يغطّي التخصّصات السبعة كلها. */
     var _OB_UNITS = [
       // عامة / باطنية
+      { k: ['ضغط العين', 'الضغط داخل العين', 'التوتر العيني'], u: 'mmHg' },
       { k: ['ضغط الدم', 'الضغط الشرياني', 'ضغط شرياني'], u: 'mmHg' },
       { k: ['ضغط العين', 'التوتر داخل العين'],            u: 'mmHg' },
       { k: ['السكر', 'سكر الدم', 'غلوكوز'],               u: 'ملغ/دل' },
