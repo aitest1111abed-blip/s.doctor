@@ -4622,6 +4622,40 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       { v: 'checkbox', label: 'نعم / لا' }
     ];
 
+    /* ── الأدوار الدلالية: ما «يعنيه» الحقل، لا شكله فقط ──
+       بلا دور، الأداة السريرية تخمّن من النوع («رقم؟ ارسمه») فتخرج رسوماً عامّة
+       لا معرفة سريرية. بالدور تعرف أن هذا الرقم وزنُ طفل فتقارنه بمنحنيات النموّ.
+       القاعدة: الدور يُلصَق بالحقل مرّة، وتُبنى عليه الأدوات — لا مطابقة أسماء هشّة.
+       (كان محصوراً بـ role:'lmp' على حقول التاريخ؛ عُمِّم هنا.) */
+    var CF_ROLES = [
+      { v: 'lmp',    label: 'تاريخ آخر طمث — لحساب عمر الحمل', types: ['date'],   scope: 'visit' },
+      { v: 'sex',    label: 'جنس المريض — لمنحنيات النموّ',    types: ['select'], scope: 'patient' },
+      { v: 'weight', label: 'الوزن — لمنحنى النموّ',           types: ['number'], scope: 'visit' },
+      { v: 'height', label: 'الطول — لمنحنى النموّ',           types: ['number'], scope: 'visit' },
+      { v: 'hc',     label: 'محيط الرأس — لمنحنى النموّ',      types: ['number'], scope: 'visit' },
+      { v: 'bp',     label: 'ضغط الدم — لتصنيف الضغط',        types: ['text'],   scope: 'visit' }
+    ];
+
+    function _cfRoleDef(role) {
+      if (!role) return null;
+      for (var i = 0; i < CF_ROLES.length; i++) if (CF_ROLES[i].v === role) return CF_ROLES[i];
+      return null;
+    }
+    // مصدر الحقيقة الوحيد: هل يجوز هذا الدور على حقل بهذا النوع وفي هذا الموضع؟
+    // يُستدعى عند الحفظ في المسارين (المخصِّص وشاشة الإعداد) فلا يمرّ دور غير صالح.
+    function _cfRoleAllowed(role, type, scope) {
+      var d = _cfRoleDef(role);
+      if (!d) return false;
+      if (d.types.indexOf(type) === -1) return false;
+      return !scope || d.scope === scope;
+    }
+    // الأدوار المعروضة لحقل بنوع/موضع معيّن — تُبنى منها القائمة في المحرِّرين
+    function _cfRolesFor(type, scope) {
+      return CF_ROLES.filter(function(r) {
+        return r.types.indexOf(type) !== -1 && (!scope || r.scope === scope);
+      });
+    }
+
     // قوالب جاهزة حسب التخصص (وفق الممارسات السورية) — تُطبَّق ثم يعدّلها الطبيب
     // ملاحظة: أُسقطت الحقول المكرّرة للحقول المدمجة أصلاً (زمرة الدم، الأمراض المزمنة)،
     // وحقل رفع الصور (يحتاج تخزيناً خاصاً) — يمكن إضافتها يدوياً عند الحاجة.
@@ -4644,6 +4678,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       },
       'أطفال': {
         patient: [
+          // الجنس ضروري لمنحنيات النموّ (مرجع WHO مختلف للذكور والإناث)
+          { label: 'الجنس', type: 'select', options: ['ذكر', 'أنثى'], role: 'sex' },
           { label: 'الوزن عند الولادة (كغ)', type: 'number' },
           { label: 'نوع الولادة', type: 'select', options: ['طبيعية', 'قيصرية', 'أخرى'] },
           { label: 'وجود اختناق ولادي', type: 'checkbox' },
@@ -4654,9 +4690,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         ],
         visit: [
           { label: 'التطور الروحي الحركي', type: 'textarea' },
-          { label: 'الوزن الحالي (كغ)', type: 'number' },
-          { label: 'الطول الحالي (سم)', type: 'number' },
-          { label: 'محيط الرأس (سم)', type: 'number' }
+          { label: 'الوزن الحالي (كغ)', type: 'number', role: 'weight' },
+          { label: 'الطول الحالي (سم)', type: 'number', role: 'height' },
+          { label: 'محيط الرأس (سم)', type: 'number', role: 'hc' }
         ]
       },
       'باطنية': {
@@ -4664,7 +4700,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           { label: 'عوامل الخطورة', type: 'textarea' }
         ],
         visit: [
-          { label: 'ضغط الدم (mmHg)', type: 'text' },
+          { label: 'ضغط الدم (mmHg)', type: 'text', role: 'bp' },
           { label: 'مستوى السكر في الدم (ملغ/دل)', type: 'number' },
           { label: 'نتائج الفحوصات المخبرية', type: 'textarea' },
           { label: 'نتائج الفحوصات الشعاعية', type: 'textarea' }
@@ -4676,6 +4712,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           { label: 'الأدوية القلبية', type: 'textarea' }
         ],
         visit: [
+          { label: 'ضغط الدم (mmHg)', type: 'text', role: 'bp' },
           { label: 'نتائج تخطيط القلب (ECG)', type: 'textarea' },
           { label: 'نتائج إيكو القلب (Echo)', type: 'textarea' },
           { label: 'اختبار الجهد', type: 'textarea' }
@@ -5197,7 +5234,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var showOpts = (f.type === 'select');
       var btn = 'width:32px;height:32px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);cursor:pointer;flex-shrink:0;font-size:.82rem;';
       var subLbl = 'font-size:.68rem;color:var(--text-muted);font-weight:600;margin-bottom:4px;';
-      var showLmp = (scope === 'visit' && f.type === 'date');
+      var roles = _cfRolesFor(f.type || 'text', scope);   // الأدوار الصالحة لهذا النوع والموضع
       // بطاقة حقل — بنفس هوية بطاقات الاضبارة: عنوان بارز أعلى، النوع والخيارات أسفله
       return '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-sm);">'
         + '<div style="display:flex;gap:8px;align-items:center;">'
@@ -5211,11 +5248,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + '<div style="flex:2;min-width:150px;' + (showOpts ? '' : 'display:none;') + '"><div style="' + subLbl + '">الخيارات (افصل بفاصلة)</div>'
             + '<input class="form-input" value="' + _cfAttr((f.options || []).join('، ')) + '" placeholder="مثال: خيار 1، خيار 2، خيار 3" oninput="cfEdit(\'' + scope + '\',' + idx + ',\'options\',this.value)"></div>'
         + '</div>'
-        + (showLmp
-            ? '<label style="display:flex;align-items:center;gap:8px;padding-right:40px;font-size:.78rem;font-weight:700;color:var(--text-secondary);cursor:pointer;">'
-                + '<input type="checkbox" ' + (f.role === 'lmp' ? 'checked' : '') + ' onchange="cfSetLmpRole(\'' + scope + '\',' + idx + ',this.checked)" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;">'
-                + '🤰 استخدم هذا التاريخ لحساب أسبوع الحمل تلقائياً'
-              + '</label>'
+        + (roles.length
+            ? '<div style="padding-right:40px;"><div style="' + subLbl + '">الدور السريري (اختياري)</div>'
+                + '<select class="form-input" onchange="cfSetRole(\'' + scope + '\',' + idx + ',this.value)">'
+                  + '<option value="">— بلا دور —</option>'
+                  + roles.map(function(r) {
+                      return '<option value="' + r.v + '"' + (f.role === r.v ? ' selected' : '') + '>' + escapeHtml(r.label) + '</option>';
+                    }).join('')
+                + '</select>'
+                + '<div style="font-size:.68rem;color:var(--text-muted);margin-top:5px;line-height:1.6;">يُعرّف النظام بمعنى الحقل — فتُبنى عليه الأداة السريرية بدل تخمينها من النوع.</div>'
+              + '</div>'
             : '')
       + '</div>';
     }
@@ -5230,17 +5272,29 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     window.cfEdit = function(scope, idx, key, val) {
       var f = _cfDraft[scope] && _cfDraft[scope][idx]; if (!f) return;
       if (key === 'options') { f.options = val.split(/[،,]/).map(function(s) { return s.trim(); }).filter(Boolean); }
-      else if (key === 'type') { f.type = val; renderCustomizerRows(); }   // إعادة الرسم لإظهار/إخفاء حقل الخيارات
+      else if (key === 'type') {
+        f.type = val;
+        if (!_cfRoleAllowed(f.role, val, scope)) f.role = '';   // دور لم يعد يناسب النوع الجديد
+        renderCustomizerRows();   // إعادة الرسم لإظهار/إخفاء حقلي الخيارات والدور
+      }
       else f[key] = val;
     };
     window.cfAdd = function(scope) {
       _cfDraft[scope].push({ id: _cfNewId(), label: '', type: 'text', options: [], role: '' });
       renderCustomizerRows();
     };
-    // 🤰 حقل واحد فقط في الاضبارة يجوز أن يحمل role:'lmp' — تفعيله على حقل يُلغيه عن كل الحقول الأخرى
-    window.cfSetLmpRole = function(scope, idx, on) {
-      var arr = _cfDraft[scope]; if (!arr) return;
-      arr.forEach(function(f, i) { f.role = (on && i === idx) ? 'lmp' : (f.role === 'lmp' ? '' : f.role); });
+    // دور واحد لا يتكرّر: إسناده لحقل ينزعه عن أي حقل آخر يحمله (في الموضعين معاً،
+    // لأن أداةً واحدة قد تقرأ دوراً من المريض وآخر من الزيارة — كالجنس مع الوزن).
+    window.cfSetRole = function(scope, idx, role) {
+      var arr = _cfDraft[scope]; if (!arr || !arr[idx]) return;
+      if (role) {
+        ['patient', 'visit'].forEach(function(s) {
+          (_cfDraft[s] || []).forEach(function(f, i) {
+            if (f.role === role && !(s === scope && i === idx)) f.role = '';
+          });
+        });
+      }
+      arr[idx].role = role || '';
       renderCustomizerRows();
     };
     window.cfDelete = function(scope, idx) {
@@ -5269,13 +5323,20 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
     };
     window.saveChartTemplate = function() {
-      function clean(arr) {
-        return arr.filter(function(f) { return (f.label || '').trim(); }).map(function(f) {
-          return { id: f.id || _cfNewId(), label: f.label.trim(), type: f.type || 'text', options: f.type === 'select' ? (f.options || []) : [], role: (f.type === 'date' && f.role) ? f.role : '' };
-        });
+      // الدور يُحفظ متى كان صالحاً لنوع الحقل وموضعه — لا يُقصَر على حقول التاريخ
+      function clean(scope) {
+        return function(arr) {
+          return arr.filter(function(f) { return (f.label || '').trim(); }).map(function(f) {
+            return {
+              id: f.id || _cfNewId(), label: f.label.trim(), type: f.type || 'text',
+              options: f.type === 'select' ? (f.options || []) : [],
+              role: _cfRoleAllowed(f.role, f.type || 'text', scope) ? f.role : ''
+            };
+          });
+        };
       }
       if (typeof settings === 'undefined' || !settings) settings = {};
-      settings.chartTemplate = { patient: clean(_cfDraft.patient), visit: clean(_cfDraft.visit), dental: !!_cfDraft.dental };
+      settings.chartTemplate = { patient: clean('patient')(_cfDraft.patient), visit: clean('visit')(_cfDraft.visit), dental: !!_cfDraft.dental };
       saveSettingsToLocal(settings);
       closeChartCustomizer();
       showToast('تم حفظ تخصيص الاضبارة ✓', 'success');
@@ -6234,7 +6295,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
 
     function _obCloneField(f) {
-      return { id: f.id, label: f.label || '', type: f.type || 'text', options: (f.options || []).slice() };
+      // role يُنسَخ كما هو — إسقاطه هنا كان يُفقد الأدوار عند التحميل وتطبيق القوالب
+      return { id: f.id, label: f.label || '', type: f.type || 'text', options: (f.options || []).slice(), role: f.role || '' };
     }
 
     function closeOnboarding() {
@@ -6497,6 +6559,17 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
                       '<button type="button" class="ob-unitbtn" data-u="' + _obEsc(sug) + '">' +
                         'أضف (' + _obEsc(sug) + ')</button></div>';
                   })() +
+                  // الدور السريري — نفس سجلّ CF_ROLES المستعمل في مخصِّص الإعدادات
+                  (function() {
+                    var rs = _cfRolesFor(f.type || 'text', scope);
+                    if (!rs.length) return '<select class="ob-cfrole" style="display:none"></select>';
+                    return '<select class="ob-cfrole" aria-label="الدور السريري">' +
+                      '<option value="">— بلا دور سريري —</option>' +
+                      rs.map(function(r) {
+                        return '<option value="' + r.v + '"' + (f.role === r.v ? ' selected' : '') + '>' +
+                          _obEsc(r.label) + '</option>';
+                      }).join('') + '</select>';
+                  })() +
                 '</div>';
               }).join('')
             : '<div class="ob-cfempty">لا توجد خانات هنا بعد.</div>';
@@ -6546,6 +6619,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
           var nameIn = row.querySelector('.ob-cfin');
           var unitWrap = row.querySelector('.ob-cfunit'), unitBtn = row.querySelector('.ob-unitbtn');
+          var roleSel = row.querySelector('.ob-cfrole');
 
           function syncOptState() {
             var isSel = (f.type === 'select');
@@ -6572,13 +6646,40 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
             syncUnit();
             _obUnmarkPreset();
           };
+          // تحديث قائمة الأدوار موضعياً — لا إعادة رسم، حفاظاً على التركيز
+          function syncRole() {
+            if (!roleSel) return;
+            var rs = _cfRolesFor(f.type || 'text', sc);
+            if (!rs.length) { roleSel.style.display = 'none'; roleSel.innerHTML = ''; return; }
+            roleSel.style.display = '';
+            roleSel.innerHTML = '<option value="">— بلا دور سريري —</option>' +
+              rs.map(function(r) {
+                return '<option value="' + r.v + '"' + (f.role === r.v ? ' selected' : '') + '>' + _obEsc(r.label) + '</option>';
+              }).join('');
+          }
+
           row.querySelector('.ob-cfsel').onchange = function() {
             f.type = this.value;
             if (f.type !== 'select') { f.options = []; optIn.value = ''; }
+            if (!_cfRoleAllowed(f.role, f.type, sc)) f.role = '';   // دور لم يعد يناسب النوع
             row.querySelector('.ob-cftype').textContent = _obICONS[this.value] || 'أ';
             syncOptState();
             syncUnit();
+            syncRole();
             if (f.type === 'select') optIn.focus();   // الخيارات هي الخطوة التالية طبيعياً
+            _obUnmarkPreset();
+          };
+          if (roleSel) roleSel.onchange = function() {
+            var v = this.value, stole = false;
+            f.role = v;
+            if (v) {   // دور واحد لا يتكرّر — يُنزَع عن أي حقل آخر يحمله
+              ['patient', 'visit'].forEach(function(s) {
+                st.fields[s].forEach(function(o, oi) {
+                  if (o.role === v && !(s === sc && oi === i)) { o.role = ''; stole = true; }
+                });
+              });
+            }
+            if (stole) _obRender();   // حقل آخر فقد دوره — أعِد الرسم ليظهر ذلك
             _obUnmarkPreset();
           };
           // نفس تحليل المخصِّص: يقبل الفاصلة العربية والإنجليزية
@@ -6633,15 +6734,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     // حفظ نهائي — نفس مسار الحفظ القائم (settings/doctor عبر setDoc merge)
     function _obFinish() {
       var st = _obState;
-      function clean(arr) {
-        return arr.filter(function(f) { return (f.label || '').trim(); }).map(function(f) {
-          return {
-            id: f.id || (typeof _cfNewId === 'function' ? _cfNewId() : ('f' + Date.now() + Math.random().toString(36).slice(2, 7))),
-            label: f.label.trim(),
-            type: f.type || 'text',
-            options: f.type === 'select' ? (f.options || []) : []
-          };
-        });
+      // ★ الدور يجب أن ينجو من هنا أيضاً — كان يُمحى، فيفقد من يُعدّ «نسائية»
+      //   من هذه الشاشة حاسبةَ الحمل بينما تعمل لمن مرّ بمخصِّص الإعدادات.
+      function clean(scope) {
+        return function(arr) {
+          return arr.filter(function(f) { return (f.label || '').trim(); }).map(function(f) {
+            var t = f.type || 'text';
+            return {
+              id: f.id || (typeof _cfNewId === 'function' ? _cfNewId() : ('f' + Date.now() + Math.random().toString(36).slice(2, 7))),
+              label: f.label.trim(),
+              type: t,
+              options: t === 'select' ? (f.options || []) : [],
+              role: (typeof _cfRoleAllowed === 'function' && _cfRoleAllowed(f.role, t, scope)) ? f.role : ''
+            };
+          });
+        };
       }
       if (typeof settings === 'undefined' || !settings) settings = {};
       settings.title     = st.title.trim() || 'لوحة الطبيب';
@@ -6651,8 +6758,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       settings.landline  = st.landline.trim();
       if (st.logo) settings.logo = st.logo;
       settings.chartTemplate = {
-        patient: clean(st.fields.patient),
-        visit: clean(st.fields.visit),
+        patient: clean('patient')(st.fields.patient),
+        visit: clean('visit')(st.fields.visit),
         dental: /أسنان|اسنان|dental/i.test(st.specialty || '')
       };
       settings.onboarded = true;

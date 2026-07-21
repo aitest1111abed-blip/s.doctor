@@ -2422,6 +2422,15 @@
 #onboardOverlay .ob-cfwarn{
   grid-column:2 / 4; font-size:.71rem; color:#b45309; line-height:1.5; margin-top:-2px;
 }
+/* الدور السريري — يُعرّف النظام بمعنى الحقل فتُبنى عليه الأداة */
+#onboardOverlay .ob-cfrole{
+  grid-column:2 / 4; width:100%; min-width:0; font-family:inherit; font-size:.75rem;
+  font-weight:600; color:var(--text-muted); background:var(--bg);
+  border:1px solid var(--border); border-radius:6px; padding:5px 8px;
+  cursor:pointer; max-width:100%; margin-top:-2px;
+}
+#onboardOverlay .ob-cfrole:focus{outline:none; border-color:var(--primary); color:var(--primary);}
+
 /* اقتراح وحدة القياس */
 #onboardOverlay .ob-cfunit{
   grid-column:2 / 4; display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:-2px;
