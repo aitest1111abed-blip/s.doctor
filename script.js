@@ -4328,25 +4328,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
     };
 
-    // حافّة كل قسم تتلوّن متى كُتب فيه، ومؤشّر أسفل الشاشة يعدّ المكتمل —
-    // فيرى الطبيب ما نسيه قبل الحفظ بلا تمرير.
+    // حافّة كل قسم تتلوّن متى كُتب فيه — إشارة صامتة لما اكتمل وما بقي
     function _veSyncSteps() {
-      var steps = document.querySelectorAll('#addNoteModal .ve-step');
-      var shown = 0, done = 0, bars = '';
-      Array.prototype.forEach.call(steps, function(step) {
-        if (step.style.display === 'none') return;   // خطوة القياسات تُخفى بلا حقول
-        shown++;
+      Array.prototype.forEach.call(document.querySelectorAll('#addNoteModal .ve-step'), function(step) {
         var any = Array.prototype.some.call(step.querySelectorAll('textarea, input, select'), function(f) {
           if (f.type === 'checkbox') return f.checked;
           return (f.value || '').trim() !== '';
         });
         step.classList.toggle('filled', any);
-        if (any) done++;
-        bars += '<i class="' + (any ? 'on' : '') + '"></i>';
       });
-      var pg = document.getElementById('veProg'); if (pg) pg.innerHTML = bars;
-      var st = document.getElementById('veSaveState');
-      if (st) st.textContent = done + ' من ' + shown + ' أقسام';
     }
     document.addEventListener('DOMContentLoaded', function() {
       var m = document.getElementById('addNoteModal');
