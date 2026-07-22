@@ -457,7 +457,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         function(snap) {
           allPatients = {};
           snap.forEach(function(d) { allPatients[d.id] = Object.assign({ id: d.id }, d.data()); });
-          document.getElementById('totalPatientsCount').textContent = Object.keys(allPatients).length + '+';
+          // العدد الحقيقي من الخادم (المحمَّل ٤٠ فقط) — و«+» فقط إن تعذّر
+          _refreshServerStats().then(function(s) {
+            var el = document.getElementById('totalPatientsCount');
+            if (el) el.textContent = s ? String(s.totalPatients) : (Object.keys(allPatients).length + '+');
+            if (currentSection === 'stats') calculateStatsFromPatients();
+            if (typeof updateHomeSummaryStats === 'function') updateHomeSummaryStats();
+          });
           if (currentSection === 'patients') renderPatientBook();
         },
         function(e) { console.error('[patients]', e); });
@@ -514,14 +520,38 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
 
     // ==================== دوال الإحصائيات ====================
+    /* أرقام المرضى تُحسب على الخادم لا من allPatients (محدودة بـ limit(40)):
+       عند ١٠٠ مريض كانت الشاشة تعرض ٤٠٪ من الحقيقة بلا أي إشارة. النتائج تُخزَّن
+       في _serverStats ويُحدّثها _refreshServerStats() عند الإقلاع وبعد كل زيارة. */
+    var _serverStats = null;
+
+    function _refreshServerStats() {
+      var fb = window._fb;
+      if (!fb || typeof fb.countOf !== 'function') return Promise.resolve(null);
+      var col = fb.col('patients');
+      return Promise.all([
+        fb.countOf(col),
+        fb.sumOf(col, 'totalVisits'),
+        fb.countOf(fb.query(col, fb.where('lastVisit', '>=', thirtyDaysAgoStr))),
+        fb.countOf(fb.query(col, fb.where('totalVisits', '>', 1)))
+      ]).then(function(r) {
+        _serverStats = { totalPatients: r[0], totalVisits: r[1], activeCount: r[2], repeatPatients: r[3] };
+        return _serverStats;
+      }).catch(function(e) {
+        console.warn('[stats] تعذّر الحساب على الخادم — عرض تقديري من المحمَّل', e);
+        return null;
+      });
+    }
+
     function calculateStatsFromPatients() {
       let totalVisits = 0;
       let activeCount = 0;
       let morningCount = 0;
       let eveningCount = 0;
       let repeatPatients = 0;
-      const totalPatients = Object.keys(allPatients).length;
+      let totalPatients = Object.keys(allPatients).length;
       let allVisits = [];
+      let approx = true;   // تقديري ما لم تصل أرقام الخادم
 
       Object.values(allPatients).forEach(patient => {
         totalVisits += patient.totalVisits || 0;
@@ -529,11 +559,29 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         if (patient.lastVisit && patient.lastVisit >= thirtyDaysAgoStr) activeCount++;
         if (patient.appointments) {
           patient.appointments.forEach(v => {
-            if (v.slot === 'Morning') morningCount++;
-            else if (v.slot === 'Evening') eveningCount++;
             allVisits.push({ patientId: patient.id, patientName: patient.name, date: v.date, visitType: v.visitType });
           });
         }
+      });
+
+      // أرقام الخادم تَجُبّ ما حُسب من الأربعين
+      if (_serverStats) {
+        totalPatients  = _serverStats.totalPatients;
+        totalVisits    = _serverStats.totalVisits;
+        activeCount    = _serverStats.activeCount;
+        repeatPatients = _serverStats.repeatPatients;
+        approx = false;
+      }
+
+      /* صباحي/مسائي من مجموعة المواعيد لا من مصفوفة الأربعين. سبب إضافي:
+         المقارنة القديمة v.slot === 'Morning' لا تصدق على زيارات الاضبارة أصلاً،
+         لأن addNewVisit يكتب وقتاً ('14:30') لا كلمة — فكانت تُهمَل كلها. */
+      allRecords.forEach(r => {
+        var s = r.Slot || r.slot || '';
+        if (s === 'Morning') { morningCount++; return; }
+        if (s === 'Evening') { eveningCount++; return; }
+        var m = /^(\d{1,2}):/.exec(String(s));
+        if (m) { (+m[1] < 14 ? morningCount++ : eveningCount++); }
       });
 
       allVisits.sort((a,b) => (b.date||'').localeCompare(a.date||''));
@@ -576,7 +624,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       const busyIdx = weekdayCounts.indexOf(Math.max(...weekdayCounts));
       const busyDay = Math.max(...weekdayCounts) > 0 ? daysAr[busyIdx] : '—';
 
-      return { totalVisits, activeCount, repeatRate, morningCount, eveningCount, recentVisits, noShow, thisMonth, avgDaily, busyDay, weekdayCounts };
+      return { totalVisits, activeCount, repeatRate, morningCount, eveningCount, recentVisits, noShow, thisMonth, avgDaily, busyDay, weekdayCounts, totalPatients, approx };
     }
 
     function calculateCancelledAppointments() {
@@ -3928,7 +3976,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       // لا توجد إضبارة لهذا المريض — أنشئها من بيانات الموعد
       var newP = {
         name: r.PatientName || '-', phone: r.Phone || '', address: r.Address || '',
-        bloodType: '', chronicDiseases: '', birthDate: '', appointments: [], totalVisits: 0
+        bloodType: '', chronicDiseases: '', birthDate: '', appointments: [], totalVisits: 0,
+        // الحقل موجود دائماً ولو فارغاً: Firestore يُخفي أي مستند ينقصه حقل الترتيب،
+        // فمريض بلا زيارات كان سيختفي من أي قائمة مرتّبة بآخر زيارة.
+        lastVisit: ''
       };
       window._fb.addDoc(window._fb.col('patients'), newP)
         .then(function(ref) {
@@ -4152,14 +4203,47 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     };
 
     // ===== إضافة زيارة جديدة يدوياً =====
+    /* ── حارس حجم مستند المريض ──
+       كل زيارات المريض في مستند واحد، وحدّ Firestore ١ ميغابايت. عند بلوغه يفشل
+       الحفظ كلياً بلا رسالة مفهومة. نحذّر قبل ذلك بوقت كافٍ.
+       TextEncoder لا String.length: النصّ العربي حرفان بايت في UTF-8 فيُقاس نصفه خطأً. */
+    var DOC_LIMIT = 1048576;
+    var _sizeWarned = {};
+    function _docSizeBytes(o) {
+      try { return new TextEncoder().encode(JSON.stringify(o)).length; } catch (e) { return 0; }
+    }
+    // يُرجع وعداً بـ true للمتابعة، false للإلغاء
+    function _guardDocSize(pid, p) {
+      var pct = Math.round(_docSizeBytes(p) / DOC_LIMIT * 100);
+      if (pct >= 95) {
+        return appConfirm('ملف هذا المريض امتلأ ' + pct + '٪ من الحدّ الأقصى.\n' +
+          'قد يتوقّف حفظ الزيارات قريباً. تواصل مع الدعم الفنّي.\n\nهل تريد المتابعة؟', 'متابعة');
+      }
+      if (pct >= 75 && !_sizeWarned[pid]) {
+        _sizeWarned[pid] = 1;   // مرّة واحدة لكل مريض في الجلسة — بلا إزعاج متكرّر
+        showToast('تنبيه: ملف هذا المريض امتلأ ' + pct + '٪ — يُنصح بمراجعة الدعم', 'error');
+      }
+      return Promise.resolve(true);
+    }
+
     window.addNewVisit = function(pid) {
       var p = allPatients[pid]; if (!p) return;
       if (!p.appointments) p.appointments = [];
       var now = new Date(); var hh = String(now.getHours()).padStart(2, '0'); var mm = String(now.getMinutes()).padStart(2, '0');
       p.appointments.push({ date: todayStr, slot: hh + ':' + mm, visitType: 'كشف جديد', diagnosis: '', prescription: '', labTest: '', noteUpdatedAt: Date.now(), source: 'chart' });
       p.totalVisits = (p.totalVisits || 0) + 1;
-      window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true }).catch(function(e){ console.error(e); });
-      openAddNoteModal(pid, p.appointments.length - 1);
+      // كانت الممرّضة وحدها تكتب هذين، فزيارات الاضبارة لا تُحدّث «آخر زيارة»
+      // — يُفسد عدّاد المرضى النشطين وأي ترتيب زمني.
+      p.lastVisit = todayStr;
+      if (!p.firstVisit) p.firstVisit = todayStr;
+      _guardDocSize(pid, p).then(function(go) {
+        if (!go) { p.appointments.pop(); p.totalVisits = Math.max(0, (p.totalVisits || 1) - 1); return; }
+        window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
+          // مريض خارج الأربعين المحمَّلة لا يُطلق مستمع الصفحة — نحدّث الأرقام صراحةً
+          .then(function() { if (typeof _refreshServerStats === 'function') _refreshServerStats(); })
+          .catch(function(e){ console.error(e); });
+        openAddNoteModal(pid, p.appointments.length - 1);
+      });
     };
 
     // ===== محرّر الزيارة =====
@@ -4329,11 +4413,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       _flushTestFields(v);
       v.custom = readCustomFieldInputs(document.getElementById('noteCustomFields'));   // حقول الزيارة المخصّصة
       v.noteUpdatedAt = Date.now();
-      window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
-        .then(function() { showToast('تم حفظ الزيارة', 'success'); })
-        .catch(function(e) { showToast('فشل الحفظ', 'error'); console.error(e); });
-      closeAddNoteModal();
-      openPatientDetailsModal(pid);
+      _guardDocSize(pid, p).then(function(go) {
+        if (!go) return;   // الطبيب اختار عدم المتابعة — النصّ يبقى في المحرّر
+        window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
+          .then(function() { showToast('تم حفظ الزيارة', 'success'); })
+          .catch(function(e) { showToast('فشل الحفظ', 'error'); console.error(e); });
+        closeAddNoteModal();
+        openPatientDetailsModal(pid);
+      });
     };
 
     window.printPrescriptionCurrent = function() {

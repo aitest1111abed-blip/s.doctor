@@ -40,7 +40,8 @@
       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
              doc, collection, getDoc, setDoc, updateDoc, deleteDoc,
-             onSnapshot, getDocs, limit, addDoc, query, where, orderBy, serverTimestamp, writeBatch }
+             onSnapshot, getDocs, limit, addDoc, query, where, orderBy, serverTimestamp, writeBatch,
+             getCountFromServer, getAggregateFromServer, sum }
       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const firebaseConfig = window.FIREBASE_CONFIG;   // ← يأتي من config.js (الملف الوحيد للتعديل)
@@ -69,6 +70,10 @@
       addDoc:     (ref, d)   => addDoc(ref, d),
       onSnapshot, getDocs, limit, query, where, orderBy, serverTimestamp,
       batch: () => writeBatch(_db),
+      // الإحصائيات: عدّ ومجموع على الخادم بلا تنزيل المستندات — تصحّ الأرقام مهما
+      // كثر المرضى (allPatients محدودة بـ 40)، والتكلفة قراءة واحدة لكل ألف مستند.
+      countOf: (q) => getCountFromServer(q).then(s => s.data().count),
+      sumOf:   (q, field) => getAggregateFromServer(q, { t: sum(field) }).then(s => s.data().t || 0),
       uploadLogo: function(role, file) {
         // الصورة الشخصية تُخزَّن كـ data URL مضغوط داخل Firestore (settings/<role>) —
         // بلا Firebase Storage (يتطلّب خطة Blaze). نُصغّرها لـ 256px ونضغطها JPEG
@@ -1854,7 +1859,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=118"></script>
+  <script src="script.js?v=120"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
