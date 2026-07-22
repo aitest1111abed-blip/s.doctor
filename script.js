@@ -5033,16 +5033,19 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
       // شبكة مرنة: الحقول القصيرة بأعمدة تملأ العرض، الحقول الطويلة (textarea) بعرض كامل
       var grid = document.createElement('div');
-      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;align-items:start;';
+      // 250 لا 210: عند 210 تظهر أربعة أعمدة فتُخنق تسمية مثل «حدة الإبصار — اليمنى (OD)»
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 22px;align-items:start;';
       var labelCss = (variant === 'editor')
-        ? 'display:block;font-weight:700;font-size:.82rem;color:var(--text-primary);margin-bottom:6px;'
+        ? 'display:block;font-weight:700;font-size:.75rem;color:var(--text-secondary);margin-bottom:1px;'
         : 'display:block;font-size:.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:5px;';
-      var boxCss = 'width:100%;padding:12px 13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.9rem;box-sizing:border-box;';
+      // في المحرّر: الحقل سطر على ورق لا صندوق رمادي — الحدّ السفلي وحده،
+      // ويتلوّن عند التركيز. (كانت كتلاً رمادية تسحب العين عن المحتوى.)
+      var boxCss = 'width:100%;padding:7px 2px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;color:var(--text-primary);font-family:inherit;font-size:.92rem;box-sizing:border-box;line-height:1.85;';
       function styleInput(el, extra) {
         if (variant === 'editor') {
           el.style.cssText = boxCss + (extra || '');
-          el.addEventListener('focus', function() { el.style.borderColor = 'var(--primary)'; });
-          el.addEventListener('blur', function() { el.style.borderColor = 'var(--border)'; });
+          el.addEventListener('focus', function() { el.style.borderBottomColor = 'var(--primary)'; });
+          el.addEventListener('blur', function() { el.style.borderBottomColor = 'var(--border)'; });
         } else {
           el.className = 'form-input'; if (extra) el.style.cssText = extra;
         }

@@ -2733,3 +2733,84 @@
     .ve-head-btn.danger:hover { border-color:#fecaca; background:#fef2f2; }
     body.theme-dark .ve-head-btn.danger { color:#f87171; }
     body.theme-dark .ve-head-btn.danger:hover { border-color:#5b2020; background:#2a1416; }
+/* =====================================================================
+   محرّر الزيارة — الطبقة البصرية النهائية
+   المشكلة التي كانت: الحقول كتل رمادية (--bg) داخل بطاقات بيضاء داخل صفحة
+   رمادية = ثلاثة رماديات تتنافس، فتذهب العين للمستطيلات الفارغة لا للمحتوى.
+   الحلّ: الحقل سطر على ورق — بلا صندوق، يتلوّن حدّه السفلي عند الكتابة.
+   ===================================================================== */
+    #addNoteModal .ve-card textarea,
+    #addNoteModal .ve-card input[type="text"],
+    #addNoteModal .ve-card input[type="number"],
+    #addNoteModal .ve-card input[type="date"],
+    #addNoteModal .ve-card select {
+      background:transparent !important;
+      border:none !important;
+      border-bottom:1px solid var(--border) !important;
+      border-radius:0 !important;
+      padding:7px 2px !important;
+      line-height:1.85;
+      transition:border-color .18s;
+    }
+    #addNoteModal .ve-card textarea:focus,
+    #addNoteModal .ve-card input:focus,
+    #addNoteModal .ve-card select:focus {
+      border-bottom-color:var(--primary) !important;
+      box-shadow:none !important;
+    }
+    /* الوصفة وحدها تحتفظ بأرضية: هي الشيء الوحيد الذي يخرج مع المريض */
+    #addNoteModal #prescriptionText {
+      background:#fffdf5 !important;
+      border:1px solid #efe2c4 !important;
+      border-radius:9px !important;
+      padding:13px 15px !important;
+      line-height:2.05;
+    }
+    #addNoteModal #prescriptionText:focus { border-color:#b98b2a !important; }
+    body.theme-dark #addNoteModal #prescriptionText { background:#1d1a10 !important; border-color:#3d3418 !important; }
+
+    /* البطاقة: أخفّ، والحافّة تحمل إشارة الامتلاء بدل الدوائر الطائرة */
+    #addNoteModal .ve-card {
+      border-inline-start:2.5px solid var(--border-strong);
+      transition:border-color .2s;
+    }
+    #addNoteModal .ve-step.filled .ve-card { border-inline-start-color:var(--primary); }
+    #addNoteModal .ve-step:focus-within .ve-card { border-inline-start-color:var(--primary); }
+    /* الدوائر الطائرة أُلغيت — كانت معلّقة في الهامش بلا حضور ولا وظيفة */
+    #addNoteModal .ve-rail { display:none; }
+    #addNoteModal .ve-step { grid-template-columns:minmax(0,1fr); gap:0; }
+
+    /* القياسات: ثلاثة أعمدة لا أربعة — «حدة الإبصار — اليمنى (OD)» تحتاج مساحة */
+    #addNoteModal #noteCustomFields > div {
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr)) !important;
+      gap:6px 22px !important;
+    }
+    #addNoteModal #noteCustomFields label {
+      font-size:.75rem !important; font-weight:700 !important;
+      color:var(--text-secondary) !important; margin-bottom:1px !important;
+    }
+
+    /* الرصيف الجانبي يتراجع: كان بطاقات بيضاء بوزن العمود الرئيسي */
+    #addNoteModal .ve-side .ve-card {
+      background:transparent; border:none; border-inline-start:none;
+      border-top:1px solid var(--border); border-radius:0;
+      padding:13px 2px 4px;
+    }
+    #addNoteModal .ve-side .ve-card:first-child { border-top:none; padding-top:0; }
+    #addNoteModal .ve-side .ve-label { font-size:.7rem; letter-spacing:.1em; color:var(--text-muted); }
+    /* بطاقة الزيارة السابقة تبقى محدّدة — هي محتوى لا إجراء */
+    #addNoteModal .ve-side .ve-prev {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:10px; padding:0; border-top:1px solid var(--border);
+    }
+
+    /* الزرّ العائم كان z-index:310 فوق المحرّر (170) ويغطّي شريط الحفظ */
+    body.editor-open #docDesktopSpeedDial,
+    body.editor-open #docDesktopPills { display:none !important; }
+    /* ارتفاعات الحقول — انتقلت من الأنماط المضمّنة إلى هنا */
+    #addNoteModal #complaintText     { min-height:58px; }
+    #addNoteModal #clinicalExamText  { min-height:84px; }
+    #addNoteModal #diagnosisText     { min-height:100px; }
+    #addNoteModal #prescriptionText  { min-height:150px; }
+    #addNoteModal .ve-card textarea  { width:100%; font-family:inherit; font-size:.93rem;
+                                       color:var(--text-primary); resize:vertical; box-sizing:border-box; }

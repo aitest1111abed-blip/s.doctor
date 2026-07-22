@@ -1237,7 +1237,7 @@
                 <div class="ve-rail"><div class="ve-mark">S</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="complaintText">الشكوى <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">— ماذا يقول المريض؟</span></label>
-                  <textarea id="complaintText" style="width:100%;padding:13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:78px;box-sizing:border-box;" placeholder="بكلمات المريض نفسه — منذ متى، وكيف بدأت..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                  <textarea id="complaintText" placeholder="بكلمات المريض نفسه — منذ متى، وكيف بدأت..."></textarea>
                 </div>
               </div>
 
@@ -1253,7 +1253,7 @@
                 <div class="ve-rail"><div class="ve-mark">O</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="clinicalExamText">الفحص السريري</label>
-                  <textarea id="clinicalExamText" style="width:100%;padding:13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:86px;box-sizing:border-box;" placeholder="ماذا وجدتَ بالفحص؟ إصغاء، جسّ، علامات سريرية..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                  <textarea id="clinicalExamText" placeholder="ماذا وجدتَ بالفحص؟ إصغاء، جسّ، علامات سريرية..."></textarea>
                 </div>
               </div>
 
@@ -1261,7 +1261,7 @@
                 <div class="ve-rail"><div class="ve-mark">A</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="diagnosisText">التشخيص</label>
-                  <textarea id="diagnosisText" style="width:100%;padding:13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:104px;box-sizing:border-box;" placeholder="التشخيص، والتشخيص التفريقي إن وُجد..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                  <textarea id="diagnosisText" placeholder="التشخيص، والتشخيص التفريقي إن وُجد..."></textarea>
                 </div>
               </div>
 
@@ -1269,7 +1269,7 @@
                 <div class="ve-rail"><div class="ve-mark">P</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="prescriptionText">الخطة — الوصفة <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">— ما يخرج به المريض</span></label>
-                  <textarea id="prescriptionText" style="width:100%;padding:13px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.9;min-height:170px;box-sizing:border-box;" placeholder="الدواء · الجرعة · المدة — كل دواء بسطر" onfocus="this.style.borderColor='#d97706'" onblur="this.style.borderColor='#fde68a'"></textarea>
+                  <textarea id="prescriptionText" placeholder="الدواء · الجرعة · المدة — كل دواء بسطر"></textarea>
                 </div>
               </div>
 
@@ -1300,7 +1300,7 @@
                   <div class="test-kind-opt" id="testKindImgBtn" onclick="setTestKind('imaging')"><i class="fas fa-x-ray"></i> أشعة</div>
                 </div>
                 <input type="hidden" id="testKind" value="lab">
-                <textarea id="labTestText" style="width:100%;padding:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.9rem;resize:vertical;line-height:1.7;min-height:90px;box-sizing:border-box;" placeholder="اكتب نوع التحليل المطلوب..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                <textarea id="labTestText" placeholder="اكتب نوع التحليل المطلوب..."></textarea>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
                   <span id="testListLabel" style="font-size:.74rem;font-weight:700;color:var(--text-secondary);">إرسال إلى مخبر</span>
                   <button onclick="openContactsManager()" title="إدارة جهات التواصل" style="font-size:.7rem;color:var(--primary);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-gear"></i> إدارة</button>
@@ -1900,7 +1900,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=124"></script>
+  <script src="script.js?v=125"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
