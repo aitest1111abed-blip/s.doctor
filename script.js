@@ -1,4 +1,4 @@
-﻿/* ===== PWA: تسجيل service worker (شبكة-أولاً) ===== */
+/* ===== PWA: تسجيل service worker (شبكة-أولاً) ===== */
 /* الكاش شبكة-أولاً فلا تظهر نسخة قديمة، والتسجيل ضروري لتثبيت التطبيق على أندرويد */
 if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 
@@ -4070,6 +4070,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
             + '<i class="fas fa-chevron-down chart-visit-caret" style="color:var(--text-muted);transition:transform .2s;flex-shrink:0;"></i>'
           + '</div>'
           + '<div class="chart-visit-body" style="display:none;padding:0 13px 13px;border-top:1px dashed var(--border);">'
+            + ((v.complaint && v.complaint.trim()) ? _visitSection('الشكوى', 'fa-comment-medical', v.complaint) : '')
             + renderVisitCustomHtml(v.custom)   // حقول الزيارة المخصّصة (قياسات حسب التخصص)
             + ((v.clinicalExam && v.clinicalExam.trim()) ? _visitSection('الفحص السريري', 'fa-stethoscope', v.clinicalExam) : '')
             + _visitSection('التشخيص', 'fa-notes-medical', v.diagnosis || v.note)
@@ -4255,6 +4256,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('notePatientId').value = pid;
       document.getElementById('noteVisitIndex').value = idx;
       document.getElementById('diagnosisText').value = v.diagnosis || v.note || '';
+      var _cpEl = document.getElementById('complaintText'); if (_cpEl) _cpEl.value = v.complaint || '';
       var _ceEl = document.getElementById('clinicalExamText'); if (_ceEl) _ceEl.value = v.clinicalExam || '';
       document.getElementById('prescriptionText').value = v.prescription || '';
       // نصوص مستقلة: نص التحليل في labTest، ونص الأشعة في imagingTest
@@ -4339,6 +4341,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       // اقرأ القيم الحالية من الحقول
       v.diagnosis    = document.getElementById('diagnosisText').value.trim();
       v.prescription = document.getElementById('prescriptionText').value.trim();
+      var _cp = document.getElementById('complaintText'); if (_cp) v.complaint = _cp.value.trim();
       var _ce = document.getElementById('clinicalExamText'); if (_ce) v.clinicalExam = _ce.value.trim();
       _flushTestFields(v);
       v.custom = readCustomFieldInputs(document.getElementById('noteCustomFields'));   // حقول الزيارة المخصّصة
@@ -4409,6 +4412,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var v = p.appointments[idx];
       v.diagnosis    = document.getElementById('diagnosisText').value.trim();
       v.prescription = document.getElementById('prescriptionText').value.trim();
+      var _cp = document.getElementById('complaintText'); if (_cp) v.complaint = _cp.value.trim();
       var _ce = document.getElementById('clinicalExamText'); if (_ce) v.clinicalExam = _ce.value.trim();
       _flushTestFields(v);
       v.custom = readCustomFieldInputs(document.getElementById('noteCustomFields'));   // حقول الزيارة المخصّصة
@@ -4661,9 +4665,18 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         }).filter(Boolean).join(' · ');
       }
       var visits = (p.appointments || []).slice().sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
-      var rows = visits.map(function(v, i) { return '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(v.visitType || '-') + '</td><td>' + formatDateAr(v.date) + '</td><td>' + slotTimeOf(v) + '</td>' + (vFields.length ? ('<td>' + (_vCustomText(v) || '-') + '</td>') : '') + '</tr>'; }).join('');
-      if (!rows) rows = '<tr><td colspan="' + (vFields.length ? 5 : 4) + '" style="text-align:center;color:#64748b;">لا توجد زيارات</td></tr>';
-      var archive = '<div class="sec-title">أرشيف الزيارات</div><table class="atbl"><thead><tr><th style="width:42px;">#</th><th>نوع الزيارة</th><th>التاريخ</th><th>الوقت</th>' + (vFields.length ? '<th>القياسات / البيانات</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
+      // عمود الشكوى يظهر فقط إن سجّلها الطبيب في زيارة واحدة على الأقل — لا نوسّع الجدول بلا داعٍ
+      var hasComplaint = visits.some(function(v) { return v.complaint && v.complaint.trim(); });
+      var cols = 4 + (hasComplaint ? 1 : 0) + (vFields.length ? 1 : 0);
+      var rows = visits.map(function(v, i) {
+        return '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(v.visitType || '-') + '</td><td>' + formatDateAr(v.date) + '</td><td>' + slotTimeOf(v) + '</td>'
+          + (hasComplaint ? ('<td>' + (v.complaint ? escapeHtml(v.complaint) : '-') + '</td>') : '')
+          + (vFields.length ? ('<td>' + (_vCustomText(v) || '-') + '</td>') : '') + '</tr>';
+      }).join('');
+      if (!rows) rows = '<tr><td colspan="' + cols + '" style="text-align:center;color:#64748b;">لا توجد زيارات</td></tr>';
+      var archive = '<div class="sec-title">أرشيف الزيارات</div><table class="atbl"><thead><tr><th style="width:42px;">#</th><th>نوع الزيارة</th><th>التاريخ</th><th>الوقت</th>'
+        + (hasComplaint ? '<th>الشكوى</th>' : '')
+        + (vFields.length ? '<th>القياسات / البيانات</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
       _printSheet('إضبارة المريض', info + archive);
     };
     window.printPrescription = function(pid, idx) {
@@ -4864,7 +4877,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           { label: 'حساسية أدوية', type: 'text' }
         ],
         visit: [
-          { label: 'الشكوى الرئيسية', type: 'text' },
+          // «الشكوى» صارت حقلاً مدمجاً في محرّر الزيارة لكل التخصّصات — أُزيلت من هنا منعاً للتكرار
+
           { label: 'موقع الألم', type: 'text' },
           { label: 'مدة الألم', type: 'text' },
           { label: 'شدة الألم', type: 'select', options: ['خفيف', 'متوسط', 'شديد'] },

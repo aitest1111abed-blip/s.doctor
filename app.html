@@ -1229,6 +1229,12 @@
               <div style="font-size:.84rem;font-weight:800;color:#0f766e;line-height:1.6;display:flex;align-items:flex-start;gap:6px;"><i class="fas fa-tooth" style="color:#0d9488;margin-top:3px;"></i><span>حالات الأسنان تُسجَّل من المخطط مباشرة<br><span style="font-weight:600;font-size:.74rem;color:#0d9488;">اضغط على السن → اختر الإجراء → يُسجَّل تلقائياً</span></span></div>
               <button onclick="openDentalChartFromEditor()" style="padding:9px 16px;font-size:.82rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(13,148,136,.3);">فتح المخطط</button>
             </div>
+            <!-- الشكوى: أول ما يُوثَّق في أي زيارة بأي تخصّص (حرف S في SOAP) —
+                 مدمجة لا حقلاً مخصّصاً، وإلا فقدها من لم يضبط قالبه. -->
+            <div class="ve-card">
+              <label class="ve-label"><span class="ve-ico"><i class="fas fa-comment-medical" style="font-size:.7rem;color:var(--primary);"></i></span> الشكوى</label>
+              <textarea id="complaintText" style="width:100%;padding:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:80px;box-sizing:border-box;" placeholder="ما الذي يشكوه المريض؟ (بكلماته — منذ متى وكيف بدأت...)" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+            </div>
             <!-- حقول الزيارة المخصّصة (قياسات حسب التخصص) — تُبنى ديناميكياً -->
             <div class="ve-card" id="noteCustomCard" style="display:none;">
               <label class="ve-label"><span class="ve-ico" style="background:#eef2ff;border-color:#c7d2fe;"><i class="fas fa-ruler-combined" style="font-size:.7rem;color:#4f46e5;"></i></span> قياسات وحقول مخصّصة</label>
@@ -1859,7 +1865,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=120"></script>
+  <script src="script.js?v=121"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
