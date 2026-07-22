@@ -4053,6 +4053,18 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + '<div style="font-size:.84rem;color:var(--text-primary);line-height:1.7;white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;">'
         + (text ? escapeHtml(text) : '<span style="color:var(--text-muted)">— لا يوجد —</span>') + '</div></div>';
     }
+    /* عنوان صفّ الزيارة: التشخيص أولاً — لا «كشف جديد» المتكرّرة.
+       كانت كل الزيارات تظهر بعنوان واحد فلا يميّزها إلا التاريخ، والطبيب
+       يفتحها واحدة واحدة ليجد ما يبحث عنه. التشخيص يجعل الأرشيف يُقرأ بالعين.
+       سلسلة الاحتياط: تشخيص ← شكوى ← نوع الزيارة. وسطر واحد فقط. */
+    function _visitHeadline(v) {
+      var t = (v.diagnosis || v.note || '').trim() || (v.complaint || '').trim();
+      if (!t) return escapeHtml(v.visitType || 'زيارة');
+      t = t.split(/\r?\n/)[0].trim();              // أول سطر فقط
+      if (t.length > 70) t = t.slice(0, 70) + '…';
+      return escapeHtml(t);
+    }
+
     function renderChartVisits(pid) {
       var p = allPatients[pid]; var box = document.getElementById('chartVisitsList');
       var visits = (p.appointments || []).map(function(v, i) { return { v: v, i: i }; });
@@ -4065,8 +4077,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         var hasImg = !!(v.imagingTest && v.imagingTest.trim());
         return '<div class="chart-visit" style="border:1.5px solid var(--border);border-right:4px solid ' + c.bd + ';border-radius:12px;overflow:hidden;background:var(--surface);">'
           + '<div onclick="var b=this.parentNode.querySelector(\'.chart-visit-body\');var o=b.style.display===\'none\';b.style.display=o?\'block\':\'none\';this.querySelector(\'.chart-visit-caret\').style.transform=o?\'rotate(180deg)\':\'\';" oncontextmenu="event.preventDefault();openAddNoteModal(\'' + pid + '\',' + i + ');return false;" title="كليك يمين: فتح التعديل" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;cursor:pointer;">'
-            + '<div style="min-width:0;"><div style="font-weight:800;font-size:.88rem;color:var(--text-primary);">' + escapeHtml(v.visitType || 'زيارة') + '</div>'
-            + '<div style="font-size:.74rem;color:var(--text-muted);margin-top:2px;"><i class="far fa-calendar" style="font-size:.68rem;"></i> ' + formatDateAr(v.date) + ' · ' + slotTimeOf(v) + '</div></div>'
+            + '<div style="min-width:0;"><div style="font-weight:800;font-size:.88rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _visitHeadline(v) + '</div>'
+            + '<div style="font-size:.74rem;color:var(--text-muted);margin-top:2px;">' + formatDateAr(v.date) + ' · ' + slotTimeOf(v) + ' · ' + escapeHtml(v.visitType || 'زيارة') + '</div></div>'
             + '<i class="fas fa-chevron-down chart-visit-caret" style="color:var(--text-muted);transition:transform .2s;flex-shrink:0;"></i>'
           + '</div>'
           + '<div class="chart-visit-body" style="display:none;padding:0 13px 13px;border-top:1px dashed var(--border);">'

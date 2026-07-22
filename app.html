@@ -993,6 +993,13 @@
             <h3 id="modalPatientName" class="pf-name">-</h3>
             <p id="modalPatientPhone" class="pf-phone" dir="ltr"></p>
           </div>
+          <!-- إجراءات على المريض — كانت داخل بطاقة «حجز الموعد» وهي إجراءات
+               على الموعد لا على المريض. مكانها الطبيعي جوار اسمه. -->
+          <div class="pf-head-actions">
+            <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+            <a id="modalCallBtn" href="#" class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>
+            <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-actbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
+          </div>
           <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-close" title="إغلاق"><i class="fas fa-times"></i></button>
         </div>
         <div id="chartHeaderPills" class="pf-pills"></div>
@@ -1017,11 +1024,6 @@
         <div class="glass-card" style="padding:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;flex-wrap:wrap;">
             <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="far fa-calendar-plus" style="margin-left:6px;"></i>حجز الموعد القادم</h4>
-            <div class="pf-head-actions">
-              <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-              <a id="modalCallBtn" href="#" class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>
-              <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-actbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
-            </div>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
             <div style="display:flex;flex-direction:column;gap:4px;">
@@ -1898,7 +1900,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=128"></script>
+  <script src="script.js?v=129"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
