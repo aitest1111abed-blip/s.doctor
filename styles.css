@@ -2687,14 +2687,7 @@
     .ve-copy:hover { background:var(--primary); color:#fff; }
     .ve-copy.done { background:var(--primary); color:#fff; }
 
-    /* شريط الحفظ الثابت — لا يُبحث عنه بعد تمرير طويل */
-    .ve-sticky {
-      position:sticky; bottom:0; z-index:5; margin:0 -20px -20px;
-      padding:11px 20px; background:var(--surface); border-top:1.5px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
-    .ve-sticky .st { font-size:.76rem; color:var(--text-muted); }
-    .ve-sticky .st b { color:var(--primary); font-weight:700; }
+
     /* ── ترويسة محرّر الزيارة ──
        كانت بتدرّج تركوازي باهت وأيقونة زخرفية وزرّ حفظ مكرّر. الآن: بيضاء،
        اسم المريض هو العنوان (لا «تحرير الزيارة» — الطبيب يعرف أين هو)،
@@ -2818,5 +2811,3 @@
     /* زرّ الحفظ بهيئة زرّ الحذف نفسها — محدَّد بلون الهوية لا مصمت */
     .ve-head-btn.save { color:var(--primary); border-color:var(--border); }
     .ve-head-btn.save:hover { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
-    /* الشريط صار يحمل الزرّ وحده */
-    .ve-sticky { justify-content:flex-end; }

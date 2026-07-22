@@ -1212,6 +1212,9 @@
         <button onclick="deleteVisitCurrent()" title="حذف الزيارة" class="ve-head-btn danger">
           <i class="fas fa-trash"></i> حذف
         </button>
+        <button onclick="saveVisit(false)" class="ve-head-btn save">
+          <i class="fas fa-floppy-disk"></i> حفظ الزيارة
+        </button>
       </div>
 
       <!-- شريط الخطر: الحساسية والأمراض المزمنة قبل كتابة أي وصفة.
@@ -1326,10 +1329,6 @@
         </div>
 
         <!-- شريط الحفظ الثابت — لا يُبحث عنه في عمود جانبي بعد تمرير طويل -->
-        <div class="ve-sticky">
-          <button class="ve-head-btn save" onclick="saveVisit(false)"><i class="fas fa-floppy-disk"></i> حفظ الزيارة</button>
-        </div>
-
         <!-- عناصر مخفية للتوافق -->
         <div style="display:none;">
           <textarea id="noteText"></textarea>
@@ -1899,7 +1898,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=127"></script>
+  <script src="script.js?v=128"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
