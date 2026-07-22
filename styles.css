@@ -2818,3 +2818,30 @@
     /* زرّ الحفظ بهيئة زرّ الحذف نفسها — محدَّد بلون الهوية لا مصمت */
     .ve-head-btn.save { color:var(--primary); border-color:var(--border); }
     .ve-head-btn.save:hover { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
+    /* ── نموذج «معلومات المريض» ──
+       كان حقولاً في صناديق رمادية بينما صار المحرّر والاضبارة أسطراً — فتفكّك
+       الاتّساق بين الشاشات. نفس المعالجة هنا: سطر يتلوّن عند الكتابة. */
+    #patientInfoModal .form-input {
+      background:transparent !important;
+      border:none !important;
+      border-bottom:1px solid var(--border) !important;
+      border-radius:0 !important;
+      padding:8px 2px !important;
+      font-size:.92rem;
+      transition:border-color .18s;
+    }
+    #patientInfoModal .form-input:focus {
+      border-bottom-color:var(--primary) !important;
+      box-shadow:none !important;
+    }
+    #patientInfoModal .form-label {
+      font-size:.76rem; font-weight:700; color:var(--text-secondary);
+      margin-bottom:1px; display:block;
+    }
+    #patientInfoModal textarea.form-input { line-height:1.8; min-height:56px; }
+    /* السهم داخل القائمة يبقى ظاهراً بعد إزالة الإطار */
+    #patientInfoModal select.form-input { appearance:auto; }
+    /* عمر المريض بجانب تسمية تاريخ الميلاد — بارز لأنه محسوب لا مُدخَل */
+    #patientInfoModal #piAgeDisplay { font-size:.74rem; }
+    /* عنوان قسم الحقول المخصّصة يفصل بخطّ لا بمسافة فقط */
+    #patientInfoModal #piCustomFields { border-top:1px solid var(--border); padding-top:12px; }
