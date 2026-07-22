@@ -2692,6 +2692,25 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     });
 
     // ==================== الصفحة الرئيسية ====================
+    /* تلوين بطاقات ملخّص اليوم: النسبة + شريط الحصّة + إنذار الغياب.
+       الغياب يحمرّ فقط إن وُجد — صفر غياب خبر جيّد لا إنذار. */
+    function _kpiPaint(total, left, done, miss) {
+      function pct(n) { return total ? Math.round(n / total * 100) : 0; }
+      function put(id, n, showPct) {
+        var el = document.getElementById(id + 'Pct');
+        if (el) el.innerHTML = (total && showPct) ? (pct(n) + '٪ من اليوم') : '&nbsp;';
+        var bar = document.getElementById(id + 'Bar');
+        if (bar) bar.style.width = pct(n) + '%';
+      }
+      put('homeStatRemaining', left, true);
+      put('homeStatVisited', done, true);
+      put('homeStatNoShow', miss, miss > 0);
+      var card = document.getElementById('homeStatNoShowCard');
+      if (card) card.classList.toggle('on', miss > 0);
+      var tag = document.getElementById('homeStatNoShowTag');
+      if (tag) tag.textContent = miss > 0 ? 'غياب' : 'لا غياب';
+    }
+
     function updateHomeSummaryStats() { renderHomeSection(); }
     function renderHomeSection() {
       var now = new Date();
@@ -2730,6 +2749,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         setText('homeStatRemaining', accepted.length);
         setText('homeStatVisited', visited.length);
         setText('homeStatNoShow', noShow.length);
+        _kpiPaint(totalToday, accepted.length, visited.length, noShow.length);
         // بطاقات الموبايل (نفس شكل الممرضة)
         setText('msTotal', totalToday);
         setText('msRem', accepted.length);

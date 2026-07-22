@@ -2845,3 +2845,46 @@
     #patientInfoModal #piAgeDisplay { font-size:.74rem; }
     /* عنوان قسم الحقول المخصّصة يفصل بخطّ لا بمسافة فقط */
     #patientInfoModal #piCustomFields { border-top:1px solid var(--border); padding-top:12px; }
+/* =====================================================================
+   بطاقات ملخّص اليوم (KPI)
+   • اللون يتبع الحالة لا الفئة: تركوازي = تمّت · أحمر = غياب · رمادي = لم يحن.
+     كانت الأربع تركوازية بلا تمييز فلا شيء يلفت النظر.
+   • صفر غياب يبقى محايداً — صفر غياب خبر جيّد لا إنذار.
+   • شريط الحصّة يعيد العلاقة: الكلّ = متبقية + زاروا + غياب.
+   • اللوحة مرّت على مدقّق عمى الألوان: ΔE 31.4 عادي · 13.1 للعمى الأخضر
+     (المحاولة الأولى أحمر+كهرماني رُفضت عند 14.4).
+   ===================================================================== */
+    .kpi{
+      position:relative; background:var(--surface); border:1.5px solid var(--border);
+      border-radius:14px; padding:15px 16px 14px; overflow:hidden;
+      display:flex; flex-direction:column; gap:8px;
+      transition:border-color .2s;
+    }
+    .kpi-h{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+    .kpi-n{
+      font-size:1.95rem; font-weight:800; line-height:1;
+      font-variant-numeric:tabular-nums; letter-spacing:-1px; color:var(--text-primary);
+    }
+    .kpi-p{font-size:.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; margin-top:6px;}
+    .kpi-t{font-size:.79rem; color:var(--text-secondary); font-weight:600;}
+    .kpi-tag{
+      font-size:.67rem; font-weight:800; border-radius:5px; padding:3px 8px;
+      white-space:nowrap; flex-shrink:0;
+      background:var(--bg); color:var(--text-muted);
+    }
+    .kpi-share{position:absolute; inset-inline:0; bottom:0; height:3px; background:var(--border);}
+    .kpi-share i{display:block; height:100%; width:0; background:var(--border-strong); transition:width .55s cubic-bezier(.4,0,.2,1);}
+
+    .kpi.total .kpi-share i{background:var(--text-muted); opacity:.55;}
+    .kpi.done  .kpi-n{color:var(--primary);}
+    .kpi.done  .kpi-tag{background:var(--primary-light); color:var(--primary);}
+    .kpi.done  .kpi-share i{background:var(--primary);}
+    /* الغياب: محايد افتراضياً، ويحمرّ فقط عند وجود غياب فعلي (.on) */
+    .kpi.miss.on{border-color:#dc2626;}
+    .kpi.miss.on .kpi-n{color:#dc2626;}
+    .kpi.miss.on .kpi-tag{background:#fdf1f1; color:#dc2626;}
+    .kpi.miss.on .kpi-share i{background:#dc2626;}
+    body.theme-dark .kpi.miss.on{border-color:#e04343;}
+    body.theme-dark .kpi.miss.on .kpi-n{color:#e04343;}
+    body.theme-dark .kpi.miss.on .kpi-tag{background:#2a1618; color:#e04343;}
+    body.theme-dark .kpi.miss.on .kpi-share i{background:#e04343;}
