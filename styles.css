@@ -1,5 +1,11 @@
 ﻿/* ===== Main Styles ===== */
     :root {
+      /* أرضية الصفحة — مفصولة عن --bg عمداً:
+         --bg مستعملة ٥٨ مرّة كخلفية للحقول والعناصر الغائرة، فتفتيحها كان
+         سيُذيبها في البطاقات البيضاء. --page تخصّ خلفية الصفحة وحدها.
+         أبيض شبه صافٍ بانحياز تركوازي لا يكاد يُرى: يُبرز البطاقات البيضاء،
+         ويريح العين في جلسة طويلة، ولا يقع في «الكريمي» المستهلَك. */
+      --page:      #f4f7f6;
       --bg:        #eef1f6;
       --surface:   #ffffff;
       --border:    #e7ebf1;
@@ -48,6 +54,8 @@
 
     /* ===== الوضع الليلي ===== */
     body.theme-dark {
+      /* أقلّ زرقة وأقرب للحبري — الأزرق الغامق يُرهق في الغرف المظلمة */
+      --page:#0e1418;
       --bg:#0b1220; --surface:#16202e; --border:#27344a; --border-strong:#3a4a63;
       --text-primary:#e8edf4; --text-secondary:#c3cdda; --text-muted:#8b99ad;
       --primary-light:#0f3b36; --primary-faint:#0f1a28;
@@ -104,7 +112,7 @@
 
     body {
       font-family: 'Tajawal', 'IBM Plex Sans Arabic', sans-serif;
-      background: var(--bg);
+      background: var(--page);
       color: var(--text-primary);
       min-height: 100vh;
       margin: 0;
