@@ -2152,6 +2152,8 @@
 .pf-tile .lab{font-size:.76rem;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .pf-tile .lab i{font-size:.72rem;opacity:.85;width:13px;text-align:center;}
 .pf-tile .val{font-size:.88rem;font-weight:700;color:var(--text-primary);word-break:break-word;overflow-wrap:anywhere;text-align:end;}
+/* «غير مسجّل» خبرٌ عن غياب القيمة لا قيمة، فيتراجع وزنه ولونه */
+.pf-tile .val.empty{font-weight:500;color:var(--text-muted);}
 /* الحقول الطويلة (أمراض مزمنة، ملاحظات) تنزل لسطر مستقلّ */
 .pf-tile.full{flex-direction:column;align-items:stretch;gap:4px;}
 .pf-tile.full .val{text-align:start;}
@@ -2807,13 +2809,17 @@
     /* الزرّ العائم كان z-index:310 فوق المحرّر (170) ويغطّي شريط الحفظ */
     body.editor-open #docDesktopSpeedDial,
     body.editor-open #docDesktopPills { display:none !important; }
-    /* ارتفاعات الحقول — انتقلت من الأنماط المضمّنة إلى هنا */
-    #addNoteModal #complaintText     { min-height:58px; }
-    #addNoteModal #clinicalExamText  { min-height:84px; }
-    #addNoteModal #diagnosisText     { min-height:100px; }
-    #addNoteModal #prescriptionText  { min-height:150px; }
+    /* ── ارتفاع الحقول ──
+       كانت 58/84/100/150px من زمن الصناديق: يومها كان الارتفاع يرسم الصندوق
+       ويوحي بحجم الإجابة المتوقّعة. بعد أن صار الحقل سطراً، بقي الارتفاع فطُرد
+       الخطّ السفلي إلى أسفل الفراغ، فصار بين التسمية والخطّ فجوة لا يملؤها شيء.
+       الآن: يبدأ الحقل بسطر واحد وينمو مع الكتابة (veAutoGrow) — الخطّ يلاصق
+       النصّ دائماً، ولا شريط تمرير داخل الحقل. */
     #addNoteModal .ve-card textarea  { width:100%; font-family:inherit; font-size:.93rem;
-                                       color:var(--text-primary); resize:vertical; box-sizing:border-box; }
+                                       color:var(--text-primary); box-sizing:border-box;
+                                       min-height:0; height:auto; overflow:hidden; resize:none; }
+    /* الوصفة تبدأ بثلاثة أسطر — هي الورقة التي تخرج مع المريض، وفراغها مقصود */
+    #addNoteModal #prescriptionText  { min-height:6.15em; }
 
     /* زرّ الحفظ بهيئة زرّ الحذف نفسها — محدَّد بلون الهوية لا مصمت */
     .ve-head-btn.save { color:var(--primary); border-color:var(--border); }
@@ -2838,7 +2844,9 @@
       font-size:.76rem; font-weight:700; color:var(--text-secondary);
       margin-bottom:1px; display:block;
     }
-    #patientInfoModal textarea.form-input { line-height:1.8; min-height:56px; }
+    #patientInfoModal textarea.form-input {
+      line-height:1.8; min-height:0; height:auto; overflow:hidden; resize:none;
+    }
     /* السهم داخل القائمة يبقى ظاهراً بعد إزالة الإطار */
     #patientInfoModal select.form-input { appearance:auto; }
     /* عمر المريض بجانب تسمية تاريخ الميلاد — بارز لأنه محسوب لا مُدخَل */

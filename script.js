@@ -4352,6 +4352,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var box = document.getElementById('prescriptionText');
       if (!rx || !box) return;
       box.value = rx;
+      veAutoGrow(box);   // القيمة وُضعت برمجياً فلا حدث input يوسّع الحقل
       _veSyncSteps();
       var btn = card.querySelector('.ve-copy');
       if (btn) {
@@ -4370,10 +4371,27 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         step.classList.toggle('filled', any);
       });
     }
+    /* ── نموّ الحقول مع الكتابة ──
+       الحقل صار سطراً على ورق، والسطر لا يكون له ارتفاع ثابت: يبدأ بسطر واحد
+       فيلاصق الخطُّ التسميةَ، ثم يطول بقدر ما يُكتب فيه بلا شريط تمرير داخلي. */
+    function veAutoGrow(el) {
+      if (!el || el.tagName !== 'TEXTAREA') return;
+      el.style.height = 'auto';
+      if (!el.scrollHeight) return;   // مخفيّ: القياس صفر فلا يُكتب ارتفاع خاطئ
+      // box-sizing:border-box — scrollHeight لا يشمل الحدّ، فيُضاف وإلّا قُصّ
+      // آخر سطر بمقدار سُمكه (والفائض مخفيّ فلا يظهر شريط تمرير يكشف القصّ)
+      el.style.height = (el.scrollHeight + (el.offsetHeight - el.clientHeight)) + 'px';
+    }
+    function veGrowAll() {
+      Array.prototype.forEach.call(document.querySelectorAll('#addNoteModal textarea'), veAutoGrow);
+    }
     document.addEventListener('DOMContentLoaded', function() {
       var m = document.getElementById('addNoteModal');
-      if (m) m.addEventListener('input', _veSyncSteps);
+      if (m) m.addEventListener('input', function(e) { veAutoGrow(e.target); _veSyncSteps(); });
       if (m) m.addEventListener('change', _veSyncSteps);
+      // نموذج معلومات المريض صار أسطراً كذلك، فيتبع القاعدة نفسها
+      var pi = document.getElementById('patientInfoModal');
+      if (pi) pi.addEventListener('input', function(e) { veAutoGrow(e.target); });
     });
 
     // ===== محرّر الزيارة =====
@@ -4416,12 +4434,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('visitEditorSub').textContent = _mBits.join(' · ');
       var m = document.getElementById('addNoteModal'); m.classList.remove('modal-hidden'); m.classList.add('modal-visible');
       _veSyncSteps();   // العلامات تعكس ما هو مكتوب فعلاً عند الفتح
+      // بعد الإظهار: scrollHeight للعنصر المخفيّ صفر، فلا يُقاس إلا بعد الرسم
+      requestAnimationFrame(veGrowAll);
       document.body.classList.add('editor-open');
       loadContacts(renderEditorContacts);
     };
 
     window.toggleTestWrap = function(checked) {
       document.getElementById('labTestWrap').style.display = checked ? 'block' : 'none';
+      if (checked) veAutoGrow(document.getElementById('labTestText'));   // لم يكن مرئياً فلم يُقَس
     };
     function _applyTestKindUI(kind) {
       var isImg = kind === 'imaging';
@@ -4440,6 +4461,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       _curTestKind = kind;
       document.getElementById('testKind').value = kind;
       ta.value = _testBuf[kind] || '';
+      veAutoGrow(ta);
       _applyTestKindUI(kind);
     };
     // يقرأ النصوص الحالية ويكتبها في كائن الزيارة (نصّان مستقلان)
@@ -4624,6 +4646,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       buildCustomFieldInputs(document.getElementById('piCustomFields'), getChartTemplate().patient, p.custom, 'حقول مخصّصة');
       updatePiAge();
       document.getElementById('patientInfoModal').classList.remove('hidden');
+      requestAnimationFrame(function() {
+        Array.prototype.forEach.call(document.querySelectorAll('#patientInfoModal textarea'), veAutoGrow);
+      });
     };
     window.updatePiAge = function() {
       var b = document.getElementById('piBirth').value;
@@ -5089,9 +5114,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         if (f.type === 'textarea') {
           cell.style.gridColumn = '1/-1';
           var lblt = document.createElement('label'); lblt.style.cssText = labelCss; lblt.textContent = f.label || '(حقل)'; cell.appendChild(lblt);
-          el = document.createElement('textarea'); el.rows = (variant === 'editor') ? 3 : 2;
-          styleInput(el, 'resize:vertical;line-height:1.7;min-height:' + (variant === 'editor' ? '84px' : '60px') + ';');
+          // سطر واحد ينمو مع الكتابة — كان min-height ثابتاً (84/60px) من زمن
+          // الصناديق، فيبقى الخطّ السفلي بعيداً عن التسمية والحقل يبدو فارغاً
+          el = document.createElement('textarea'); el.rows = 1;
+          styleInput(el, 'resize:none;overflow:hidden;line-height:1.7;min-height:0;');
           el.value = (val != null ? val : '');
+          el.addEventListener('input', function() { veAutoGrow(el); });
         } else if (f.type === 'checkbox') {
           // صندوق بحدود: عنوان + مفتاح
           cell.style.cssText = (variant === 'editor')
@@ -5166,12 +5194,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return '<span class="pf-pill">' + (dotColor ? '<span class="dot" style="background:' + dotColor + '"></span>' : '')
         + '<span class="k">' + escapeHtml(k) + '</span><span class="val num">' + v + '</span></span>';
     }
+    /* الخانة الفارغة تقول ذلك بنصّها. الشرطة «-» كانت تُقرأ كأنها قيمة الحقل
+       نفسه (وفي العربية تلتبس بعلامة الطرح والفاصل)، ولا تفرّق بين «لم يُسجَّل
+       بعد» و«لا يوجد». والنصّ يُكتب بلون خافت كي لا ينافس القيم الحقيقية. */
     function _pfTile(label, valHtml, opts) {
       opts = opts || {};
       var icon = opts.icon ? '<i class="fas ' + opts.icon + '"' + (opts.iconColor ? ' style="color:' + opts.iconColor + '"' : '') + '></i>' : '';
-      var vc = opts.valColor ? ' style="color:' + opts.valColor + '"' : '';
+      var empty = (valHtml == null || valHtml === '');
+      var vc = (!empty && opts.valColor) ? ' style="color:' + opts.valColor + '"' : '';
       return '<div class="pf-tile' + (opts.full ? ' full' : '') + '"><span class="lab">' + icon + escapeHtml(label) + '</span>'
-        + '<span class="val"' + vc + '>' + (valHtml || '-') + '</span></div>';
+        + '<span class="val' + (empty ? ' empty' : '') + '"' + vc + '>' + (empty ? 'غير مسجّل' : valHtml) + '</span></div>';
     }
     function _pfAllergy(custom) {
       custom = custom || {};
@@ -5209,11 +5241,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var age = p.birthDate ? calculateAge(p.birthDate) : null;
       var visits = String(p.totalVisits || (p.appointments ? p.appointments.length : 0));
       return _pfAllergy(p.custom)
-        + _pfTile('رقم الهاتف', '<span dir="ltr">' + escapeHtml(p.phone || '-') + '</span>', { icon: 'fa-phone' })
-        + _pfTile('تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '-', { icon: 'fa-calendar-day' })
-        + _pfTile('العمر', age != null ? age + ' سنة' : '-', { icon: 'fa-hourglass-half' })
-        + _pfTile('زمرة الدم', p.bloodType ? escapeHtml(p.bloodType) : '-', { icon: 'fa-droplet', iconColor: '#dc2626', valColor: p.bloodType ? '#dc2626' : 'var(--text-muted)' })
-        + _pfTile('العنوان', escapeHtml(p.address || '-'), { icon: 'fa-location-dot' })
+        + _pfTile('رقم الهاتف', p.phone ? '<span dir="ltr">' + escapeHtml(p.phone) + '</span>' : '', { icon: 'fa-phone' })
+        + _pfTile('تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '', { icon: 'fa-calendar-day' })
+        + _pfTile('العمر', age != null ? age + ' سنة' : '', { icon: 'fa-hourglass-half' })
+        + _pfTile('زمرة الدم', p.bloodType ? escapeHtml(p.bloodType) : '', { icon: 'fa-droplet', iconColor: '#dc2626', valColor: '#dc2626' })
+        + _pfTile('العنوان', p.address ? escapeHtml(p.address) : '', { icon: 'fa-location-dot' })
         + _pfTile('إجمالي الزيارات', visits, { icon: 'fa-clock-rotate-left' })
         + renderPatientCustomTiles(p.custom)
         + _pfTile('أمراض مزمنة', escapeHtml(p.chronicDiseases || 'لا يوجد'), { full: true, icon: 'fa-heart-pulse', iconColor: '#d97706', valColor: p.chronicDiseases ? '#d97706' : 'var(--text-muted)' });

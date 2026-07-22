@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=132">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -1134,7 +1134,7 @@
           </select>
         </div>
         <div><label class="form-label"><i class="fas fa-heart-pulse" style="color:#d97706;margin-left:4px;"></i> أمراض مزمنة</label>
-          <textarea id="piChronic" class="form-input" rows="2" style="resize:vertical;" placeholder="مثال: سكري، ضغط، ربو... (افصل بفاصلة)"></textarea>
+          <textarea id="piChronic" class="form-input" rows="1" placeholder="مثال: سكري، ضغط، ربو... (افصل بفاصلة)"></textarea>
         </div>
         <!-- حقول المريض المخصّصة (حسب تخصص الطبيب) — تُبنى ديناميكياً -->
         <div id="piCustomFields" style="display:none;"></div>
@@ -1180,9 +1180,12 @@
           <!-- العمود الرئيسي: الفحص السريري + التشخيص + الوصفة -->
           <div style="display:flex;flex-direction:column;gap:16px;">
             <!-- 🦷 شريط مخطط الأسنان (لكل زيارة) — يظهر عند تفعيل الأسنان -->
-            <div class="ve-card" id="dentalEditorBar" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#f0fdfa,#ccfbf1);border:1.5px solid #5eead4;">
-              <div style="font-size:.84rem;font-weight:800;color:#0f766e;line-height:1.6;display:flex;align-items:flex-start;gap:6px;"><i class="fas fa-tooth" style="color:#0d9488;margin-top:3px;"></i><span>حالات الأسنان تُسجَّل من المخطط مباشرة<br><span style="font-weight:600;font-size:.74rem;color:#0d9488;">اضغط على السن → اختر الإجراء → يُسجَّل تلقائياً</span></span></div>
-              <button onclick="openDentalChartFromEditor()" style="padding:9px 16px;font-size:.82rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(13,148,136,.3);">فتح المخطط</button>
+            <!-- اللافتة تعليمةٌ لا إنذار: كانت تدرّجاً تركوازياً بحدّ ٥eead4 وزرّاً
+                 مصمتاً بظلّ، فتسبق الشكوى في ترتيب النظر وهي أقلّ منها شأناً.
+                 (وألوانها كانت ثابتة فاتحة فتنكسر في الوضع الليلي.) -->
+            <div class="ve-card" id="dentalEditorBar" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div style="font-size:.83rem;font-weight:700;color:var(--text-secondary);line-height:1.6;display:flex;align-items:flex-start;gap:8px;"><i class="fas fa-tooth" style="color:var(--text-muted);margin-top:3px;"></i><span>حالات الأسنان تُسجَّل من المخطط مباشرة<br><span style="font-weight:500;font-size:.75rem;color:var(--text-muted);">اضغط على السن → اختر الإجراء → يُسجَّل تلقائياً</span></span></div>
+              <button onclick="openDentalChartFromEditor()" class="ve-head-btn">فتح المخطط</button>
             </div>
             <!-- تسلسل SOAP: شكوى ← قياسات ← فحص ← تشخيص ← خطة.
                  هذا ترتيب التفكير الطبّي، والعلامات تمتلئ عند الكتابة فتُظهر ما نُسي. -->
@@ -1192,7 +1195,7 @@
                 <div class="ve-rail"><div class="ve-mark">S</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="complaintText">الشكوى <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">— ماذا يقول المريض؟</span></label>
-                  <textarea id="complaintText" placeholder="بكلمات المريض نفسه — منذ متى، وكيف بدأت..."></textarea>
+                  <textarea id="complaintText" rows="1" placeholder="بكلمات المريض نفسه — منذ متى، وكيف بدأت..."></textarea>
                 </div>
               </div>
 
@@ -1208,7 +1211,7 @@
                 <div class="ve-rail"><div class="ve-mark">O</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="clinicalExamText">الفحص السريري</label>
-                  <textarea id="clinicalExamText" placeholder="ماذا وجدتَ بالفحص؟ إصغاء، جسّ، علامات سريرية..."></textarea>
+                  <textarea id="clinicalExamText" rows="1" placeholder="ماذا وجدتَ بالفحص؟ إصغاء، جسّ، علامات سريرية..."></textarea>
                 </div>
               </div>
 
@@ -1216,7 +1219,7 @@
                 <div class="ve-rail"><div class="ve-mark">A</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="diagnosisText">التشخيص</label>
-                  <textarea id="diagnosisText" placeholder="التشخيص، والتشخيص التفريقي إن وُجد..."></textarea>
+                  <textarea id="diagnosisText" rows="1" placeholder="التشخيص، والتشخيص التفريقي إن وُجد..."></textarea>
                 </div>
               </div>
 
@@ -1224,7 +1227,7 @@
                 <div class="ve-rail"><div class="ve-mark">P</div><div class="ve-line"></div></div>
                 <div class="ve-card">
                   <label class="ve-label" for="prescriptionText">الخطة — الوصفة <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">— ما يخرج به المريض</span></label>
-                  <textarea id="prescriptionText" placeholder="الدواء · الجرعة · المدة — كل دواء بسطر"></textarea>
+                  <textarea id="prescriptionText" rows="3" placeholder="الدواء · الجرعة · المدة — كل دواء بسطر"></textarea>
                 </div>
               </div>
 
@@ -1255,7 +1258,7 @@
                   <div class="test-kind-opt" id="testKindImgBtn" onclick="setTestKind('imaging')"><i class="fas fa-x-ray"></i> أشعة</div>
                 </div>
                 <input type="hidden" id="testKind" value="lab">
-                <textarea id="labTestText" placeholder="اكتب نوع التحليل المطلوب..."></textarea>
+                <textarea id="labTestText" rows="1" placeholder="اكتب نوع التحليل المطلوب..."></textarea>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
                   <span id="testListLabel" style="font-size:.74rem;font-weight:700;color:var(--text-secondary);">إرسال إلى مخبر</span>
                   <button onclick="openContactsManager()" title="إدارة جهات التواصل" style="font-size:.7rem;color:var(--primary);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-gear"></i> إدارة</button>
@@ -1850,7 +1853,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=131"></script>
+  <script src="script.js?v=132"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
