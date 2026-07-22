@@ -1326,8 +1326,13 @@
         </div>
 
         <!-- شريط الحفظ الثابت — لا يُبحث عنه في عمود جانبي بعد تمرير طويل -->
+        <!-- مؤشّر اكتمال حقيقي يتغيّر مع الكتابة — كان نصّاً ثابتاً يقول
+             «لم تُحفظ بعد» حتى بعد الحفظ. -->
         <div class="ve-sticky">
-          <span class="st" id="veSaveState">مسودة — <b>لم تُحفظ بعد</b></span>
+          <span class="st">
+            <span class="ve-prog" id="veProg"></span>
+            <b id="veSaveState">-</b>
+          </span>
           <button class="btn-primary" style="display:flex;align-items:center;gap:7px;" onclick="saveVisit(false)"><i class="fas fa-floppy-disk"></i> حفظ الزيارة</button>
         </div>
 
@@ -1900,7 +1905,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=125"></script>
+  <script src="script.js?v=126"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

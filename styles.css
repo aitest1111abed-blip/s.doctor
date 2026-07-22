@@ -2814,3 +2814,11 @@
     #addNoteModal #prescriptionText  { min-height:150px; }
     #addNoteModal .ve-card textarea  { width:100%; font-family:inherit; font-size:.93rem;
                                        color:var(--text-primary); resize:vertical; box-sizing:border-box; }
+    /* مؤشّر الاكتمال: شرطات صغيرة تمتلئ مع الكتابة */
+    #addNoteModal .ve-sticky .st { display:flex; align-items:center; gap:9px; }
+    #addNoteModal .ve-prog { display:flex; gap:3px; }
+    #addNoteModal .ve-prog i {
+      width:15px; height:3px; border-radius:2px;
+      background:var(--border-strong); transition:background .25s;
+    }
+    #addNoteModal .ve-prog i.on { background:var(--primary); }

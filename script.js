@@ -4328,15 +4328,25 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
     };
 
-    // علامات S/O/A/P تمتلئ متى كُتب في قسمها — تُظهر ما نُسي قبل الحفظ
+    // حافّة كل قسم تتلوّن متى كُتب فيه، ومؤشّر أسفل الشاشة يعدّ المكتمل —
+    // فيرى الطبيب ما نسيه قبل الحفظ بلا تمرير.
     function _veSyncSteps() {
-      Array.prototype.forEach.call(document.querySelectorAll('#addNoteModal .ve-step'), function(step) {
+      var steps = document.querySelectorAll('#addNoteModal .ve-step');
+      var shown = 0, done = 0, bars = '';
+      Array.prototype.forEach.call(steps, function(step) {
+        if (step.style.display === 'none') return;   // خطوة القياسات تُخفى بلا حقول
+        shown++;
         var any = Array.prototype.some.call(step.querySelectorAll('textarea, input, select'), function(f) {
           if (f.type === 'checkbox') return f.checked;
           return (f.value || '').trim() !== '';
         });
         step.classList.toggle('filled', any);
+        if (any) done++;
+        bars += '<i class="' + (any ? 'on' : '') + '"></i>';
       });
+      var pg = document.getElementById('veProg'); if (pg) pg.innerHTML = bars;
+      var st = document.getElementById('veSaveState');
+      if (st) st.textContent = done + ' من ' + shown + ' أقسام';
     }
     document.addEventListener('DOMContentLoaded', function() {
       var m = document.getElementById('addNoteModal');
