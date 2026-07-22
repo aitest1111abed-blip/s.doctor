@@ -1197,24 +1197,20 @@
   <div id="addNoteModal" class="modal-hidden fixed inset-0 z-[170] modal-overlay">
     <div class="modal-content" style="display:flex; flex-direction:column; overflow:hidden;">
 
-      <!-- Header (مصغّر بأسلوب البروفايل) -->
-      <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1.5px solid var(--border);background:linear-gradient(135deg,rgba(13,148,136,.12),rgba(15,118,110,.05));flex-shrink:0;flex-wrap:wrap;">
-        <button onclick="closeAddNoteModal()" title="عودة" style="width:38px;height:38px;border-radius:11px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;transition:all .15s;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
-          <i class="fas fa-arrow-right"></i>
-        </button>
-        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(140deg,#0d9488,#115e59);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 16px -8px rgba(13,148,136,.7);"><i class="fas fa-notes-medical"></i></div>
-        <div style="flex:1;min-width:120px;">
-          <h3 id="visitEditorTitle" style="font-weight:800;font-size:1.05rem;color:var(--text-primary);">تحرير الزيارة</h3>
-          <p id="visitEditorSub" style="font-size:.76rem;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></p>
+      <!-- الترويسة: بيضاء هادئة، اسم المريض هو العنوان، والسياق سطر كثيف.
+           أُزيل التدرّج التركوازي والأيقونة الزخرفية وزرّ الحفظ المكرّر
+           (الحفظ في الشريط الثابت أسفل الشاشة، ظاهر دائماً). -->
+      <div class="ve-head">
+        <button onclick="closeAddNoteModal()" title="عودة" class="ve-head-back"><i class="fas fa-arrow-right"></i></button>
+        <div class="ve-head-who">
+          <b id="visitEditorTitle">-</b>
+          <span id="visitEditorSub"></span>
         </div>
-        <button onclick="printPrescriptionCurrent()" class="btn-secondary" style="display:none;align-items:center;gap:6px;white-space:nowrap;background:var(--primary-light);color:var(--primary);border-color:var(--border-strong);">
+        <button onclick="printPrescriptionCurrent()" class="ve-head-btn" style="display:none;">
           <i class="fas fa-print"></i> طباعة
         </button>
-        <button onclick="deleteVisitCurrent()" title="حذف الزيارة" style="display:flex;align-items:center;gap:6px;white-space:nowrap;background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;border-radius:11px;padding:9px 14px;font-weight:800;font-family:inherit;font-size:.86rem;cursor:pointer;">
+        <button onclick="deleteVisitCurrent()" title="حذف الزيارة" class="ve-head-btn danger">
           <i class="fas fa-trash"></i> حذف
-        </button>
-        <button onclick="saveVisit(false)" class="btn-primary" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-          <i class="fas fa-floppy-disk"></i> حفظ
         </button>
       </div>
 
@@ -1904,7 +1900,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=123"></script>
+  <script src="script.js?v=124"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

@@ -4373,7 +4373,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var _vstep = document.getElementById('noteCustomStep'); if (_vstep) _vstep.style.display = _vf.length ? '' : 'none';
       var _dbar = document.getElementById('dentalEditorBar'); if (_dbar) _dbar.style.display = _dentalEnabled() ? 'flex' : 'none';   // 🦷 شريط المخطط لكل زيارة
       buildCustomFieldInputs(document.getElementById('noteCustomFields'), _vf, v.custom, { variant: 'editor' });
-      document.getElementById('visitEditorSub').textContent = (p ? (p.name || '') : '') + ' — ' + formatDateAr(v.date) + (v.slot ? ' · ' + slotTimeOf(v) : '');
+      // اسم المريض هو العنوان، والسياق (العمر · الزمرة · التاريخ · رقم الزيارة) سطر تحته
+      document.getElementById('visitEditorTitle').textContent = (p && p.name) || 'زيارة';
+      var _mAge = (p && p.birthDate) ? calculateAge(p.birthDate) : null;
+      var _mBits = [];
+      if (_mAge != null) _mBits.push(_mAge + ' سنة');
+      if (p && p.bloodType) _mBits.push(p.bloodType);
+      _mBits.push(formatDateAr(v.date) + (v.slot ? ' · ' + slotTimeOf(v) : ''));
+      if (p && p.appointments && p.appointments.length > 1) _mBits.push('الزيارة ' + (idx + 1));
+      document.getElementById('visitEditorSub').textContent = _mBits.join(' · ');
       var m = document.getElementById('addNoteModal'); m.classList.remove('modal-hidden'); m.classList.add('modal-visible');
       _veSyncSteps();   // العلامات تعكس ما هو مكتوب فعلاً عند الفتح
       document.body.classList.add('editor-open');
