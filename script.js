@@ -4247,6 +4247,103 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       });
     };
 
+    /* ── شريط الخطر فوق المحرّر ──
+       الحساسية أخطر معلومة قبل كتابة وصفة، وكانت مدفونة في بطاقة جانبية.
+       تُقرأ من الحقول المخصّصة الموسومة حساسية (_cfIsAllergy) ومن الأمراض المزمنة. */
+    function _veRenderDanger(p) {
+      var bar = document.getElementById('veDangerBar'); if (!bar) return;
+      var custom = (p && p.custom) || {}, parts = [];
+      try {
+        getChartTemplate().patient.filter(_cfIsAllergy).forEach(function(f) {
+          var d = _cfDisplayVal(f, custom[f.id]);
+          if (d !== '') parts.push('<span>' + escapeHtml(f.label) + ': ' + escapeHtml(d) + '</span>');
+        });
+      } catch (e) {}
+      var chronic = (p && p.chronicDiseases || '').trim();
+      if (chronic) parts.push('<em>· مزمن: ' + escapeHtml(chronic) + '</em>');
+      if (!parts.length) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+      bar.innerHTML = '<span class="tag">تنبيه</span>' + parts.join(' ');
+      bar.style.display = 'flex';
+    }
+
+    /* ── بطاقة الزيارة السابقة ──
+       الطبيب كان يكتب في فراغ: لا يرى ما شخّصه أو وصفه آخر مرّة إلا بإغلاق المحرّر.
+       «نسخ الوصفة» يختصر أكثر إجراء متكرّر في المراجعات. */
+    function _veRenderPrevVisit(p, idx) {
+      var card = document.getElementById('prevVisitCard');
+      var body = document.getElementById('prevVisitBody');
+      var when = document.getElementById('prevVisitWhen');
+      if (!card || !body) return;
+      var visits = (p && p.appointments) || [];
+      // الأحدث قبل الزيارة الحالية زمنياً (لا بالفهرس — الترتيب في المصفوفة ليس زمنياً بالضرورة)
+      var cur = visits[idx], prev = null;
+      visits.forEach(function(v, i) {
+        if (i === idx || !v || !v.date) return;
+        if (cur && cur.date && v.date > cur.date) return;
+        if (cur && cur.date && v.date === cur.date && i > idx) return;
+        if (!prev || (v.date > prev.date)) prev = v;
+      });
+      if (!prev) {
+        card.style.display = '';
+        when.textContent = '';
+        body.innerHTML = '<div class="ve-prev-empty">هذه أول زيارة لهذا المريض.</div>';
+        return;
+      }
+      function fld(k, val, isRx) {
+        if (!val || !String(val).trim()) return '';
+        return '<div class="ve-prev-f"><div class="k">' + k + '</div>'
+          + '<div class="v' + (isRx ? ' rx' : '') + '">' + escapeHtml(String(val).trim()) + '</div></div>';
+      }
+      var days = '';
+      try {
+        var d1 = parseLocalISODate(prev.date), d2 = new Date(); d2.setHours(0,0,0,0);
+        var n = Math.round((d2 - d1) / 86400000);
+        days = n > 0 ? ' · قبل ' + n + ' يوم' : '';
+      } catch (e) {}
+      when.textContent = formatDateAr(prev.date) + days;
+      var inner = fld('الشكوى', prev.complaint) + fld('التشخيص', prev.diagnosis || prev.note)
+                + fld('الوصفة', prev.prescription, true);
+      if (!inner) inner = '<div class="ve-prev-empty">الزيارة السابقة بلا تفاصيل مسجّلة.</div>';
+      if (prev.prescription && prev.prescription.trim()) {
+        inner += '<button class="ve-copy" type="button" onclick="veCopyPrevRx()">نسخ الوصفة إلى الزيارة</button>';
+        card.setAttribute('data-rx', prev.prescription);
+      } else {
+        card.removeAttribute('data-rx');
+      }
+      body.innerHTML = inner;
+      card.style.display = '';
+    }
+
+    window.veCopyPrevRx = function() {
+      var card = document.getElementById('prevVisitCard');
+      var rx = card && card.getAttribute('data-rx');
+      var box = document.getElementById('prescriptionText');
+      if (!rx || !box) return;
+      box.value = rx;
+      _veSyncSteps();
+      var btn = card.querySelector('.ve-copy');
+      if (btn) {
+        btn.textContent = 'نُسخت ✓'; btn.classList.add('done');
+        setTimeout(function() { btn.textContent = 'نسخ الوصفة إلى الزيارة'; btn.classList.remove('done'); }, 1800);
+      }
+    };
+
+    // علامات S/O/A/P تمتلئ متى كُتب في قسمها — تُظهر ما نُسي قبل الحفظ
+    function _veSyncSteps() {
+      Array.prototype.forEach.call(document.querySelectorAll('#addNoteModal .ve-step'), function(step) {
+        var any = Array.prototype.some.call(step.querySelectorAll('textarea, input, select'), function(f) {
+          if (f.type === 'checkbox') return f.checked;
+          return (f.value || '').trim() !== '';
+        });
+        step.classList.toggle('filled', any);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      var m = document.getElementById('addNoteModal');
+      if (m) m.addEventListener('input', _veSyncSteps);
+      if (m) m.addEventListener('change', _veSyncSteps);
+    });
+
     // ===== محرّر الزيارة =====
     // التحليل والأشعة لكل منهما نص مستقل تماماً
     var _testBuf = { lab: '', imaging: '' };
@@ -4255,6 +4352,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var p = allPatients[pid]; var v = (p && p.appointments && p.appointments[idx]) || {};
       document.getElementById('notePatientId').value = pid;
       document.getElementById('noteVisitIndex').value = idx;
+      _veRenderDanger(p);        // تنبيه الحساسية/المزمن فوق المحرّر
+      _veRenderPrevVisit(p, idx); // سياق الزيارة السابقة في العمود الجانبي
       document.getElementById('diagnosisText').value = v.diagnosis || v.note || '';
       var _cpEl = document.getElementById('complaintText'); if (_cpEl) _cpEl.value = v.complaint || '';
       var _ceEl = document.getElementById('clinicalExamText'); if (_ceEl) _ceEl.value = v.clinicalExam || '';
@@ -4270,11 +4369,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       _applyTestKindUI(_curTestKind);
       // حقول الزيارة المخصّصة (قياسات حسب التخصص)
       var _vf = getChartTemplate().visit;
-      var _vcard = document.getElementById('noteCustomCard'); if (_vcard) _vcard.style.display = _vf.length ? '' : 'none';
+      // تُخفى/تُظهر خطوة القياسات كاملة (بعلامتها في سلسلة SOAP) لا البطاقة وحدها
+      var _vstep = document.getElementById('noteCustomStep'); if (_vstep) _vstep.style.display = _vf.length ? '' : 'none';
       var _dbar = document.getElementById('dentalEditorBar'); if (_dbar) _dbar.style.display = _dentalEnabled() ? 'flex' : 'none';   // 🦷 شريط المخطط لكل زيارة
       buildCustomFieldInputs(document.getElementById('noteCustomFields'), _vf, v.custom, { variant: 'editor' });
       document.getElementById('visitEditorSub').textContent = (p ? (p.name || '') : '') + ' — ' + formatDateAr(v.date) + (v.slot ? ' · ' + slotTimeOf(v) : '');
       var m = document.getElementById('addNoteModal'); m.classList.remove('modal-hidden'); m.classList.add('modal-visible');
+      _veSyncSteps();   // العلامات تعكس ما هو مكتوب فعلاً عند الفتح
       document.body.classList.add('editor-open');
       loadContacts(renderEditorContacts);
     };
@@ -5044,15 +5145,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         return d === '' ? '' : _pfTile(f.label, escapeHtml(d), { icon: _cfTypeIcon(f.type) });
       }).join('');
     }
-    // شارات الرأس (العمر/الزمرة/الزيارات...) وبطاقات المعلومات — تُستخدم في openPatientDetailsModal
+    /* شريط رأس الاضبارة — تنبيهات الخطر فقط.
+       كان يعرض العمر/الزمرة/الزيارات/الميلاد/العنوان، وكلها مكرّرة حرفياً في بطاقة
+       «معلومات المريض» أسفله: خمس شارات بصفر معلومة جديدة. صار مكانها للحساسية
+       والأمراض المزمنة — أخطر ما يجب أن يراه الطبيب أولاً. وإن لم يوجد خطر،
+       يُرجع نصاً فارغاً فينكمش الشريط ويختفي. */
     function renderChartHeaderPills(p) {
-      var age = p.birthDate ? calculateAge(p.birthDate) : null;
-      var visits = String(p.totalVisits || (p.appointments ? p.appointments.length : 0));
-      return _pfPill('العمر', age != null ? age + ' سنة' : '-')
-        + (p.bloodType ? _pfPill('الزمرة', escapeHtml(p.bloodType), '#dc2626') : '')
-        + _pfPill('الزيارات', visits)
-        + (p.birthDate ? _pfPill('الميلاد', formatDateAr(p.birthDate)) : '')
-        + (p.address ? _pfPill('العنوان', escapeHtml(p.address)) : '');
+      var custom = (p && p.custom) || {}, out = '';
+      try {
+        getChartTemplate().patient.filter(_cfIsAllergy).forEach(function(f) {
+          var d = _cfDisplayVal(f, custom[f.id]);
+          if (d !== '') out += _pfPill(f.label, escapeHtml(d), '#dc2626');
+        });
+      } catch (e) {}
+      var chronic = (p && p.chronicDiseases || '').trim();
+      if (chronic) out += _pfPill('مزمن', escapeHtml(chronic), '#d97706');
+      return out;
     }
     function renderChartInfoTiles(p) {
       var age = p.birthDate ? calculateAge(p.birthDate) : null;

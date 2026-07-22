@@ -1218,6 +1218,10 @@
         </button>
       </div>
 
+      <!-- شريط الخطر: الحساسية والأمراض المزمنة قبل كتابة أي وصفة.
+           لا يظهر إلا إن كان للمريض خطر فعلي — يملؤه openAddNoteModal. -->
+      <div class="ve-danger" id="veDangerBar" style="display:none;"></div>
+
       <!-- Body -->
       <div style="flex:1;overflow-y:auto;background:var(--bg);padding:20px;">
         <div class="visit-editor-layout">
@@ -1229,39 +1233,69 @@
               <div style="font-size:.84rem;font-weight:800;color:#0f766e;line-height:1.6;display:flex;align-items:flex-start;gap:6px;"><i class="fas fa-tooth" style="color:#0d9488;margin-top:3px;"></i><span>حالات الأسنان تُسجَّل من المخطط مباشرة<br><span style="font-weight:600;font-size:.74rem;color:#0d9488;">اضغط على السن → اختر الإجراء → يُسجَّل تلقائياً</span></span></div>
               <button onclick="openDentalChartFromEditor()" style="padding:9px 16px;font-size:.82rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(13,148,136,.3);">فتح المخطط</button>
             </div>
-            <!-- الشكوى: أول ما يُوثَّق في أي زيارة بأي تخصّص (حرف S في SOAP) —
-                 مدمجة لا حقلاً مخصّصاً، وإلا فقدها من لم يضبط قالبه. -->
-            <div class="ve-card">
-              <label class="ve-label"><span class="ve-ico"><i class="fas fa-comment-medical" style="font-size:.7rem;color:var(--primary);"></i></span> الشكوى</label>
-              <textarea id="complaintText" style="width:100%;padding:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:80px;box-sizing:border-box;" placeholder="ما الذي يشكوه المريض؟ (بكلماته — منذ متى وكيف بدأت...)" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-            </div>
-            <!-- حقول الزيارة المخصّصة (قياسات حسب التخصص) — تُبنى ديناميكياً -->
-            <div class="ve-card" id="noteCustomCard" style="display:none;">
-              <label class="ve-label"><span class="ve-ico" style="background:#eef2ff;border-color:#c7d2fe;"><i class="fas fa-ruler-combined" style="font-size:.7rem;color:#4f46e5;"></i></span> قياسات وحقول مخصّصة</label>
-              <div id="noteCustomFields"></div>
-            </div>
-            <div class="ve-card">
-              <label class="ve-label"><span class="ve-ico" style="background:#f0fdfa;border-color:#99f6e4;"><i class="fas fa-stethoscope" style="font-size:.7rem;color:#0d9488;"></i></span> الفحص السريري</label>
-              <textarea id="clinicalExamText" style="width:100%;padding:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:90px;box-sizing:border-box;" placeholder="ماذا وجدت أثناء الفحص؟ (إصغاء، جس، علامات سريرية...)" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-            </div>
-            <div class="ve-card">
-              <label class="ve-label"><span class="ve-ico"><i class="fas fa-notes-medical" style="font-size:.7rem;color:var(--primary);"></i></span> التشخيص</label>
-              <textarea id="diagnosisText" style="width:100%;padding:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:110px;box-sizing:border-box;" placeholder="اكتب تشخيص الحالة..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-            </div>
-            <div class="ve-card">
-              <label class="ve-label"><span class="ve-ico" style="background:#fffbeb;border-color:#fde68a;"><i class="fas fa-prescription" style="font-size:.7rem;color:#d97706;"></i></span> الوصفة الطبية (الروشيتا)</label>
-              <textarea id="prescriptionText" style="width:100%;padding:14px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.85;min-height:200px;box-sizing:border-box;" placeholder="اكتب الأدوية والجرعات والتعليمات... (كل دواء بسطر)" onfocus="this.style.borderColor='#d97706'" onblur="this.style.borderColor='#fde68a'"></textarea>
+            <!-- تسلسل SOAP: شكوى ← قياسات ← فحص ← تشخيص ← خطة.
+                 هذا ترتيب التفكير الطبّي، والعلامات تمتلئ عند الكتابة فتُظهر ما نُسي. -->
+            <div class="ve-soap">
+
+              <div class="ve-step" data-step="S">
+                <div class="ve-rail"><div class="ve-mark">S</div><div class="ve-line"></div></div>
+                <div class="ve-card">
+                  <label class="ve-label" for="complaintText">الشكوى <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">— ماذا يقول المريض؟</span></label>
+                  <textarea id="complaintText" style="width:100%;padding:13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:78px;box-sizing:border-box;" placeholder="بكلمات المريض نفسه — منذ متى، وكيف بدأت..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                </div>
+              </div>
+
+              <div class="ve-step" data-step="O" id="noteCustomStep" style="display:none;">
+                <div class="ve-rail"><div class="ve-mark">O</div><div class="ve-line"></div></div>
+                <div class="ve-card" id="noteCustomCard">
+                  <label class="ve-label">القياسات <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">— حقول تخصّصك</span></label>
+                  <div id="noteCustomFields"></div>
+                </div>
+              </div>
+
+              <div class="ve-step" data-step="O">
+                <div class="ve-rail"><div class="ve-mark">O</div><div class="ve-line"></div></div>
+                <div class="ve-card">
+                  <label class="ve-label" for="clinicalExamText">الفحص السريري</label>
+                  <textarea id="clinicalExamText" style="width:100%;padding:13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:86px;box-sizing:border-box;" placeholder="ماذا وجدتَ بالفحص؟ إصغاء، جسّ، علامات سريرية..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                </div>
+              </div>
+
+              <div class="ve-step" data-step="A">
+                <div class="ve-rail"><div class="ve-mark">A</div><div class="ve-line"></div></div>
+                <div class="ve-card">
+                  <label class="ve-label" for="diagnosisText">التشخيص</label>
+                  <textarea id="diagnosisText" style="width:100%;padding:13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.75;min-height:104px;box-sizing:border-box;" placeholder="التشخيص، والتشخيص التفريقي إن وُجد..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                </div>
+              </div>
+
+              <div class="ve-step" data-step="P">
+                <div class="ve-rail"><div class="ve-mark">P</div><div class="ve-line"></div></div>
+                <div class="ve-card">
+                  <label class="ve-label" for="prescriptionText">الخطة — الوصفة <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">— ما يخرج به المريض</span></label>
+                  <textarea id="prescriptionText" style="width:100%;padding:13px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.92rem;resize:vertical;line-height:1.9;min-height:170px;box-sizing:border-box;" placeholder="الدواء · الجرعة · المدة — كل دواء بسطر" onfocus="this.style.borderColor='#d97706'" onblur="this.style.borderColor='#fde68a'"></textarea>
+                </div>
+              </div>
+
             </div>
           </div>
 
-          <!-- العمود الجانبي: إجراءات ذكية -->
+          <!-- العمود الجانبي: سياق الزيارة السابقة ثم الإجراءات -->
           <div class="ve-side" style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- الزيارة السابقة: يراها الطبيب وهو يكتب، بلا مغادرة المحرّر -->
+            <div class="ve-card ve-prev" id="prevVisitCard" style="display:none;">
+              <div class="ve-prev-top">
+                <b>الزيارة السابقة</b>
+                <span id="prevVisitWhen">-</span>
+              </div>
+              <div class="ve-prev-body" id="prevVisitBody"></div>
+            </div>
 
             <!-- التحاليل والأشعة -->
             <div class="ve-card">
               <label class="ve-label" style="cursor:pointer;margin-bottom:0;">
-                <input type="checkbox" id="labTestToggle" onchange="toggleTestWrap(this.checked)" style="width:17px;height:17px;accent-color:#2563eb;cursor:pointer;">
-                <span style="width:28px;height:28px;border-radius:8px;background:#eff6ff;border:1.5px solid #bfdbfe;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-vials" style="font-size:.7rem;color:#2563eb;"></i></span>
+                <input type="checkbox" id="labTestToggle" onchange="toggleTestWrap(this.checked)" style="width:17px;height:17px;accent-color:var(--primary);cursor:pointer;">
                 طلب تحليل / أشعة
               </label>
               <div id="labTestWrap" style="display:none;margin-top:12px;">
@@ -1270,7 +1304,7 @@
                   <div class="test-kind-opt" id="testKindImgBtn" onclick="setTestKind('imaging')"><i class="fas fa-x-ray"></i> أشعة</div>
                 </div>
                 <input type="hidden" id="testKind" value="lab">
-                <textarea id="labTestText" style="width:100%;padding:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.9rem;resize:vertical;line-height:1.7;min-height:90px;box-sizing:border-box;" placeholder="اكتب نوع التحليل المطلوب..." onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                <textarea id="labTestText" style="width:100%;padding:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.9rem;resize:vertical;line-height:1.7;min-height:90px;box-sizing:border-box;" placeholder="اكتب نوع التحليل المطلوب..." onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
                   <span id="testListLabel" style="font-size:.74rem;font-weight:700;color:var(--text-secondary);">إرسال إلى مخبر</span>
                   <button onclick="openContactsManager()" title="إدارة جهات التواصل" style="font-size:.7rem;color:var(--primary);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-gear"></i> إدارة</button>
@@ -1281,19 +1315,24 @@
 
             <!-- الصيدلية -->
             <div class="ve-card">
-              <label class="ve-label" style="margin-bottom:4px;"><span class="ve-ico" style="background:#dcfce7;border-color:#86efac;"><i class="fas fa-prescription-bottle-medical" style="font-size:.7rem;color:#16a34a;"></i></span> إرسال الوصفة لصيدلية</label>
+              <label class="ve-label" style="margin-bottom:4px;">إرسال الوصفة لصيدلية</label>
               <p style="font-size:.74rem;color:var(--text-muted);margin:0 0 6px;line-height:1.6;">تُرسل الأدوية من الوصفة + معلومات المريض</p>
               <div id="editorPharmacyList"></div>
             </div>
 
-            <!-- طباعة + حفظ -->
+            <!-- الطباعة فقط — الحفظ انتقل للشريط الثابت أسفل الشاشة -->
             <div class="ve-card">
               <button class="ve-send-btn" style="background:var(--primary-light);color:var(--primary);border:1.5px solid var(--border-strong);" onclick="printPrescriptionCurrent()"><i class="fas fa-print"></i> طباعة الوصفة (PDF)</button>
-              <button class="ve-send-btn" style="background:var(--primary);color:#fff;margin-top:10px;" onclick="saveVisit(false)"><i class="fas fa-floppy-disk"></i> حفظ الزيارة</button>
             </div>
 
           </div>
 
+        </div>
+
+        <!-- شريط الحفظ الثابت — لا يُبحث عنه في عمود جانبي بعد تمرير طويل -->
+        <div class="ve-sticky">
+          <span class="st" id="veSaveState">مسودة — <b>لم تُحفظ بعد</b></span>
+          <button class="btn-primary" style="display:flex;align-items:center;gap:7px;" onclick="saveVisit(false)"><i class="fas fa-floppy-disk"></i> حفظ الزيارة</button>
         </div>
 
         <!-- عناصر مخفية للتوافق -->
@@ -1865,7 +1904,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=121"></script>
+  <script src="script.js?v=122"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

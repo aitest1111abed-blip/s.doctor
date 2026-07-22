@@ -2611,3 +2611,79 @@
   #onboardOverlay .obp{padding:0;}
   #onboardOverlay .obp-card{max-width:none; max-height:100vh; height:100vh; border-radius:0;}
 }
+
+/* =====================================================================
+   محرّر الزيارة — تصميم SOAP (منقول من المعاينة المعتمدة)
+   • التسلسل شكوى ← قياسات ← فحص ← تشخيص ← خطة: ترتيب التفكير الطبّي،
+     والعلامات S/O/A/P تمتلئ عند الكتابة فتُظهر ما نُسي قبل الحفظ.
+   • اللون يحمل دلالة فقط: أحمر للخطر، كهرماني لما يُطبع ويُسلَّم للمريض.
+     (كانت الأيقونات نيلية وتركوازية وكهرمانية وزرقاء بلا معنى.)
+   ===================================================================== */
+    .ve-soap { display:flex; flex-direction:column; gap:14px; }
+    .ve-step { display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; }
+    .ve-rail { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .ve-mark {
+      width:32px; height:32px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.78rem; font-weight:800; font-family:'Segoe UI',sans-serif;
+      background:var(--surface); border:1.5px solid var(--border); color:var(--text-muted);
+      transition:background .2s, border-color .2s, color .2s;
+    }
+    .ve-line { width:1.5px; flex:1; min-height:14px; background:var(--border); border-radius:1px; }
+    .ve-step:last-child .ve-line { display:none; }
+    .ve-step.filled .ve-mark { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .ve-step:focus-within .ve-mark { border-color:var(--primary); color:var(--primary); }
+    .ve-step .ve-card { margin:0; }
+
+    /* شريط الخطر — فوق كل شيء، ولا يظهر إلا إن وُجد خطر فعلي */
+    .ve-danger {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      background:#fef2f2; border-bottom:1.5px solid #fecaca;
+      padding:9px 20px; font-size:.82rem; font-weight:700; color:#dc2626;
+    }
+    body.theme-dark .ve-danger { background:#2a1416; border-bottom-color:#5b2020; color:#f87171; }
+    .ve-danger .tag {
+      background:#dc2626; color:#fff; border-radius:5px;
+      padding:2px 9px; font-size:.7rem; font-weight:800; flex-shrink:0;
+    }
+    body.theme-dark .ve-danger .tag { background:#f87171; color:#2a1416; }
+    .ve-danger em { font-style:normal; font-weight:600; color:var(--text-secondary); }
+
+    /* بطاقة الزيارة السابقة — السياق حاضر بلا مغادرة المحرّر */
+    .ve-prev { padding:0; overflow:hidden; }
+    .ve-prev-top {
+      padding:11px 14px; background:var(--bg); border-bottom:1.5px solid var(--border);
+    }
+    .ve-prev-top b { display:block; font-size:.82rem; font-weight:800; color:var(--text-primary); }
+    .ve-prev-top span { display:block; font-size:.71rem; color:var(--text-muted); margin-top:1px; }
+    .ve-prev-body { padding:13px 14px; display:flex; flex-direction:column; gap:12px; }
+    .ve-prev-f .k {
+      font-size:.69rem; font-weight:800; color:var(--text-muted);
+      letter-spacing:.06em; margin-bottom:4px;
+    }
+    .ve-prev-f .v { font-size:.82rem; line-height:1.75; color:var(--text-primary); white-space:pre-line; }
+    .ve-prev-f .v.rx {
+      background:#fffbeb; border:1px solid #fde68a; border-radius:9px; padding:9px 11px;
+    }
+    body.theme-dark .ve-prev-f .v.rx { background:#241d0e; border-color:#4a3a15; }
+    .ve-prev-empty {
+      padding:22px 14px; text-align:center; font-size:.79rem;
+      color:var(--text-muted); line-height:1.7;
+    }
+    .ve-copy {
+      width:100%; justify-content:center; display:flex; align-items:center; gap:7px;
+      background:var(--primary-light); color:var(--primary); border:1.5px solid var(--primary);
+      border-radius:11px; padding:10px; font-family:inherit; font-size:.83rem;
+      font-weight:800; cursor:pointer; transition:background .15s, color .15s;
+    }
+    .ve-copy:hover { background:var(--primary); color:#fff; }
+    .ve-copy.done { background:var(--primary); color:#fff; }
+
+    /* شريط الحفظ الثابت — لا يُبحث عنه بعد تمرير طويل */
+    .ve-sticky {
+      position:sticky; bottom:0; z-index:5; margin:0 -20px -20px;
+      padding:11px 20px; background:var(--surface); border-top:1.5px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .ve-sticky .st { font-size:.76rem; color:var(--text-muted); }
+    .ve-sticky .st b { color:var(--primary); font-weight:700; }
