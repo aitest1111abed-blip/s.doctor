@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=135">
+  <link rel="stylesheet" href="styles.css?v=136">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -972,7 +972,7 @@
         <div class="glass-card chart-info-card" style="padding:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4>
-            <button onclick="openPatientInfoEditor(currentPatientIdForVisit)" style="display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;color:var(--primary);background:var(--primary-light);border:1.5px solid var(--border-strong);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit;"><i class="fas fa-pen" style="font-size:.68rem;"></i> تعديل</button>
+            <button onclick="openPatientInfoEditor(currentPatientIdForVisit)" style="display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;color:var(--text-secondary);background:var(--surface);border:1.5px solid var(--border-strong);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;"><i class="fas fa-pen" style="font-size:.68rem;"></i> تعديل</button>
           </div>
           <div id="chartInfoGrid" class="pf-tiles"></div>
         </div>
@@ -1925,7 +1925,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=135"></script>
+  <script src="script.js?v=136"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
