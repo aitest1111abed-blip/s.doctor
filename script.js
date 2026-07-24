@@ -5246,8 +5246,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       custom = custom || {};
       return getChartTemplate().patient.filter(_cfIsAllergy).map(function(f) {
         var d = _cfDisplayVal(f, custom[f.id]);
-        return d === '' ? '' : '<div class="pf-alert"><div class="ic"><i class="fas fa-triangle-exclamation"></i></div>'
-          + '<div><div class="t">' + escapeHtml(f.label) + '</div><div class="d">' + escapeHtml(d) + '</div></div></div>';
+        return d === '' ? '' : '<div class="pf-alertline"><span class="pf-alerttag">تنبيه</span>'
+          + '<span class="pf-alerttext"><b>' + escapeHtml(f.label) + ':</b> ' + escapeHtml(d) + '</span></div>';
       }).join('');
     }
     function renderPatientCustomTiles(custom) {

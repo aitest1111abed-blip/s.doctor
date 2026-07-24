@@ -2156,25 +2156,34 @@
 /* الحقول الطويلة (أمراض مزمنة، ملاحظات) تنزل لسطر مستقلّ */
 .pf-tile.full{flex-direction:column;align-items:stretch;gap:4px;}
 .pf-tile.full .val{text-align:start;}
-/* تنبيه الحساسية — بمعيار تنبيهات السلامة الطبّية العالمية: الأحمر دلالة الخطر
-   (أساور الحساسية في المشافي حمراء)، شريط جانبي أحمر، وشارة أيقونة مصمتة.
-   استُبدل الكهرماني الباهت به لأن تحسّس الدواء تنبيه سلامة لا مجرّد ملاحظة. */
-.pf-alert{grid-column:1/-1;display:flex;gap:12px;align-items:center;
-  background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.22);
-  border-inline-start:4px solid #dc2626;border-radius:12px;padding:12px 14px;}
-.pf-alert .ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;
-  background:#dc2626;color:#fff;display:flex;align-items:center;justify-content:center;
-  font-size:1.05rem;box-shadow:0 6px 14px -4px rgba(220,38,38,.55);}
-.pf-alert .t{font-size:.68rem;font-weight:800;color:#dc2626;}
-.pf-alert .d{font-size:.95rem;font-weight:800;color:var(--text-primary);margin-top:2px;line-height:1.35;word-break:break-word;overflow-wrap:anywhere;}
-/* زرّ التعديل الموحّد: خلفية بيضاء · نصّ أسود · حدّ بلون النافبار (تركوازي غامق).
-   يُستعمل في الطبيب والممرّضة معاً — أي زرّ «تعديل» يأخذ هذا الشكل. */
-.pf-editbtn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;
-  font-size:.76rem;font-weight:700;color:var(--text-primary);background:var(--surface);
-  border:1.5px solid #115e59;border-radius:8px;padding:5px 12px;cursor:pointer;
-  transition:background .15s,border-color .15s;}
-.pf-editbtn i{color:#115e59;font-size:.68rem;}
-.pf-editbtn:hover{background:var(--bg);border-color:#0b4d48;}
+/* تنبيه الحساسية — سطر بلا حاوية: وسم «تنبيه» أحمر مصمت ثم النصّ مباشرةً.
+   (أُزيل الصندوق بالكامل بطلب المستخدم — التنبيه يُقرأ كسطر لا ككتلة.) */
+.pf-alertline{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:3px 0 9px;}
+.pf-alerttag{background:#dc2626;color:#fff;font-size:.64rem;font-weight:800;border-radius:6px;padding:3px 10px;flex-shrink:0;}
+.pf-alerttext{font-size:.88rem;color:var(--text-primary);font-weight:700;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;}
+.pf-alerttext b{color:#dc2626;font-weight:800;}
+
+/* ═══ الهوية البصرية الموحّدة للأزرار ═══
+   كل زرّ «تركوازي مصمت» صار: خلفية بيضاء + حدّ بلون النافبار (تركوازي غامق)
+   + نصّ أسود + أيقونة تركوازية. الدلالات وحدها تحتفظ بلونها (حذف أحمر، واتساب
+   أخضر). الأساس هنا، ويُطبَّق على .btn-primary و.pf-actbtn و.pf-editbtn معاً. */
+.pf-editbtn,
+.btn-primary{background:var(--surface);color:var(--text-primary);border:1.5px solid #115e59;
+  font-family:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;
+  justify-content:center;gap:6px;transition:background .15s,border-color .15s,transform .1s;}
+.pf-editbtn i,
+.btn-primary i{color:#115e59;}
+.pf-editbtn:hover,
+.btn-primary:hover{background:var(--primary-light);border-color:#0b4d48;}
+.pf-editbtn:active,
+.btn-primary:active{transform:scale(.98);}
+/* المقاسات تبقى كما كانت لكلّ زرّ */
+.pf-editbtn{font-size:.76rem;border-radius:8px;padding:5px 12px;}
+.pf-editbtn i{font-size:.68rem;}
+.btn-primary{border-radius:10px;padding:10px 20px;}
+/* أزرار تحتفظ بتعبئتها المصمتة (واتساب/إرسال أخضر): نصّ وأيقونة بيضاء بلا حدّ تركوازي */
+.btn-primary.btn-solid{color:#fff;border-color:transparent;}
+.btn-primary.btn-solid i{color:#fff;}
 
 /* الخطّ الزمني للزيارات */
 .pf-tl{position:relative;padding-inline-start:20px;}
@@ -2184,10 +2193,10 @@
 
 /* أزرار إجراءات الهيرو (طباعة/اتصال/واتساب) — مجموعة مرتّبة */
 .pf-head-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
-/* مفهوم محايد (بأسلوب أزرار Food/Plans): سطح أبيض + حدّ رفيع + أيقونة محايدة
-   بدل التعبئة التركوازية. تبقى الدلالات وحدها ملوّنة: واتساب أخضر. */
-.pf-actbtn{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;text-decoration:none;transition:border-color .15s,color .15s,background .15s,transform .1s;}
-.pf-actbtn:hover{border-color:var(--text-secondary);color:var(--text-primary);background:var(--bg);}
+/* نفس الهوية الموحّدة: سطح أبيض + حدّ تركوازي غامق + أيقونة تركوازية.
+   واتساب وحده يحتفظ بالأخضر (دلالة العلامة). */
+.pf-actbtn{width:40px;height:40px;border-radius:12px;border:1.5px solid #115e59;background:var(--surface);color:#115e59;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;text-decoration:none;transition:border-color .15s,color .15s,background .15s,transform .1s;}
+.pf-actbtn:hover{background:var(--primary-light);border-color:#0b4d48;color:#0b4d48;}
 .pf-actbtn:active{transform:scale(.94);}
 .pf-actbtn.wa{background:#16a34a;color:#fff;border-color:transparent;}
 .pf-actbtn.wa:hover{background:#15803d;color:#fff;border-color:transparent;}
