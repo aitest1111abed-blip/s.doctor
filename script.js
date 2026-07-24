@@ -3013,6 +3013,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (e) {}
       syncThemeToggle(dark);
     };
+    // مفتاح أرشيف العمليات الجراحية — يتبع نمط مفتاح الوضع الليلي نفسه
+    function syncSurgicalToggle(on) {
+      var btn = document.getElementById('surgicalToggleBtn'), knob = document.getElementById('surgicalToggleKnob');
+      if (btn)  { btn.setAttribute('aria-checked', on ? 'true' : 'false'); btn.style.background = on ? 'var(--primary)' : 'var(--border-strong)'; }
+      if (knob) { knob.style.transform = on ? 'translateX(-22px)' : 'translateX(0)'; }
+    }
+    window.toggleSurgicalArchive = function() {
+      settings.surgicalArchive = !settings.surgicalArchive;
+      syncSurgicalToggle(!!settings.surgicalArchive);
+      saveSettingsToLocal(settings);
+      // حدّث زرّ الدخول في الاضبارة إن كانت مفتوحة
+      var _sbtn = document.getElementById('surgeryArchiveBtn');
+      if (_sbtn) _sbtn.style.display = settings.surgicalArchive ? 'inline-flex' : 'none';
+      if (settings.surgicalArchive && typeof _surgeryUpdateBadge === 'function' && currentPatientIdForVisit) _surgeryUpdateBadge(currentPatientIdForVisit);
+    };
     (function() { try { if (localStorage.getItem(THEME_KEY) === 'dark') document.body.classList.add('theme-dark'); } catch (e) {} })();
     document.addEventListener('DOMContentLoaded', function() { syncThemeToggle(document.body.classList.contains('theme-dark')); });
 
@@ -3075,6 +3090,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     window.openSettingsModal = function() {
       switchSettingsPanel('profile');
       syncThemeToggle(document.body.classList.contains('theme-dark'));
+      syncSurgicalToggle(!!settings.surgicalArchive);
       document.getElementById('settingsTitleInput').value = settings.title || 'لوحة الطبيب';
       document.getElementById('profileDisplayName').textContent = settings.title || 'لوحة الطبيب';
       if (document.getElementById('profileSubtitle')) document.getElementById('profileSubtitle').textContent = settings.specialty || 'طبيب';
@@ -4062,6 +4078,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       // 🦷 زر مخطط الأسنان في رأس الأرشيف: يظهر عند تفعيل الأسنان
       var _dbtn = document.getElementById('dentalArchiveBtn');
       if (_dbtn) _dbtn.style.display = _dentalEnabled() ? 'inline-flex' : 'none';
+      // 🩺 زر العمليات الجراحية: يظهر عند تفعيل الميزة، مع شارة المتأخّرة
+      if (typeof _surgeryUpdateBadge === 'function') _surgeryUpdateBadge(pid);
       if (typeof chartResetBooking === 'function') chartResetBooking(pid);
       document.getElementById('patientDetailsModal').classList.remove('hidden');
       var _rail = document.getElementById('mainRail'); if (_rail) _rail.style.display = 'none';   // إخفاء السايدبار أثناء فتح الإضبارة
@@ -4821,6 +4839,23 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + pcustom
         + cell('أمراض مزمنة', escapeHtml(p.chronicDiseases || 'لا يوجد'), true)
         + '</div>';
+      // السوابق الجراحية (العمليات التي تمّت) — تُطبع مع التاريخ الدائم للمريض إن فُعّلت الميزة
+      var surgHtml = '';
+      if (_surgeryEnabled()) {
+        var doneSurg = ((p.surgeries || []).filter(function(s){ return s.status === 'done'; }))
+          .sort(function(a, b){ if (!a.date) return 1; if (!b.date) return -1; return b.date.localeCompare(a.date); });
+        if (doneSurg.length) {
+          surgHtml = '<div class="sec-title">السوابق الجراحية</div><div class="info-grid">'
+            + doneSurg.map(function(s) {
+                var v = (s.date ? formatDateAr(s.date) : 'بلا تاريخ')
+                  + (s.complications ? ' — مضاعفات: ' + escapeHtml(s.complications) : '')
+                  + (s.note ? ' — ' + escapeHtml(s.note) : '');
+                return cell(escapeHtml(s.name || 'عملية'), v, true);
+              }).join('')
+            + '</div>';
+        }
+      }
+      info += surgHtml;
       // عمود إضافي لحقول الزيارة المخصّصة (يظهر فقط عند وجود حقول زيارة مُعرّفة)
       var vFields = getChartTemplate().visit;
       function _vCustomText(v) {
@@ -6328,6 +6363,198 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var pid = document.getElementById('notePatientId').value;
       if (pid) openDentalChart(pid);
     };
+
+    // ═══════════════ 🩺 العمليات الجراحية ═══════════════
+    // نموذج: p.surgeries = [{ ts, name, date, status:'scheduled'|'done', note, complications }]
+    var _sgPid = null, _sgMode = 'schedule', _sgEditingTs = null;
+
+    function _surgeryEnabled() { return !!(settings && settings.surgicalArchive); }
+    // عدد العمليات المجدولة التي مرّ موعدها (تنتظر تأكيد الطبيب)
+    function _surgeryOverdue(p) {
+      return ((p && p.surgeries) || []).filter(function(s) {
+        return s.status === 'scheduled' && s.date && s.date < todayStr;
+      }).length;
+    }
+    window._surgeryUpdateBadge = function(pid) {
+      var btn = document.getElementById('surgeryArchiveBtn');
+      var badge = document.getElementById('surgeryBadge');
+      if (!btn) return;
+      btn.style.display = _surgeryEnabled() ? 'inline-flex' : 'none';
+      if (!badge) return;
+      var n = _surgeryOverdue(allPatients[pid]);
+      if (n > 0) { badge.textContent = n; badge.style.display = 'flex'; }
+      else { badge.style.display = 'none'; }
+    };
+
+    window.openSurgeryPage = function(pid) {
+      var p = allPatients[pid]; if (!p) { showToast('اختر مريضاً أولاً', 'error'); return; }
+      _sgPid = pid;
+      document.getElementById('surgeryPatientName').textContent = (p.name || '') + ' — سجلّ العمليات والمواعيد الجراحية';
+      surgeryResetForm();
+      renderSurgeries(pid);
+      document.getElementById('surgeryPageModal').classList.remove('hidden');
+    };
+    window.closeSurgeryPage = function() {
+      document.getElementById('surgeryPageModal').classList.add('hidden');
+      // حدّث زرّ/شارة الاضبارة إن كانت مفتوحة تحت الشاشة
+      if (_sgPid) _surgeryUpdateBadge(_sgPid);
+    };
+
+    function renderSurgeries(pid) {
+      var p = allPatients[pid]; if (!p) return;
+      var all = (p.surgeries || []);
+      var sched = all.filter(function(s){ return s.status !== 'done'; })
+                     .sort(function(a, b){ return (a.date || '').localeCompare(b.date || ''); });
+      var done  = all.filter(function(s){ return s.status === 'done'; })
+                     .sort(function(a, b){ if (!a.date) return 1; if (!b.date) return -1; return b.date.localeCompare(a.date); });
+
+      document.getElementById('surgeryScheduledCount').textContent = sched.length ? '(' + sched.length + ')' : '';
+      document.getElementById('surgeryDoneCount').textContent = done.length ? '(' + done.length + ')' : '';
+      document.getElementById('surgeryScheduledCard').style.display = sched.length ? '' : 'none';
+
+      document.getElementById('surgeryScheduledList').innerHTML = sched.map(function(s) {
+        var overdue = s.date && s.date < todayStr;
+        return '<div class="sg-sched' + (overdue ? ' overdue' : '') + '">'
+          + '<div class="sg-row"><div style="min-width:0;"><div class="sg-name">' + escapeHtml(s.name || 'عملية') + '</div>'
+          + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + (s.date ? formatDateAr(s.date) : 'بلا تاريخ') + '</div></div>'
+          + '<div class="sg-right">' + (overdue ? '<span class="sg-pill amber">مرّ موعدها</span>' : '<span class="sg-pill blue">مجدولة</span>')
+          + '<button class="sg-ibtn" title="تعديل" onclick="editSurgery(' + s.ts + ')"><i class="fas fa-pen"></i></button></div></div>'
+          + (overdue
+              ? '<div class="sg-prompt"><div class="q"><i class="fas fa-clock"></i> هل تمّت هذه العملية؟</div><div class="sg-prompt-row">'
+                + '<button class="sg-pbtn done" onclick="markSurgeryDone(' + s.ts + ')">تمّت</button>'
+                + '<button class="sg-pbtn post" onclick="postponeSurgery(' + s.ts + ')">أُجّلت</button>'
+                + '<button class="sg-pbtn cancel" onclick="cancelSurgery(' + s.ts + ')">أُلغيت</button>'
+                + '</div></div>'
+              : '')
+          + '</div>';
+      }).join('');
+
+      document.getElementById('surgeryDoneList').innerHTML = done.length ? done.map(function(s) {
+        return '<div class="sg-done"><div class="sg-row"><div style="min-width:0;"><div class="sg-name">' + escapeHtml(s.name || 'عملية') + '</div>'
+          + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + (s.date ? formatDateAr(s.date) : 'بلا تاريخ') + '</div></div>'
+          + '<div class="sg-acts"><button class="sg-ibtn" title="تعديل" onclick="editSurgery(' + s.ts + ')"><i class="fas fa-pen"></i></button>'
+          + '<button class="sg-ibtn del" title="حذف" onclick="deleteSurgery(' + s.ts + ')"><i class="fas fa-trash"></i></button></div></div>'
+          + (s.complications ? '<div class="sg-note comp"><b>المضاعفات:</b> ' + escapeHtml(s.complications) + '</div>' : '')
+          + (s.note ? '<div class="sg-note">' + escapeHtml(s.note) + '</div>' : '')
+          + '</div>';
+      }).join('') : '<div class="sg-empty"><i class="fas fa-folder-open"></i>لا سوابق جراحية مسجّلة بعد.</div>';
+
+      _surgeryUpdateBadge(pid);
+    }
+
+    function _sgApplyMode() {
+      var isDone = (_sgMode === 'done');
+      document.getElementById('sgModeSchedule').classList.toggle('active', !isDone);
+      document.getElementById('sgModePast').classList.toggle('active', isDone);
+      document.getElementById('sgDateLabel').textContent = isDone ? 'تاريخ العملية' : 'تاريخ العملية المجدول';
+      document.getElementById('sgCompWrap').style.display = isDone ? '' : 'none';
+      document.getElementById('sgSaveLabel').textContent = isDone ? 'حفظ العملية' : 'جدولة';
+      document.getElementById('sgCancelBtn').style.display = (_sgEditingTs != null) ? '' : 'none';
+    }
+    // أزرار المبدّل: تبدأ إدخالاً جديداً بالنوع المختار
+    window.surgerySetMode = function(mode) {
+      _sgEditingTs = null; _sgMode = (mode === 'past') ? 'done' : 'schedule';
+      _sgClearInputs(); _sgApplyMode();
+      document.getElementById('sgName').focus();
+    };
+    function _sgClearInputs() {
+      document.getElementById('sgName').value = '';
+      document.getElementById('sgDate').value = '';
+      document.getElementById('sgComp').value = '';
+      document.getElementById('sgNote').value = '';
+      _sgGrow();
+    }
+    function _sgGrow() {
+      if (typeof veAutoGrow === 'function') {
+        veAutoGrow(document.getElementById('sgComp'));
+        veAutoGrow(document.getElementById('sgNote'));
+      }
+    }
+    window.surgeryResetForm = function() {
+      _sgEditingTs = null; _sgMode = 'schedule';
+      _sgClearInputs(); _sgApplyMode();
+    };
+    function _sgFind(ts) {
+      var p = allPatients[_sgPid]; if (!p || !p.surgeries) return null;
+      for (var i = 0; i < p.surgeries.length; i++) if (p.surgeries[i].ts === ts) return p.surgeries[i];
+      return null;
+    }
+    function _sgLoad(s) {
+      document.getElementById('sgName').value = s.name || '';
+      document.getElementById('sgDate').value = s.date || '';
+      document.getElementById('sgComp').value = s.complications || '';
+      document.getElementById('sgNote').value = s.note || '';
+      _sgGrow(); _sgApplyMode();
+      document.querySelector('#surgeryPageModal .sg-side').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    // «تمّت» → نموذج الإكمال (done) لتوثيق المضاعفات
+    window.markSurgeryDone = function(ts) {
+      var s = _sgFind(ts); if (!s) return;
+      // النموذج يفتح بوضع «تمّت» بتاريخ العملية المجدول كافتراض للتاريخ الفعلي،
+      // ويظهر حقل المضاعفات. الطبيب يعدّل التاريخ إن اختلف ثم يحفظ.
+      _sgEditingTs = ts; _sgMode = 'done';
+      _sgLoad(s);
+      document.getElementById('sgComp').focus();
+    };
+    // «أُجّلت» → تعديل التاريخ (يبقى مجدولاً)
+    window.postponeSurgery = function(ts) {
+      var s = _sgFind(ts); if (!s) return;
+      _sgEditingTs = ts; _sgMode = 'schedule';
+      _sgLoad(s);
+      document.getElementById('sgDate').focus();
+    };
+    window.editSurgery = function(ts) {
+      var s = _sgFind(ts); if (!s) return;
+      _sgEditingTs = ts; _sgMode = (s.status === 'done') ? 'done' : 'schedule';
+      _sgLoad(s);
+      document.getElementById('sgName').focus();
+    };
+    window.cancelSurgery = function(ts) {
+      if (!confirm('تأكيد إلغاء هذه العملية المجدولة؟')) return;
+      _sgRemove(ts, 'أُلغيت العملية المجدولة');
+    };
+    window.deleteSurgery = function(ts) {
+      if (!confirm('حذف هذه العملية من سوابق المريض؟\nلا يمكن التراجع.')) return;
+      _sgRemove(ts, 'تم الحذف');
+    };
+    function _sgRemove(ts, msg) {
+      var p = allPatients[_sgPid]; if (!p || !p.surgeries) return;
+      p.surgeries = p.surgeries.filter(function(s){ return s.ts !== ts; });
+      if (_sgEditingTs === ts) surgeryResetForm();
+      _sgSave(p, msg);
+      renderSurgeries(_sgPid);
+    }
+    window.saveSurgery = function() {
+      var p = allPatients[_sgPid]; if (!p) return;
+      var name = document.getElementById('sgName').value.trim();
+      if (!name) { showToast('اكتب اسم العملية أولاً', 'error'); document.getElementById('sgName').focus(); return; }
+      var date = document.getElementById('sgDate').value;
+      var note = document.getElementById('sgNote').value.trim();
+      var comp = document.getElementById('sgComp').value.trim();
+      var status = (_sgMode === 'done') ? 'done' : 'scheduled';
+      if (!p.surgeries) p.surgeries = [];
+      if (_sgEditingTs != null) {
+        var s = _sgFind(_sgEditingTs);
+        if (s) { s.name = name; s.date = date; s.note = note; s.complications = (status === 'done') ? comp : ''; s.status = status; }
+      } else {
+        p.surgeries.push({ ts: Date.now(), name: name, date: date, note: note, complications: (status === 'done') ? comp : '', status: status });
+      }
+      _sgSave(p, status === 'done' ? 'تم حفظ العملية ✓' : 'تمّت جدولة العملية ✓');
+      surgeryResetForm();
+      renderSurgeries(_sgPid);
+    };
+    function _sgSave(p, msg) {
+      window._fb.setDoc(window._fb.docRef('patients', _sgPid), p, { merge: true })
+        .then(function(){ if (msg) showToast(msg, 'success'); })
+        .catch(function(e){ showToast('فشل الحفظ', 'error'); console.error(e); });
+    }
+    // نموّ حقلَي النصّ مع الكتابة
+    document.addEventListener('DOMContentLoaded', function() {
+      ['sgComp', 'sgNote'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && typeof veAutoGrow === 'function') el.addEventListener('input', function(){ veAutoGrow(el); });
+      });
+    });
     // ── محرر السن: تسجيل الأحداث ──
     function teEventBtn(k) {
       var def = DC_EVENTS[k];

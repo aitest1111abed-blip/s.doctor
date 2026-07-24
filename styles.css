@@ -1644,7 +1644,6 @@
     .alert-btn-enter:hover { background:#dbeafe; border-color:#60a5fa; box-shadow:0 4px 16px rgba(59,130,246,.2); }
     .alert-btn-custom { background:#fefce8; border-color:#fde047; color:#713f12; }
     .alert-btn-custom:hover { background:#fef9c3; border-color:#facc15; box-shadow:0 4px 16px rgba(234,179,8,.2); }
-    50%{filter:brightness(1.35)} 100%{filter:brightness(1)} }
 
 
 
@@ -2271,6 +2270,81 @@
 @media(max-width:560px){.next-patient-notif{min-width:0;max-width:calc(100vw - 32px);}}
 
 /* =====================================================================
+   🩺 شاشة العمليات الجراحية — sg-*
+   تعيد استخدام نمط مخطّط الأسنان (dc-page/dc-card/dc-count) والخطّ الزمني
+   للاضبارة (pf-tl)، فتتبع الوضعين تلقائياً. عمودان: القوائم يميناً والنموذج
+   الدائم يساراً — فلا مساحات فارغة على الجانبين.
+   ===================================================================== */
+/* العمود الجانبي: نموذج التسجيل دائم الظهور، لاصق عند التمرير */
+.sg-side{align-self:start;min-width:0;}
+@media(min-width:1025px){ .sg-side{position:sticky;top:74px;} }
+
+/* مبدّل النمط: جدولة / سابقة */
+.sg-modes{display:flex;gap:7px;margin-bottom:14px;}
+.sg-mode{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1.5px solid var(--border);background:var(--bg);color:var(--text-secondary);
+  border-radius:10px;padding:9px 10px;font-family:inherit;font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.sg-mode:hover{border-color:var(--border-strong);color:var(--text-primary);}
+.sg-mode.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.sg-mode i{font-size:.78rem;}
+
+/* حقول النموذج — سطر يتلوّن عند التركيز، بنفس مبدأ محرّر الزيارة/الاضبارة */
+.sg-form{display:flex;flex-direction:column;}
+.sg-label{font-size:.74rem;font-weight:700;color:var(--text-secondary);margin:11px 0 2px;}
+.sg-label:first-child{margin-top:0;}
+.sg-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);
+  border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);
+  box-sizing:border-box;transition:border-color .15s;}
+.sg-input:focus{outline:none;border-bottom-color:var(--primary);}
+textarea.sg-input{resize:none;overflow:hidden;line-height:1.7;min-height:0;}
+.sg-form-btns{display:flex;gap:8px;margin-top:16px;}
+.sg-cancel-btn{border:1px solid var(--border);background:transparent;color:var(--text-muted);
+  border-radius:9px;padding:8px 15px;font-family:inherit;font-weight:700;font-size:.83rem;cursor:pointer;transition:border-color .15s,color .15s;}
+.sg-cancel-btn:hover{border-color:var(--border-strong);color:var(--text-primary);}
+
+/* عنصر عملية مجدولة */
+.sg-sched{border:1.5px solid var(--border);border-inline-start:3px solid var(--primary);
+  border-radius:12px;padding:12px 14px;background:var(--surface);}
+.sg-sched + .sg-sched{margin-top:10px;}
+.sg-sched.overdue{border-inline-start-color:var(--amber);background:var(--amber-light);}
+.sg-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.sg-name{font-weight:800;font-size:.92rem;color:var(--text-primary);line-height:1.45;word-break:break-word;}
+.sg-date{font-size:.76rem;margin-top:3px;display:flex;align-items:center;gap:5px;color:var(--text-muted);}
+.sg-date i{font-size:.72rem;}
+.sg-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.sg-pill{font-size:.64rem;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap;}
+.sg-pill.blue{background:var(--primary-light);color:var(--primary);}
+.sg-pill.amber{background:transparent;color:var(--amber);border:1px solid var(--amber);}
+.sg-prompt{margin-top:11px;padding-top:11px;border-top:1px dashed var(--border-strong);}
+.sg-prompt .q{font-size:.8rem;font-weight:700;color:var(--amber);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.sg-prompt-row{display:flex;gap:7px;flex-wrap:wrap;}
+.sg-pbtn{border:none;border-radius:8px;padding:7px 15px;font-family:inherit;font-weight:700;font-size:.79rem;cursor:pointer;transition:filter .15s;}
+.sg-pbtn.done{background:var(--green);color:#fff;}
+.sg-pbtn.done:hover{filter:brightness(1.06);}
+.sg-pbtn.post{background:var(--bg);color:var(--text-secondary);border:1px solid var(--border-strong);}
+.sg-pbtn.post:hover{border-color:var(--primary);color:var(--primary);}
+.sg-pbtn.cancel{background:transparent;color:var(--red);border:1px solid transparent;}
+.sg-pbtn.cancel:hover{border-color:#fecaca;background:#fef2f2;}
+body.theme-dark .sg-pbtn.cancel:hover{border-color:#5b2020;background:#2a1416;}
+
+/* عنصر سابقة (done) — على الخطّ الزمني pf-tl، نقطته خضراء «تمّت» */
+.sg-done{position:relative;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--surface);}
+.sg-done + .sg-done{margin-top:10px;}
+.pf-tl .sg-done::before{content:"";position:absolute;inset-inline-start:-20px;top:15px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:3px solid var(--green);z-index:1;}
+.sg-acts{display:flex;gap:6px;flex-shrink:0;}
+.sg-ibtn{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.72rem;transition:border-color .15s,color .15s,background .15s;}
+.sg-ibtn:hover{border-color:var(--border-strong);color:var(--text-primary);}
+.sg-ibtn.del:hover{border-color:#fecaca;background:#fef2f2;color:var(--red);}
+body.theme-dark .sg-ibtn.del:hover{border-color:#5b2020;background:#2a1416;}
+.sg-note{font-size:.82rem;color:var(--text-secondary);line-height:1.7;margin-top:8px;white-space:pre-wrap;word-break:break-word;}
+.sg-note.comp{background:#fef2f2;border-radius:8px;padding:8px 11px;color:var(--text-primary);}
+.sg-note.comp b{color:var(--red);font-weight:800;}
+body.theme-dark .sg-note.comp{background:#2a1416;}
+.sg-empty{text-align:center;padding:22px 14px;color:var(--text-muted);font-size:.82rem;line-height:1.8;}
+.sg-empty i{font-size:1.6rem;display:block;margin-bottom:8px;opacity:.4;}
+
+/* =====================================================================
    شاشة إعداد العيادة لأول تسجيل دخول (Onboarding) — ob-*
    ---------------------------------------------------------------------
    تُعرض مرّة واحدة فقط: عندما لا تحمل settings العلامة onboarded ولا تخصّصاً.
@@ -2853,6 +2927,63 @@
     #patientInfoModal #piAgeDisplay { font-size:.74rem; }
     /* عنوان قسم الحقول المخصّصة يفصل بخطّ لا بمسافة فقط */
     #patientInfoModal #piCustomFields { border-top:1px solid var(--border); padding-top:12px; }
+/* =====================================================================
+   لوحة تسجيل حالة السن — الطبقة البصرية النهائية
+   المشكلة نفسها التي كانت في المحرّر: أربع طبقات تصرخ معاً — شرائح ملوّنة
+   داخل صناديق رمادية، وعلامة صحّ خضراء طائرة فوق كل مختار، وعنوانان
+   ملوّنان، وزرّ بتدرّج وهالة. فلا شيء يقود العين لأن كل شيء يطالب بها.
+   ما يبقى: نقطة اللون في الشريحة — هي مرجع المخطّط (لون النقطة = اللون
+   الذي يُصبغ به السنّ على الرسم)، فحذفها يقطع الصلة بين القائمة والمخطّط.
+   وما عداها يتراجع خطوة.
+   ===================================================================== */
+    /* اسم السنّ عنوانٌ لا إجراء — التركوازي في هذا التطبيق للهوية والأفعال */
+    #teEditor .te-panel-title { color:var(--text-primary); font-weight:800; }
+    /* زرّ الإغلاق بهيئة زرّ العودة في المحرّر. وكان يحمرّ عند المرور، والفعل
+       هنا «إلغاء التحديد» لا حذف — فالأحمر يَعِد بما لا يفعل. */
+    #teEditor .te-panel-x {
+      width:32px; height:32px; border-radius:9px;
+      border:1px solid var(--border); background:transparent;
+      transition:border-color .15s, color .15s;
+    }
+    #teEditor .te-panel-x:hover {
+      background:transparent; border-color:var(--border-strong); color:var(--text-primary);
+    }
+
+    /* «الموجودات» و«المعالجات» تسميتان لا عنوانان — بوزن تسمية العمود الجانبي */
+    #teEditor .te-fl-lbl {
+      color:var(--text-muted); font-size:.7rem; font-weight:800;
+      letter-spacing:.1em; margin-top:16px;
+    }
+
+    /* الشريحة: حدّ خفيف بلا أرضية رمادية. ولا ترتفع عند المرور — اللوحة مثبّتة
+       في العمود منذ أن استُبدل الطفو فوق الأسنان، فلا معنى لأن تتصرّف كأنها
+       طافية. المختارة وحدها تأخذ لونها (من النمط المضمّن) فتُقرأ فوراً. */
+    #teEditor .te-event-btn {
+      background:transparent; border:1px solid var(--border);
+      color:var(--text-secondary); box-shadow:none;
+    }
+    #teEditor .te-event-btn:hover {
+      transform:none; box-shadow:none; border-color:var(--border-strong);
+    }
+    #teEditor .te-event-btn.sel { border-width:1.5px; transform:none; box-shadow:none; }
+    /* ستّ عشرة نقطة بألوان مشبعة تتنافس بالقوّة نفسها فلا تقود العين إلى شيء.
+       النقطة تخفت ما دامت الشريحة غير مختارة — يكفي أن تُقرأ صلتُها بالمخطّط
+       عند البحث عنها — وتعود كاملةً عند الاختيار. */
+    #teEditor .te-event-btn .te-dot { opacity:.5; transition:opacity .15s; }
+    #teEditor .te-event-btn.sel .te-dot,
+    #teEditor .te-event-btn:hover .te-dot { opacity:1; }
+    /* علامة الصحّ الطائرة أُلغيت: الشريحة تتلوّن ويثخن حدّها فتقول إنها مختارة
+       بنفسها. وكانت خضراء دائماً — والأخضر في دليل المخطّط يعني «سليم»، فتعلو
+       علامةُ «سليم» خضراءُ فوق «التهاب لثة». */
+    #teEditor .te-event-btn .te-check { display:none; }
+
+    /* الزرّ مصمت بلون الهوية بلا تدرّج ولا هالة: هو الفعل الوحيد في اللوحة،
+       فحضوره مضمون بموقعه وعرضه — لا يحتاج توهّجاً ليُرى. */
+    #teEditor .te-fl-save {
+      background:var(--primary); box-shadow:none; border-radius:12px;
+      transition:filter .15s;
+    }
+    #teEditor .te-fl-save:hover { filter:brightness(1.06); }
 /* =====================================================================
    بطاقات ملخّص اليوم (KPI)
    • اللون يتبع الحالة لا الفئة: تركوازي = تمّت · أحمر = غياب · رمادي = لم يحن.

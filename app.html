@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=132">
+  <link rel="stylesheet" href="styles.css?v=134">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -706,6 +706,14 @@
               <div class="sgroup-label">اضبارة العيادة</div>
               <p style="font-size:.74rem;color:var(--text-muted);line-height:1.6;margin:0 0 10px;">أضف خانات خاصة بتخصصك إلى ملف المريض (نص، رقم، تاريخ، قائمة منسدلة...). تظهر تلقائياً في الاضبارة والطباعة دون أي إعداد إضافي.</p>
               <button type="button" id="chartCustomizeBtn" class="btn-primary" style="width:100%;justify-content:center;gap:8px;" onclick="openChartCustomizer()"><i class="fas fa-sliders"></i> خصّص اضبارتك</button>
+              <div class="srow" style="margin-top:14px;">
+                <div class="srow-label"><i class="fas fa-briefcase-medical"></i>أرشيف العمليات الجراحية</div>
+                <button type="button" id="surgicalToggleBtn" onclick="toggleSurgicalArchive()" role="switch" aria-checked="false"
+                  style="position:relative;width:48px;height:26px;border-radius:999px;border:none;background:var(--border-strong);cursor:pointer;transition:background .2s;flex-shrink:0;">
+                  <span id="surgicalToggleKnob" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s;"></span>
+                </button>
+              </div>
+              <p style="font-size:.72rem;color:var(--text-muted);line-height:1.6;margin:8px 0 0;">للجرّاحين: زرّ في الاضبارة يفتح شاشة لجدولة العمليات وتوثيق سوابقها ومضاعفاتها.</p>
             </div>
             <!-- النسخة الاحتياطية -->
             <div class="sgroup">
@@ -999,6 +1007,7 @@
               <!-- ★ الأداة السريرية للتخصّص — تظهر فقط إن وُجدت بيانات كافية (renderChartSpecialtyTool سابقاً، الآن مودال ملء الشاشة كمخطّط الأسنان) -->
               <button id="specialtyToolBtn" onclick="openSpecialtyTool(currentPatientIdForVisit)" style="display:none;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-chart-line"></i> الأداة السريرية</button>
               <button id="dentalArchiveBtn" onclick="openDentalChart(currentPatientIdForVisit)" style="display:none;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-tooth"></i> مخطط الأسنان</button>
+              <button id="surgeryArchiveBtn" onclick="openSurgeryPage(currentPatientIdForVisit)" style="display:none;position:relative;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-briefcase-medical"></i> العمليات الجراحية<span id="surgeryBadge" style="display:none;position:absolute;top:-6px;inset-inline-end:-6px;background:var(--amber);color:#fff;font-size:.62rem;font-weight:800;border-radius:999px;min-width:18px;height:18px;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);"></span></button>
               <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
             </div>
           </div>
@@ -1457,6 +1466,55 @@
     </div>
   </div>
 
+  <!-- 🩺 شاشة العمليات الجراحية (شاشة كاملة بنمط مخطّط الأسنان) -->
+  <div id="surgeryPageModal" class="hidden fixed inset-0 z-[195] dc-page">
+    <div class="dc-page-head">
+      <button onclick="closeSurgeryPage()" class="dc-back" title="رجوع"><i class="fas fa-chevron-right"></i></button>
+      <span class="dc-head-ic"><i class="fas fa-briefcase-medical"></i></span>
+      <div class="dc-head-txt">
+        <h3>العمليات الجراحية</h3>
+        <p id="surgeryPatientName"></p>
+      </div>
+    </div>
+    <div class="dc-page-body">
+      <div class="dc-page-main">
+        <div class="dc-card" id="surgeryScheduledCard">
+          <h4 class="dc-card-title"><i class="fas fa-calendar-check"></i> عمليات مجدولة <span id="surgeryScheduledCount" class="dc-count"></span></h4>
+          <div id="surgeryScheduledList"></div>
+        </div>
+        <div class="dc-card">
+          <h4 class="dc-card-title"><i class="fas fa-clock-rotate-left"></i> سوابق جراحية <span id="surgeryDoneCount" class="dc-count"></span></h4>
+          <div id="surgeryDoneList" class="pf-tl"></div>
+        </div>
+      </div>
+      <aside class="sg-side">
+        <div class="dc-card">
+          <h4 class="dc-card-title"><i class="fas fa-plus"></i> تسجيل عملية</h4>
+          <div class="sg-modes">
+            <button type="button" id="sgModeSchedule" class="sg-mode active" onclick="surgerySetMode('schedule')"><i class="fas fa-calendar-plus"></i> جدولة</button>
+            <button type="button" id="sgModePast" class="sg-mode" onclick="surgerySetMode('past')"><i class="fas fa-clock-rotate-left"></i> سابقة</button>
+          </div>
+          <div class="sg-form">
+            <label class="sg-label" for="sgName">اسم العملية</label>
+            <input type="text" id="sgName" class="sg-input" placeholder="مثال: استئصال المرارة بالمنظار">
+            <label class="sg-label" for="sgDate" id="sgDateLabel">تاريخ العملية المجدول</label>
+            <input type="date" id="sgDate" class="sg-input">
+            <div id="sgCompWrap" style="display:none;">
+              <label class="sg-label" for="sgComp">المضاعفات (إن وُجدت)</label>
+              <textarea id="sgComp" class="sg-input" rows="1" placeholder="نزف · إنتان · لا مضاعفات..."></textarea>
+            </div>
+            <label class="sg-label" for="sgNote">ملاحظة (اختياري)</label>
+            <textarea id="sgNote" class="sg-input" rows="1" placeholder="المشفى · نوع التخدير · تفاصيل..."></textarea>
+            <div class="sg-form-btns">
+              <button type="button" class="btn-primary" style="flex:1;justify-content:center;gap:6px;" onclick="saveSurgery()"><i class="fas fa-floppy-disk"></i> <span id="sgSaveLabel">جدولة</span></button>
+              <button type="button" class="sg-cancel-btn" id="sgCancelBtn" onclick="surgeryResetForm()" style="display:none;">إلغاء</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
   <!-- 🩺 منتقي نوع الزيارة -->
   <div id="visitTypeModal" class="dc-modal" role="dialog" aria-modal="true" aria-labelledby="vtHeading" onclick="if(event.target===this)closeVisitTypePicker()">
     <div class="dc-modal-card vt-card" role="document">
@@ -1853,7 +1911,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=132"></script>
+  <script src="script.js?v=134"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
