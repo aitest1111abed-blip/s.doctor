@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=134">
+  <link rel="stylesheet" href="styles.css?v=135">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -1276,6 +1276,20 @@
               </div>
             </div>
 
+            <!-- 🩺 جدولة عملية جراحية من هذه الزيارة (تظهر عند تفعيل الميزة) -->
+            <div class="ve-card" id="veSurgeryCard" style="display:none;">
+              <label class="ve-label" style="cursor:pointer;margin-bottom:0;">
+                <input type="checkbox" id="veSurgeryToggle" onchange="veToggleSurgery(this.checked)" style="width:17px;height:17px;accent-color:var(--primary);cursor:pointer;">
+                <i class="fas fa-briefcase-medical" style="color:var(--primary);margin:0 4px;"></i> جدولة عملية جراحية
+              </label>
+              <div id="veSurgeryWrap" style="display:none;margin-top:12px;">
+                <input type="text" id="veSurgeryName" placeholder="اسم العملية" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
+                <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin:12px 0 2px;">تاريخ العملية المجدول</label>
+                <input type="date" id="veSurgeryDate" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
+                <p style="font-size:.72rem;color:var(--text-muted);margin:9px 0 0;line-height:1.6;">تُحفظ في «العمليات الجراحية» مرتبطةً بهذه الزيارة عند حفظ الزيارة.</p>
+              </div>
+            </div>
+
             <!-- الصيدلية -->
             <div class="ve-card">
               <label class="ve-label" style="margin-bottom:4px;">إرسال الوصفة لصيدلية</label>
@@ -1911,7 +1925,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=134"></script>
+  <script src="script.js?v=135"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

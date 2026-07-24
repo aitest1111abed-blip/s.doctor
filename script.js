@@ -4440,6 +4440,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       // تُخفى/تُظهر خطوة القياسات كاملة (بعلامتها في سلسلة SOAP) لا البطاقة وحدها
       var _vstep = document.getElementById('noteCustomStep'); if (_vstep) _vstep.style.display = _vf.length ? '' : 'none';
       var _dbar = document.getElementById('dentalEditorBar'); if (_dbar) _dbar.style.display = _dentalEnabled() ? 'flex' : 'none';   // 🦷 شريط المخطط لكل زيارة
+      _veLoadSurgery(p, v);   // 🩺 جدولة عملية مرتبطة بهذه الزيارة
       buildCustomFieldInputs(document.getElementById('noteCustomFields'), _vf, v.custom, { variant: 'editor' });
       // اسم المريض هو العنوان، والسياق (العمر · الزمرة · التاريخ · رقم الزيارة) سطر تحته
       document.getElementById('visitEditorTitle').textContent = (p && p.name) || 'زيارة';
@@ -4598,6 +4599,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       _flushTestFields(v);
       v.custom = readCustomFieldInputs(document.getElementById('noteCustomFields'));   // حقول الزيارة المخصّصة
       v.noteUpdatedAt = Date.now();
+      _veFlushSurgery(p, v);   // 🩺 عملية مجدولة مرتبطة بهذه الزيارة
       _guardDocSize(pid, p).then(function(go) {
         if (!go) return;   // الطبيب اختار عدم المتابعة — النصّ يبقى في المحرّر
         window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
@@ -6416,7 +6418,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         var overdue = s.date && s.date < todayStr;
         return '<div class="sg-sched' + (overdue ? ' overdue' : '') + '">'
           + '<div class="sg-row"><div style="min-width:0;"><div class="sg-name">' + escapeHtml(s.name || 'عملية') + '</div>'
-          + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + (s.date ? formatDateAr(s.date) : 'بلا تاريخ') + '</div></div>'
+          + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + (s.date ? formatDateAr(s.date) : 'بلا تاريخ') + '</div>'
+          + (s.fromVisitDate ? '<div class="sg-fromvisit"><i class="fas fa-link"></i> من زيارة ' + formatDateAr(s.fromVisitDate) + '</div>' : '') + '</div>'
           + '<div class="sg-right">' + (overdue ? '<span class="sg-pill amber">مرّ موعدها</span>' : '<span class="sg-pill blue">مجدولة</span>')
           + '<button class="sg-ibtn" title="تعديل" onclick="editSurgery(' + s.ts + ')"><i class="fas fa-pen"></i></button></div></div>'
           + (overdue
@@ -6431,7 +6434,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
       document.getElementById('surgeryDoneList').innerHTML = done.length ? done.map(function(s) {
         return '<div class="sg-done"><div class="sg-row"><div style="min-width:0;"><div class="sg-name">' + escapeHtml(s.name || 'عملية') + '</div>'
-          + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + (s.date ? formatDateAr(s.date) : 'بلا تاريخ') + '</div></div>'
+          + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + (s.date ? formatDateAr(s.date) : 'بلا تاريخ') + '</div>'
+          + (s.fromVisitDate ? '<div class="sg-fromvisit"><i class="fas fa-link"></i> من زيارة ' + formatDateAr(s.fromVisitDate) + '</div>' : '') + '</div>'
           + '<div class="sg-acts"><button class="sg-ibtn" title="تعديل" onclick="editSurgery(' + s.ts + ')"><i class="fas fa-pen"></i></button>'
           + '<button class="sg-ibtn del" title="حذف" onclick="deleteSurgery(' + s.ts + ')"><i class="fas fa-trash"></i></button></div></div>'
           + (s.complications ? '<div class="sg-note comp"><b>المضاعفات:</b> ' + escapeHtml(s.complications) + '</div>' : '')
@@ -6555,6 +6559,57 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         if (el && typeof veAutoGrow === 'function') el.addEventListener('input', function(){ veAutoGrow(el); });
       });
     });
+
+    // ── جدولة عملية مرتبطة من داخل محرّر الزيارة ──
+    window.veToggleSurgery = function(checked) {
+      var wrap = document.getElementById('veSurgeryWrap');
+      if (wrap) wrap.style.display = checked ? '' : 'none';
+      if (checked) { var n = document.getElementById('veSurgeryName'); if (n) n.focus(); }
+    };
+    // تُستدعى عند فتح المحرّر: تُظهر البطاقة وتملؤها من العملية المجدولة المرتبطة بالزيارة
+    function _veLoadSurgery(p, v) {
+      var card = document.getElementById('veSurgeryCard');
+      if (!card) return;
+      if (!_surgeryEnabled()) { card.style.display = 'none'; return; }
+      card.style.display = '';
+      var linked = v.vid ? ((p.surgeries || []).filter(function(s){ return s.visitTs === v.vid && s.status === 'scheduled'; })[0]) : null;
+      var toggle = document.getElementById('veSurgeryToggle');
+      var wrap = document.getElementById('veSurgeryWrap');
+      var nameEl = document.getElementById('veSurgeryName');
+      var dateEl = document.getElementById('veSurgeryDate');
+      if (linked) {
+        toggle.checked = true; wrap.style.display = '';
+        nameEl.value = linked.name || ''; dateEl.value = linked.date || '';
+      } else {
+        toggle.checked = false; wrap.style.display = 'none';
+        nameEl.value = ''; dateEl.value = '';
+      }
+    }
+    // تُستدعى عند حفظ الزيارة: تنشئ/تحدّث/تحذف العملية المجدولة المرتبطة بها
+    function _veFlushSurgery(p, v) {
+      if (!_surgeryEnabled()) return;
+      var toggle = document.getElementById('veSurgeryToggle');
+      var nameEl = document.getElementById('veSurgeryName');
+      if (!toggle || !nameEl) return;
+      var name = (nameEl.value || '').trim();
+      var date = (document.getElementById('veSurgeryDate') || {}).value || '';
+      if (!p.surgeries) p.surgeries = [];
+      var idx = -1;
+      if (v.vid) for (var i = 0; i < p.surgeries.length; i++) {
+        if (p.surgeries[i].visitTs === v.vid && p.surgeries[i].status === 'scheduled') { idx = i; break; }
+      }
+      if (toggle.checked && name) {
+        if (!v.vid) v.vid = Date.now();
+        if (idx >= 0) {
+          p.surgeries[idx].name = name; p.surgeries[idx].date = date; p.surgeries[idx].fromVisitDate = v.date || '';
+        } else {
+          p.surgeries.push({ ts: Date.now(), name: name, date: date, note: '', complications: '', status: 'scheduled', visitTs: v.vid, fromVisitDate: v.date || '' });
+        }
+      } else if (idx >= 0) {
+        // أُلغيت الجدولة من المحرّر — تُحذف المجدولة المرتبطة (المكتملة لا تُمَسّ)
+        p.surgeries.splice(idx, 1);
+      }
+    }
     // ── محرر السن: تسجيل الأحداث ──
     function teEventBtn(k) {
       var def = DC_EVENTS[k];

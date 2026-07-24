@@ -2312,6 +2312,8 @@ textarea.sg-input{resize:none;overflow:hidden;line-height:1.7;min-height:0;}
 .sg-name{font-weight:800;font-size:.92rem;color:var(--text-primary);line-height:1.45;word-break:break-word;}
 .sg-date{font-size:.76rem;margin-top:3px;display:flex;align-items:center;gap:5px;color:var(--text-muted);}
 .sg-date i{font-size:.72rem;}
+.sg-fromvisit{font-size:.7rem;margin-top:4px;display:flex;align-items:center;gap:4px;color:var(--primary);font-weight:700;}
+.sg-fromvisit i{font-size:.66rem;}
 .sg-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .sg-pill{font-size:.64rem;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap;}
 .sg-pill.blue{background:var(--primary-light);color:var(--primary);}
