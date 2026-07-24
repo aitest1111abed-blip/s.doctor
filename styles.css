@@ -2125,16 +2125,18 @@
 .pf-cbtn:active{transform:scale(.94);}
 .pf-cbtn.wa{background:#16a34a;border-color:transparent;}
 .pf-cbtn.wa:hover{filter:brightness(1.08);}
-.pf-head{display:flex;gap:14px;align-items:center;padding:16px 20px;flex-wrap:wrap;}
-.pf-avatar{width:62px;height:62px;border-radius:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;color:#fff;background:linear-gradient(140deg,#0d9488,#115e59);box-shadow:0 10px 24px -12px rgba(13,148,136,.65);}
+/* ترويسة بسيطة كترويسة «تعديل معلومات المريض»: شريط رفيع، صورة صغيرة مسطّحة،
+   اسم بحجم عنوان لا بحجم بطاقة بروفايل. (كانت صورة ٦٢px بظلّ ثقيل تُثقل الشريط.) */
+.pf-head{display:flex;gap:11px;align-items:center;padding:12px 20px;flex-wrap:wrap;}
+.pf-avatar{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;background:linear-gradient(140deg,#0d9488,#115e59);}
 /* بلا margin:auto — .pf-id بـ flex:1 يدفع ما بعده للطرف، والهامش التلقائي
    كان يفتح فجوة بين أزرار الإجراءات وزرّ الإغلاق بعد نقلها إلى الترويسة. */
-.pf-close{width:38px;height:38px;border-radius:11px;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;transition:background .15s,color .15s;}
+.pf-close{width:36px;height:36px;border-radius:9px;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;transition:background .15s,color .15s;}
 .pf-close:hover{background:#fef2f2;color:#dc2626;}
-.pf-id{flex:1;min-width:0;padding-bottom:2px;}
-.pf-name{font-weight:800;font-size:1.35rem;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.25;}
+.pf-id{flex:1;min-width:0;}
+.pf-name{font-weight:800;font-size:1.1rem;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.25;}
 .pf-verline{font-size:.6rem;font-weight:800;color:var(--primary);background:var(--primary-light);border:1px solid var(--border-strong);border-radius:999px;padding:3px 10px;letter-spacing:.3px;white-space:nowrap;}
-.pf-phone{direction:ltr;text-align:right;color:var(--primary);font-weight:700;font-size:.9rem;margin-top:3px;}
+.pf-phone{direction:ltr;text-align:right;color:var(--primary);font-weight:700;font-size:.82rem;margin-top:1px;}
 .pf-edit{align-self:flex-end;margin-bottom:4px;display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--primary);background:var(--primary-light);border:1.5px solid var(--border-strong);border-radius:11px;padding:8px 14px;cursor:pointer;font-family:inherit;}
 .pf-edit:hover{border-color:var(--primary);}
 .pf-pills{display:flex;gap:9px;flex-wrap:wrap;padding:0 22px 16px;}
