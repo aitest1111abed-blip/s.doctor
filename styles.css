@@ -2156,10 +2156,25 @@
 /* الحقول الطويلة (أمراض مزمنة، ملاحظات) تنزل لسطر مستقلّ */
 .pf-tile.full{flex-direction:column;align-items:stretch;gap:4px;}
 .pf-tile.full .val{text-align:start;}
-.pf-alert{grid-column:1/-1;display:flex;gap:11px;align-items:flex-start;background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.4);border-radius:12px;padding:11px 13px;}
-.pf-alert .ic{width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.2);color:#f59e0b;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pf-alert .t{font-size:.76rem;font-weight:800;color:#f59e0b;}
-.pf-alert .d{font-size:.86rem;font-weight:700;color:var(--text-primary);margin-top:1px;word-break:break-word;overflow-wrap:anywhere;}
+/* تنبيه الحساسية — بمعيار تنبيهات السلامة الطبّية العالمية: الأحمر دلالة الخطر
+   (أساور الحساسية في المشافي حمراء)، شريط جانبي أحمر، وشارة أيقونة مصمتة.
+   استُبدل الكهرماني الباهت به لأن تحسّس الدواء تنبيه سلامة لا مجرّد ملاحظة. */
+.pf-alert{grid-column:1/-1;display:flex;gap:12px;align-items:center;
+  background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.22);
+  border-inline-start:4px solid #dc2626;border-radius:12px;padding:12px 14px;}
+.pf-alert .ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:#dc2626;color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:1.05rem;box-shadow:0 6px 14px -4px rgba(220,38,38,.55);}
+.pf-alert .t{font-size:.68rem;font-weight:800;color:#dc2626;}
+.pf-alert .d{font-size:.95rem;font-weight:800;color:var(--text-primary);margin-top:2px;line-height:1.35;word-break:break-word;overflow-wrap:anywhere;}
+/* زرّ التعديل الموحّد: خلفية بيضاء · نصّ أسود · حدّ بلون النافبار (تركوازي غامق).
+   يُستعمل في الطبيب والممرّضة معاً — أي زرّ «تعديل» يأخذ هذا الشكل. */
+.pf-editbtn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;
+  font-size:.76rem;font-weight:700;color:var(--text-primary);background:var(--surface);
+  border:1.5px solid #115e59;border-radius:8px;padding:5px 12px;cursor:pointer;
+  transition:background .15s,border-color .15s;}
+.pf-editbtn i{color:#115e59;font-size:.68rem;}
+.pf-editbtn:hover{background:var(--bg);border-color:#0b4d48;}
 
 /* الخطّ الزمني للزيارات */
 .pf-tl{position:relative;padding-inline-start:20px;}

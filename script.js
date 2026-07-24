@@ -4128,7 +4128,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
             + (hasLab ? _visitSection('التحاليل المطلوبة', 'fa-vials', v.labTest) : '')
             + (hasImg ? _visitSection('الأشعة المطلوبة', 'fa-x-ray', v.imagingTest) : '')
             + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">'
-              + '<button onclick="openAddNoteModal(\'' + pid + '\',' + i + ')" class="btn-primary" style="padding:6px 12px;font-size:.76rem;"><i class="fas fa-pen"></i> تعديل</button>'
+              + '<button onclick="openAddNoteModal(\'' + pid + '\',' + i + ')" class="pf-editbtn" style="padding:6px 12px;"><i class="fas fa-pen"></i> تعديل</button>'
               + '<button onclick="deleteVisit(\'' + pid + '\',' + i + ')" style="padding:6px 12px;font-size:.76rem;background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-trash"></i> حذف الزيارة</button>'
               + '<button onclick="printPrescription(\'' + pid + '\',' + i + ')" style="padding:6px 12px;font-size:.76rem;background:var(--primary-light);color:var(--primary);border:1.5px solid var(--border-strong);border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-print"></i> طباعة الوصفة</button>'
               + '<button onclick="sendVisitToContact(\'' + pid + '\',' + i + ',\'pharmacy\')" style="padding:6px 12px;font-size:.76rem;background:#16a34a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fab fa-whatsapp"></i> صيدلية</button>'
