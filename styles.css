@@ -2200,8 +2200,9 @@
 .pf-actbtn{width:40px;height:40px;border-radius:12px;border:1.5px solid #115e59;background:var(--surface);color:#115e59;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;text-decoration:none;transition:border-color .15s,color .15s,background .15s,transform .1s;}
 .pf-actbtn:hover{background:var(--primary-light);border-color:#0b4d48;color:#0b4d48;}
 .pf-actbtn:active{transform:scale(.94);}
-.pf-actbtn.wa{background:#16a34a;color:#fff;border-color:transparent;}
-.pf-actbtn.wa:hover{background:#15803d;color:#fff;border-color:transparent;}
+/* واتساب بنفس الهيئة المُفرَّغة لكن بلون أخضر (دلالته) — فتتناسق الثلاثة */
+.pf-actbtn.wa{background:var(--surface);color:#16a34a;border-color:#16a34a;}
+.pf-actbtn.wa:hover{background:rgba(22,163,74,.12);color:#15803d;border-color:#15803d;}
 
 /* ===== 🦷 قائمة تسجيل حالة السن — Popover مثبّت بجانب السن + أنيميشن ===== */
 .te-pop{opacity:0;transform:scale(.9);transform-origin:var(--teox,50%) var(--teoy,0%);transition:opacity .16s ease,transform .22s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 70px -20px rgba(13,148,136,.45),0 16px 34px -16px rgba(0,0,0,.32);}

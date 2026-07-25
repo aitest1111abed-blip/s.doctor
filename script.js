@@ -4069,7 +4069,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('modalWhatsappBtn').href = 'https://wa.me/' + normalizePhone(p.phone || '');
       document.getElementById('modalCallBtn').href = 'tel:' + normalizePhone(p.phone || '');
       document.getElementById('chartAvatar').textContent = ((p.name || '؟').trim().charAt(0)) || '؟';
-      var _pills = document.getElementById('chartHeaderPills'); if (_pills) _pills.innerHTML = renderChartHeaderPills(p);
+      // شارات الحساسية/المزمن أُزيلت من الهيدر — تبقى في معلومات المريض الثابتة أسفله
+      var _pills = document.getElementById('chartHeaderPills'); if (_pills) { _pills.innerHTML = ''; _pills.style.display = 'none'; }
       document.getElementById('chartInfoGrid').innerHTML = renderChartInfoTiles(p);
       renderChartVisits(pid);
       // ★ زر الأداة السريرية في رأس الأرشيف: يظهر فقط إن وُجد حقل بزيارتين فأكثر فيهما قيم (يفتح مودال openSpecialtyTool)

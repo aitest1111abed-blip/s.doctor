@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=139">
+  <link rel="stylesheet" href="styles.css?v=140">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -609,7 +609,7 @@
             </div>
             <div class="flex gap-2">
               <!-- تم إزالة زر إضافة مريض جديد بناء على طلب المستخدم -->
-              <div style="padding:4px 12px;background:var(--primary-light);color:var(--primary);border-radius:8px;font-size:.75rem;font-weight:700;border:1px solid var(--border)"><i class="fas fa-users ml-1"></i> <span id="totalPatientsCount">0</span></div>
+              <div style="padding:4px 12px;background:var(--primary-light);color:var(--primary);border-radius:20px;font-size:.75rem;font-weight:700;white-space:nowrap;"><i class="fas fa-users ml-1"></i> <span id="totalPatientsCount">0</span></div>
             </div>
           </div>
           <div class="mb-4"><input type="text" id="patientBookSearch" class="w-full p-3 pr-10 rounded-lg" style="background:var(--primary-faint);border:1.5px solid var(--border);color:var(--text-primary);border-radius:10px;font-family:inherit;" placeholder="ابحث باسم المريض أو رقم الهاتف..."></div>
@@ -1005,9 +1005,9 @@
             <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-folder-open" style="margin-left:6px;"></i>أرشيف الزيارات <span id="chartVisitsCount" style="font-size:.72rem;color:var(--text-muted);font-weight:600;"></span></h4>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <!-- ★ الأداة السريرية للتخصّص — تظهر فقط إن وُجدت بيانات كافية (renderChartSpecialtyTool سابقاً، الآن مودال ملء الشاشة كمخطّط الأسنان) -->
-              <button id="specialtyToolBtn" onclick="openSpecialtyTool(currentPatientIdForVisit)" style="display:none;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-chart-line"></i> الأداة السريرية</button>
-              <button id="dentalArchiveBtn" onclick="openDentalChart(currentPatientIdForVisit)" style="display:none;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-tooth"></i> مخطط الأسنان</button>
-              <button id="surgeryArchiveBtn" onclick="openSurgeryPage(currentPatientIdForVisit)" style="display:none;position:relative;padding:7px 14px;font-size:.8rem;background:linear-gradient(135deg,var(--primary-5),var(--primary-7));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(13,148,136,.3);"><i class="fas fa-briefcase-medical"></i> العمليات الجراحية<span id="surgeryBadge" style="display:none;position:absolute;top:-6px;inset-inline-end:-6px;background:var(--amber);color:#fff;font-size:.62rem;font-weight:800;border-radius:999px;min-width:18px;height:18px;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);"></span></button>
+              <button id="specialtyToolBtn" onclick="openSpecialtyTool(currentPatientIdForVisit)" class="btn-primary" style="display:none;padding:7px 14px;font-size:.8rem;"><i class="fas fa-chart-line"></i> الأداة السريرية</button>
+              <button id="dentalArchiveBtn" onclick="openDentalChart(currentPatientIdForVisit)" class="btn-primary" style="display:none;padding:7px 14px;font-size:.8rem;"><i class="fas fa-tooth"></i> مخطط الأسنان</button>
+              <button id="surgeryArchiveBtn" onclick="openSurgeryPage(currentPatientIdForVisit)" class="btn-primary" style="display:none;position:relative;padding:7px 14px;font-size:.8rem;"><i class="fas fa-briefcase-medical"></i> العمليات الجراحية<span id="surgeryBadge" style="display:none;position:absolute;top:-6px;inset-inline-end:-6px;background:var(--amber);color:#fff;font-size:.62rem;font-weight:800;border-radius:999px;min-width:18px;height:18px;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);"></span></button>
               <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
             </div>
           </div>
@@ -1484,7 +1484,6 @@
   <div id="surgeryPageModal" class="hidden fixed inset-0 z-[195] dc-page">
     <div class="dc-page-head">
       <button onclick="closeSurgeryPage()" class="dc-back" title="رجوع"><i class="fas fa-chevron-right"></i></button>
-      <span class="dc-head-ic"><i class="fas fa-briefcase-medical"></i></span>
       <div class="dc-head-txt">
         <h3>العمليات الجراحية</h3>
         <p id="surgeryPatientName"></p>
@@ -1925,7 +1924,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=139"></script>
+  <script src="script.js?v=140"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
