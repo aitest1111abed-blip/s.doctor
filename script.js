@@ -4081,6 +4081,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (_dbtn) _dbtn.style.display = _dentalEnabled() ? 'inline-flex' : 'none';
       // 🩺 زر العمليات الجراحية: يظهر عند تفعيل الميزة، مع شارة المتأخّرة
       if (typeof _surgeryUpdateBadge === 'function') _surgeryUpdateBadge(pid);
+      // 🦷 زر تقويم الأسنان: يظهر لتخصّص الأسنان، مع شارة الدورات النشطة
+      if (typeof _orthoUpdateBadge === 'function') _orthoUpdateBadge(pid);
       if (typeof chartResetBooking === 'function') chartResetBooking(pid);
       document.getElementById('patientDetailsModal').classList.remove('hidden');
       var _rail = document.getElementById('mainRail'); if (_rail) _rail.style.display = 'none';   // إخفاء السايدبار أثناء فتح الإضبارة
@@ -4442,6 +4444,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var _vstep = document.getElementById('noteCustomStep'); if (_vstep) _vstep.style.display = _vf.length ? '' : 'none';
       var _dbar = document.getElementById('dentalEditorBar'); if (_dbar) _dbar.style.display = _dentalEnabled() ? 'flex' : 'none';   // 🦷 شريط المخطط لكل زيارة
       _veLoadSurgery(p, v);   // 🩺 جدولة عملية مرتبطة بهذه الزيارة
+      _veLoadOrtho(p, v);     // 🦷 بدء تقويم مرتبط بهذه الزيارة
       buildCustomFieldInputs(document.getElementById('noteCustomFields'), _vf, v.custom, { variant: 'editor' });
       // اسم المريض هو العنوان، والسياق (العمر · الزمرة · التاريخ · رقم الزيارة) سطر تحته
       document.getElementById('visitEditorTitle').textContent = (p && p.name) || 'زيارة';
@@ -4601,6 +4604,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       v.custom = readCustomFieldInputs(document.getElementById('noteCustomFields'));   // حقول الزيارة المخصّصة
       v.noteUpdatedAt = Date.now();
       _veFlushSurgery(p, v);   // 🩺 عملية مجدولة مرتبطة بهذه الزيارة
+      _veFlushOrtho(p, v);     // 🦷 دورة تقويم مرتبطة بهذه الزيارة
       _guardDocSize(pid, p).then(function(go) {
         if (!go) return;   // الطبيب اختار عدم المتابعة — النصّ يبقى في المحرّر
         window._fb.setDoc(window._fb.docRef('patients', pid), p, { merge: true })
@@ -4859,6 +4863,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         }
       }
       info += surgHtml;
+      // تقويم الأسنان (الدورات النشطة) — تُطبع لتخصّص الأسنان
+      if (_dentalEnabled()) {
+        var actOrtho = ((p.ortho || []).filter(function(o){ return o.status === 'active'; }));
+        if (actOrtho.length) {
+          info += '<div class="sec-title">تقويم الأسنان</div><div class="info-grid">'
+            + actOrtho.map(function(o) {
+                var v = (o.type === 'removable' ? 'متحرّك' : o.type === 'clear' ? 'شفّاف' : 'ثابت')
+                  + (o.startDate ? ' — بدأ ' + formatDateAr(o.startDate) : '')
+                  + (o.expectedMonths ? ' — مدّة متوقّعة ' + o.expectedMonths + ' شهر' : '')
+                  + ' — جلسات شدّ: ' + ((o.adjustments || []).length);
+                return cell('دورة تقويم', v, true);
+              }).join('')
+            + '</div>';
+        }
+      }
       // عمود إضافي لحقول الزيارة المخصّصة (يظهر فقط عند وجود حقول زيارة مُعرّفة)
       var vFields = getChartTemplate().visit;
       function _vCustomText(v) {
@@ -6609,6 +6628,228 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       } else if (idx >= 0) {
         // أُلغيت الجدولة من المحرّر — تُحذف المجدولة المرتبطة (المكتملة لا تُمَسّ)
         p.surgeries.splice(idx, 1);
+      }
+    }
+
+    // ═══════════════ 🦷 تقويم الأسنان ═══════════════
+    // يحاكي نظام العمليات؛ لكنه علاج ممتدّ: دورة نشطة فيها مواعيد شدّ ثم تُنهى.
+    // p.ortho = [{ ts, type, startDate, expectedMonths, status:'active'|'completed',
+    //             endDate, notes, visitTs?, fromVisitDate?, adjustments:[{ts,date,note}] }]
+    var _orPid = null, _orEditingTs = null, _orAdjOpen = null;
+    function _orTypeLabel(t) { return t === 'removable' ? 'تقويم متحرّك' : t === 'clear' ? 'تقويم شفّاف' : 'تقويم ثابت'; }
+
+    window._orthoUpdateBadge = function(pid) {
+      var btn = document.getElementById('orthoArchiveBtn');
+      var badge = document.getElementById('orthoBadge');
+      if (!btn) return;
+      btn.style.display = _dentalEnabled() ? 'inline-flex' : 'none';
+      if (!badge) return;
+      var n = ((allPatients[pid] || {}).ortho || []).filter(function(o){ return o.status === 'active'; }).length;
+      if (n > 0) { badge.textContent = n; badge.style.display = 'flex'; }
+      else { badge.style.display = 'none'; }
+    };
+
+    window.openOrthoPage = function(pid) {
+      var p = allPatients[pid]; if (!p) { showToast('اختر مريضاً أولاً', 'error'); return; }
+      _orPid = pid; _orAdjOpen = null;
+      document.getElementById('orthoPatientName').textContent = (p.name || '') + ' — دورات التقويم ومواعيد الشدّ';
+      orthoResetForm();
+      renderOrtho(pid);
+      document.getElementById('orthoPageModal').classList.remove('hidden');
+    };
+    window.closeOrthoPage = function() {
+      document.getElementById('orthoPageModal').classList.add('hidden');
+      if (_orPid) _orthoUpdateBadge(_orPid);
+    };
+
+    function renderOrtho(pid) {
+      var p = allPatients[pid]; if (!p) return;
+      var all = (p.ortho || []);
+      var active = all.filter(function(o){ return o.status !== 'completed'; })
+                      .sort(function(a, b){ return (b.startDate || '').localeCompare(a.startDate || ''); });
+      var done   = all.filter(function(o){ return o.status === 'completed'; })
+                      .sort(function(a, b){ return (b.endDate || '').localeCompare(a.endDate || ''); });
+
+      document.getElementById('orthoActiveCount').textContent = active.length ? '(' + active.length + ')' : '';
+      document.getElementById('orthoDoneCount').textContent = done.length ? '(' + done.length + ')' : '';
+      document.getElementById('orthoActiveCard').style.display = active.length ? '' : 'none';
+
+      document.getElementById('orthoActiveList').innerHTML = active.map(function(o) {
+        var open = (_orAdjOpen === o.ts);
+        var adjs = (o.adjustments || []).slice().sort(function(a, b){ return (b.date || '').localeCompare(a.date || ''); });
+        return '<div class="sg-sched">'
+          + '<div class="sg-row"><div style="min-width:0;"><div class="sg-name">' + _orTypeLabel(o.type) + '</div>'
+          + '<div class="or-meta"><span class="or-chip"><b>البدء:</b> ' + (o.startDate ? formatDateAr(o.startDate) : '—') + '</span>'
+          + (o.expectedMonths ? '<span class="or-chip"><b>المدّة:</b> ' + o.expectedMonths + ' شهر</span>' : '')
+          + '<span class="or-chip"><b>جلسات الشدّ:</b> ' + adjs.length + '</span></div>'
+          + (o.fromVisitDate ? '<div class="sg-fromvisit"><i class="fas fa-link"></i> من زيارة ' + formatDateAr(o.fromVisitDate) + '</div>' : '') + '</div>'
+          + '<div class="sg-right"><span class="sg-pill blue">نشط</span>'
+          + '<button class="sg-ibtn" title="تعديل" onclick="editOrtho(' + o.ts + ')"><i class="fas fa-pen"></i></button></div></div>'
+          + (o.notes ? '<div class="sg-note">' + escapeHtml(o.notes) + '</div>' : '')
+          + '<div class="or-adj-head"><span class="t">مواعيد الشدّ</span>'
+          + '<button class="or-addbtn" onclick="addOrthoAdjustment(' + o.ts + ')"><i class="fas fa-plus"></i> موعد شدّ</button></div>'
+          + (open ? '<div class="or-adj-form open">'
+              + '<div class="fld"><label>التاريخ</label><input type="date" id="orAdjDate" value="' + todayStr + '"></div>'
+              + '<div class="fld" style="flex:1;min-width:120px;"><label>ملاحظة</label><input type="text" id="orAdjNote" placeholder="ما تمّ في الجلسة..."></div>'
+              + '<button class="or-addbtn" onclick="saveOrthoAdjustment(' + o.ts + ')"><i class="fas fa-check"></i> حفظ</button></div>' : '')
+          + (adjs.length ? '<div class="or-adj-tl">' + adjs.map(function(a) {
+              return '<div class="or-adj"><div class="or-adj-row"><div style="min-width:0;"><div class="or-adj-date">' + formatDateAr(a.date) + '</div>'
+                + (a.note ? '<div class="or-adj-note">' + escapeHtml(a.note) + '</div>' : '') + '</div>'
+                + '<button class="sg-ibtn del" title="حذف" onclick="deleteOrthoAdjustment(' + o.ts + ',' + a.ts + ')"><i class="fas fa-trash"></i></button></div></div>';
+            }).join('') + '</div>' : '')
+          + '<div style="margin-top:12px;"><button class="sg-pbtn done" onclick="completeOrtho(' + o.ts + ')"><i class="fas fa-flag-checkered"></i> إنهاء التقويم</button></div>'
+          + '</div>';
+      }).join('');
+
+      document.getElementById('orthoDoneList').innerHTML = done.length ? done.map(function(o) {
+        var adjs = (o.adjustments || []);
+        return '<div class="sg-done"><div class="sg-row"><div style="min-width:0;"><div class="sg-name">' + _orTypeLabel(o.type) + '</div>'
+          + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + (o.startDate ? formatDateAr(o.startDate) : '—') + (o.endDate ? ' ← ' + formatDateAr(o.endDate) : '') + '</div>'
+          + (o.fromVisitDate ? '<div class="sg-fromvisit"><i class="fas fa-link"></i> من زيارة ' + formatDateAr(o.fromVisitDate) + '</div>' : '') + '</div>'
+          + '<div class="sg-acts"><button class="sg-ibtn del" title="حذف" onclick="deleteOrtho(' + o.ts + ')"><i class="fas fa-trash"></i></button></div></div>'
+          + '<div class="sg-note"><b>جلسات الشدّ:</b> ' + adjs.length + (o.notes ? ' · ' + escapeHtml(o.notes) : '') + '</div>'
+          + '</div>';
+      }).join('') : '<div class="sg-empty"><i class="fas fa-folder-open"></i>لا دورات تقويم منتهية بعد.</div>';
+
+      _orthoUpdateBadge(pid);
+    }
+
+    function _orGrow() { if (typeof veAutoGrow === 'function') veAutoGrow(document.getElementById('orNotes')); }
+    window.orthoResetForm = function() {
+      _orEditingTs = null;
+      document.getElementById('orType').value = 'fixed';
+      document.getElementById('orStart').value = '';
+      document.getElementById('orMonths').value = '';
+      document.getElementById('orNotes').value = '';
+      document.getElementById('orSaveLabel').textContent = 'بدء التقويم';
+      document.getElementById('orCancelBtn').style.display = 'none';
+      _orGrow();
+    };
+    function _orFind(ts) {
+      var p = allPatients[_orPid]; if (!p || !p.ortho) return null;
+      for (var i = 0; i < p.ortho.length; i++) if (p.ortho[i].ts === ts) return p.ortho[i];
+      return null;
+    }
+    window.editOrtho = function(ts) {
+      var o = _orFind(ts); if (!o) return;
+      _orEditingTs = ts;
+      document.getElementById('orType').value = o.type || 'fixed';
+      document.getElementById('orStart').value = o.startDate || '';
+      document.getElementById('orMonths').value = o.expectedMonths || '';
+      document.getElementById('orNotes').value = o.notes || '';
+      document.getElementById('orSaveLabel').textContent = 'حفظ';
+      document.getElementById('orCancelBtn').style.display = '';
+      _orGrow();
+      document.querySelector('#orthoPageModal .sg-side').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+    window.saveOrtho = function() {
+      var p = allPatients[_orPid]; if (!p) return;
+      var type = document.getElementById('orType').value;
+      var start = document.getElementById('orStart').value;
+      var months = parseInt(document.getElementById('orMonths').value, 10) || '';
+      var notes = document.getElementById('orNotes').value.trim();
+      if (!p.ortho) p.ortho = [];
+      if (_orEditingTs != null) {
+        var o = _orFind(_orEditingTs);
+        if (o) { o.type = type; o.startDate = start; o.expectedMonths = months; o.notes = notes; }
+      } else {
+        p.ortho.push({ ts: Date.now(), type: type, startDate: start, expectedMonths: months, notes: notes, status: 'active', adjustments: [] });
+      }
+      _orSave(p, 'تم حفظ التقويم ✓');
+      orthoResetForm();
+      renderOrtho(_orPid);
+    };
+    window.completeOrtho = function(ts) {
+      var o = _orFind(ts); if (!o) return;
+      if (!confirm('إنهاء دورة التقويم هذه؟')) return;
+      o.status = 'completed'; o.endDate = todayStr;
+      if (_orEditingTs === ts) orthoResetForm();
+      _orSave(allPatients[_orPid], 'انتهى التقويم ✓');
+      renderOrtho(_orPid);
+    };
+    window.deleteOrtho = function(ts) {
+      if (!confirm('حذف دورة التقويم هذه نهائياً؟\nلا يمكن التراجع.')) return;
+      var p = allPatients[_orPid]; if (!p || !p.ortho) return;
+      p.ortho = p.ortho.filter(function(o){ return o.ts !== ts; });
+      if (_orEditingTs === ts) orthoResetForm();
+      _orSave(p, 'تم الحذف');
+      renderOrtho(_orPid);
+    };
+    window.addOrthoAdjustment = function(ts) {
+      _orAdjOpen = (_orAdjOpen === ts) ? null : ts;
+      renderOrtho(_orPid);
+      if (_orAdjOpen === ts) { var n = document.getElementById('orAdjNote'); if (n) n.focus(); }
+    };
+    window.saveOrthoAdjustment = function(ts) {
+      var o = _orFind(ts); if (!o) return;
+      var date = (document.getElementById('orAdjDate') || {}).value || todayStr;
+      var note = ((document.getElementById('orAdjNote') || {}).value || '').trim();
+      if (!o.adjustments) o.adjustments = [];
+      o.adjustments.push({ ts: Date.now(), date: date, note: note });
+      _orAdjOpen = null;
+      _orSave(allPatients[_orPid], 'سُجّل موعد الشدّ ✓');
+      renderOrtho(_orPid);
+    };
+    window.deleteOrthoAdjustment = function(ts, adjTs) {
+      var o = _orFind(ts); if (!o || !o.adjustments) return;
+      o.adjustments = o.adjustments.filter(function(a){ return a.ts !== adjTs; });
+      _orSave(allPatients[_orPid], 'حُذف موعد الشدّ');
+      renderOrtho(_orPid);
+    };
+    function _orSave(p, msg) {
+      window._fb.setDoc(window._fb.docRef('patients', _orPid), p, { merge: true })
+        .then(function(){ if (msg) showToast(msg, 'success'); })
+        .catch(function(e){ showToast('فشل الحفظ', 'error'); console.error(e); });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      var el = document.getElementById('orNotes');
+      if (el && typeof veAutoGrow === 'function') el.addEventListener('input', function(){ veAutoGrow(el); });
+    });
+
+    // ── بدء تقويم مرتبط من داخل محرّر الزيارة (لتخصّص الأسنان) ──
+    window.veToggleOrtho = function(checked) {
+      var wrap = document.getElementById('veOrthoWrap');
+      if (wrap) wrap.style.display = checked ? '' : 'none';
+    };
+    function _veLoadOrtho(p, v) {
+      var card = document.getElementById('veOrthoCard');
+      if (!card) return;
+      if (!_dentalEnabled()) { card.style.display = 'none'; return; }
+      card.style.display = '';
+      var linked = v.vid ? ((p.ortho || []).filter(function(o){ return o.visitTs === v.vid && o.status === 'active'; })[0]) : null;
+      var toggle = document.getElementById('veOrthoToggle');
+      var wrap = document.getElementById('veOrthoWrap');
+      var typeEl = document.getElementById('veOrthoType');
+      var dateEl = document.getElementById('veOrthoDate');
+      if (linked) {
+        toggle.checked = true; wrap.style.display = '';
+        typeEl.value = linked.type || 'fixed'; dateEl.value = linked.startDate || '';
+      } else {
+        toggle.checked = false; wrap.style.display = 'none';
+        typeEl.value = 'fixed'; dateEl.value = '';
+      }
+    }
+    function _veFlushOrtho(p, v) {
+      if (!_dentalEnabled()) return;
+      var toggle = document.getElementById('veOrthoToggle');
+      if (!toggle) return;
+      var type = (document.getElementById('veOrthoType') || {}).value || 'fixed';
+      var date = (document.getElementById('veOrthoDate') || {}).value || '';
+      if (!p.ortho) p.ortho = [];
+      var idx = -1;
+      if (v.vid) for (var i = 0; i < p.ortho.length; i++) {
+        if (p.ortho[i].visitTs === v.vid && p.ortho[i].status === 'active') { idx = i; break; }
+      }
+      if (toggle.checked) {
+        if (!v.vid) v.vid = Date.now();
+        if (idx >= 0) {
+          p.ortho[idx].type = type; p.ortho[idx].startDate = date; p.ortho[idx].fromVisitDate = v.date || '';
+        } else {
+          p.ortho.push({ ts: Date.now(), type: type, startDate: date, expectedMonths: '', notes: '', status: 'active', adjustments: [], visitTs: v.vid, fromVisitDate: v.date || '' });
+        }
+      } else if (idx >= 0) {
+        // أُلغيت الإشارة من المحرّر — تُحذف الدورة النشطة المرتبطة (المنتهية لا تُمَسّ)
+        p.ortho.splice(idx, 1);
       }
     }
     // ── محرر السن: تسجيل الأحداث ──

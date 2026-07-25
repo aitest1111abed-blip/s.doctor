@@ -2378,6 +2378,32 @@ body.theme-dark .sg-note.comp{background:#2a1416;}
 .sg-empty{text-align:center;padding:22px 14px;color:var(--text-muted);font-size:.82rem;line-height:1.8;}
 .sg-empty i{font-size:1.6rem;display:block;margin-bottom:8px;opacity:.4;}
 
+/* 🦷 تقويم الأسنان — يعيد استخدام أنماط العمليات (.sg-*/.pf-tl/.dc-card).
+   إضافات خاصّة: خطّ زمني فرعيّ لمواعيد الشدّ داخل بطاقة الدورة النشطة. */
+.or-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.or-chip{font-size:.7rem;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--bg);color:var(--text-secondary);border:1px solid var(--border);}
+.or-chip b{color:var(--text-primary);font-weight:800;}
+.or-adj-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding-top:11px;border-top:1px dashed var(--border-strong);}
+.or-adj-head .t{font-size:.75rem;font-weight:800;color:var(--text-secondary);}
+.or-addbtn{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;color:var(--primary);background:var(--primary-light);border:1.5px solid var(--border-strong);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit;}
+.or-addbtn:hover{background:var(--primary);color:#fff;border-color:transparent;}
+.or-adj{position:relative;padding:7px 0 7px 0;}
+.or-adj-tl{position:relative;padding-inline-start:18px;margin-top:8px;}
+.or-adj-tl::before{content:"";position:absolute;inset-inline-start:4px;top:6px;bottom:6px;width:2px;background:var(--border-strong);}
+.or-adj-tl .or-adj{border-bottom:1px solid var(--border);}
+.or-adj-tl .or-adj:last-child{border-bottom:none;}
+.or-adj-tl .or-adj::before{content:"";position:absolute;inset-inline-start:-18px;top:12px;width:9px;height:9px;border-radius:50%;background:var(--surface);border:2.5px solid var(--primary);z-index:1;}
+.or-adj-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.or-adj-date{font-size:.8rem;font-weight:700;color:var(--text-primary);}
+.or-adj-note{font-size:.78rem;color:var(--text-secondary);line-height:1.6;margin-top:2px;white-space:pre-wrap;word-break:break-word;}
+/* نموذج إضافة موعد شدّ مضمّن */
+.or-adj-form{display:none;margin-top:10px;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+.or-adj-form.open{display:flex;}
+.or-adj-form .fld{display:flex;flex-direction:column;gap:3px;}
+.or-adj-form label{font-size:.68rem;font-weight:700;color:var(--text-secondary);}
+.or-adj-form input{background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:6px 2px;font-family:inherit;font-size:.85rem;color:var(--text-primary);}
+.or-adj-form input:focus{outline:none;border-bottom-color:var(--primary);}
+
 /* =====================================================================
    شاشة إعداد العيادة لأول تسجيل دخول (Onboarding) — ob-*
    ---------------------------------------------------------------------

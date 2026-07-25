@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=141">
+  <link rel="stylesheet" href="styles.css?v=142">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -1007,6 +1007,7 @@
               <!-- ★ الأداة السريرية للتخصّص — تظهر فقط إن وُجدت بيانات كافية (renderChartSpecialtyTool سابقاً، الآن مودال ملء الشاشة كمخطّط الأسنان) -->
               <button id="specialtyToolBtn" onclick="openSpecialtyTool(currentPatientIdForVisit)" class="btn-primary" style="display:none;padding:7px 14px;font-size:.8rem;"><i class="fas fa-chart-line"></i> الأداة السريرية</button>
               <button id="dentalArchiveBtn" onclick="openDentalChart(currentPatientIdForVisit)" class="btn-primary" style="display:none;padding:7px 14px;font-size:.8rem;"><i class="fas fa-tooth"></i> مخطط الأسنان</button>
+              <button id="orthoArchiveBtn" onclick="openOrthoPage(currentPatientIdForVisit)" class="btn-primary" style="display:none;position:relative;padding:7px 14px;font-size:.8rem;"><i class="fas fa-teeth-open"></i> تقويم الأسنان<span id="orthoBadge" style="display:none;position:absolute;top:-6px;inset-inline-end:-6px;background:var(--primary);color:#fff;font-size:.62rem;font-weight:800;border-radius:999px;min-width:18px;height:18px;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);"></span></button>
               <button id="surgeryArchiveBtn" onclick="openSurgeryPage(currentPatientIdForVisit)" class="btn-primary" style="display:none;position:relative;padding:7px 14px;font-size:.8rem;"><i class="fas fa-briefcase-medical"></i> العمليات الجراحية<span id="surgeryBadge" style="display:none;position:absolute;top:-6px;inset-inline-end:-6px;background:var(--amber);color:#fff;font-size:.62rem;font-weight:800;border-radius:999px;min-width:18px;height:18px;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);"></span></button>
               <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
             </div>
@@ -1290,6 +1291,25 @@
               </div>
             </div>
 
+            <!-- 🦷 بدء تقويم من هذه الزيارة (تظهر عند تفعيل تخصّص الأسنان) -->
+            <div class="ve-card" id="veOrthoCard" style="display:none;">
+              <label class="ve-label" style="cursor:pointer;margin-bottom:0;">
+                <input type="checkbox" id="veOrthoToggle" onchange="veToggleOrtho(this.checked)" style="width:17px;height:17px;accent-color:var(--primary);cursor:pointer;">
+                <i class="fas fa-teeth-open" style="color:var(--primary);margin:0 4px;"></i> المريض يحتاج تقويم
+              </label>
+              <div id="veOrthoWrap" style="display:none;margin-top:12px;">
+                <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin:0 0 2px;">نوع الجهاز</label>
+                <select id="veOrthoType" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
+                  <option value="fixed">ثابت (معدني/خزفي)</option>
+                  <option value="removable">متحرّك</option>
+                  <option value="clear">شفّاف (Aligners)</option>
+                </select>
+                <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin:12px 0 2px;">تاريخ البدء المتوقّع</label>
+                <input type="date" id="veOrthoDate" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
+                <p style="font-size:.72rem;color:var(--text-muted);margin:9px 0 0;line-height:1.6;">تبدأ دورة في «تقويم الأسنان» مرتبطةً بهذه الزيارة عند حفظ الزيارة.</p>
+              </div>
+            </div>
+
             <!-- الصيدلية -->
             <div class="ve-card">
               <label class="ve-label" style="margin-bottom:4px;">إرسال الوصفة لصيدلية</label>
@@ -1521,6 +1541,52 @@
             <div class="sg-form-btns">
               <button type="button" class="btn-primary" style="flex:1;justify-content:center;gap:6px;" onclick="saveSurgery()"><i class="fas fa-floppy-disk"></i> <span id="sgSaveLabel">جدولة</span></button>
               <button type="button" class="sg-cancel-btn" id="sgCancelBtn" onclick="surgeryResetForm()" style="display:none;">إلغاء</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 🦷 شاشة تقويم الأسنان (شاشة كاملة — بنمط شاشة العمليات) -->
+  <div id="orthoPageModal" class="hidden fixed inset-0 z-[195] dc-page">
+    <div class="dc-page-head">
+      <button onclick="closeOrthoPage()" class="dc-back" title="رجوع"><i class="fas fa-chevron-right"></i></button>
+      <div class="dc-head-txt">
+        <h3>تقويم الأسنان</h3>
+        <p id="orthoPatientName"></p>
+      </div>
+    </div>
+    <div class="dc-page-body">
+      <div class="dc-page-main">
+        <div class="dc-card" id="orthoActiveCard">
+          <h4 class="dc-card-title"><i class="fas fa-teeth-open"></i> تقويم نشط <span id="orthoActiveCount" class="dc-count"></span></h4>
+          <div id="orthoActiveList"></div>
+        </div>
+        <div class="dc-card">
+          <h4 class="dc-card-title"><i class="fas fa-clock-rotate-left"></i> تقويم منتهٍ <span id="orthoDoneCount" class="dc-count"></span></h4>
+          <div id="orthoDoneList" class="pf-tl"></div>
+        </div>
+      </div>
+      <aside class="sg-side">
+        <div class="dc-card">
+          <h4 class="dc-card-title"><i class="fas fa-plus"></i> بدء تقويم</h4>
+          <div class="sg-form">
+            <label class="sg-label" for="orType">نوع الجهاز</label>
+            <select id="orType" class="sg-input">
+              <option value="fixed">ثابت (معدني/خزفي)</option>
+              <option value="removable">متحرّك</option>
+              <option value="clear">شفّاف (Aligners)</option>
+            </select>
+            <label class="sg-label" for="orStart">تاريخ البدء</label>
+            <input type="date" id="orStart" class="sg-input">
+            <label class="sg-label" for="orMonths">المدّة المتوقّعة (أشهر)</label>
+            <input type="number" id="orMonths" class="sg-input" min="1" max="60" placeholder="مثال: 18">
+            <label class="sg-label" for="orNotes">ملاحظات (اختياري)</label>
+            <textarea id="orNotes" class="sg-input" rows="1" placeholder="خطّة العلاج · الأسنان المستهدفة · تفاصيل..."></textarea>
+            <div class="sg-form-btns">
+              <button type="button" class="btn-primary" style="flex:1;justify-content:center;gap:6px;" onclick="saveOrtho()"><i class="fas fa-floppy-disk"></i> <span id="orSaveLabel">بدء التقويم</span></button>
+              <button type="button" class="sg-cancel-btn" id="orCancelBtn" onclick="orthoResetForm()" style="display:none;">إلغاء</button>
             </div>
           </div>
         </div>
@@ -1924,7 +1990,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=141"></script>
+  <script src="script.js?v=142"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
