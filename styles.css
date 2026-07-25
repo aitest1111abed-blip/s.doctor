@@ -109,6 +109,8 @@
     body.theme-dark .modal-overlay { background: rgba(0,0,0,.55); }
     /* بطاقات أيقونات عامة فاتحة */
     body.theme-dark .card-icon, body.theme-dark .stat-icon { background:#0f3b36 !important; }
+    /* أيقونة عنوان القسم بلون النافبار (متدرّج) في الوضعين */
+    body.theme-dark .card-icon { background:linear-gradient(180deg,#158078,#0b4d48) !important; color:#fff !important; }
 
     body {
       font-family: 'Tajawal', 'IBM Plex Sans Arabic', sans-serif;
@@ -342,7 +344,7 @@
     body.theme-dark ::-webkit-scrollbar-thumb:hover { background: #3a4a63; }
     body.theme-dark, body.theme-dark * { scrollbar-color: #2b3a52 #0b1220; }
 
-    .card-icon { width:40px; height:40px; border-radius:11px; background:var(--primary-light); display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:1rem; flex-shrink:0; }
+    .card-icon { width:40px; height:40px; border-radius:11px; background:linear-gradient(180deg,#158078,#0b4d48); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1rem; flex-shrink:0; }
     .card-subtitle { font-size:0.72rem; color:var(--text-muted); font-weight:400; }
 
     /* هيدر الموبايل (يظهر فقط على الموبايل) */
