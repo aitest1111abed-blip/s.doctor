@@ -7409,25 +7409,82 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + '</div>';
       }
 
-      box.innerHTML =
+      var showSurg = !!st.surgicalArchive;
+      var showOrtho = !!st.orthoArchive;
+
+      // صفحة ١: معلومات المريض الثابتة
+      var infoPage =
         '<div class="pf-hero"><div class="pf-head"><div class="pf-avatar">م</div>'
           + '<div class="pf-id"><h3 class="pf-name">مريض تجريبي</h3><p class="pf-phone" dir="ltr">0955 123 456</p></div></div></div>'
-        + '<div style="padding:20px;background:var(--bg);"><div class="chart-layout">'
-          + '<div class="glass-card chart-info-card" style="padding:16px;">'
-            + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4></div>'
-            + '<div class="pf-tiles">' + infoTiles + '</div></div>'
-          + '<div style="display:flex;flex-direction:column;gap:14px;min-width:0;">'
-            + '<div class="glass-card" style="padding:16px;">'
-              + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-folder-open" style="margin-left:6px;"></i>أرشيف الزيارات <span style="font-size:.72rem;color:var(--text-muted);font-weight:600;">(٢)</span></h4></div>'
-              + '<div class="pf-tl" style="display:flex;flex-direction:column;gap:10px;">'
-                + visitCard('زيارة اليوم', formatDateAr(todayStr), true)
-                + visitCard('مراجعة سابقة', formatDateAr('2024-02-20'), false)
-              + '</div></div></div>'
-        + '</div></div>';
+        + '<div class="obp-wrap"><div class="glass-card" style="padding:16px;">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4></div>'
+          + '<div class="pf-tiles">' + infoTiles + '</div></div>'
+          + '<p class="obp-hint">هذه الخانات <b>ثابتة</b> — تُكتب مرّة واحدة وتبقى في ملف المريض مهما تكرّرت زياراته.</p></div>';
+
+      // صفحة ٢: اضبارة الزيارة (تتكرّر لكل زيارة)
+      var visitPage =
+        '<div class="obp-wrap"><div class="glass-card" style="padding:16px;">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-notes-medical" style="margin-left:6px;"></i>زيارة المريض</h4></div>'
+          + '<div class="pf-tl" style="display:flex;flex-direction:column;gap:10px;">' + visitCard('زيارة اليوم', formatDateAr(todayStr), true) + '</div></div>'
+          + '<p class="obp-hint">تتكرّر مع <b>كل زيارة</b> — لكلٍّ قيمها وتاريخها، فتقارن تطوّر الحالة بين موعد وآخر.</p></div>';
+
+      // صفحة ٣: أرشيف العمليات الجراحية (إن فُعّلت الميزة) — بنفس أصناف الشاشة الحقيقية
+      var surgeryPage = !showSurg ? '' :
+        '<div class="obp-wrap">'
+          + '<div class="dc-card"><h4 class="dc-card-title"><i class="fas fa-calendar-check"></i> عمليات مجدولة</h4>'
+            + '<div class="sg-sched"><div class="sg-row"><div style="min-width:0;"><div class="sg-name">استئصال الزائدة الدودية</div>'
+              + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + formatDateAr('2026-08-10') + '</div>'
+              + '<div class="sg-fromvisit"><i class="fas fa-link"></i> من زيارة ' + formatDateAr(todayStr) + '</div></div>'
+              + '<div class="sg-right"><span class="sg-pill blue">مجدولة</span></div></div></div></div>'
+          + '<div class="dc-card" style="margin-top:14px;"><h4 class="dc-card-title"><i class="fas fa-clock-rotate-left"></i> سوابق جراحية</h4>'
+            + '<div class="pf-tl"><div class="sg-done"><div class="sg-row"><div style="min-width:0;"><div class="sg-name">استئصال المرارة بالمنظار</div>'
+              + '<div class="sg-date"><i class="fas fa-calendar-day"></i>' + formatDateAr('2022-04-18') + '</div></div></div>'
+              + '<div class="sg-note comp"><b>المضاعفات:</b> لا مضاعفات</div></div></div></div>'
+          + '<p class="obp-hint">شاشة مستقلّة: <b>جدولة العمليات</b> وتوثيق سوابقها ومضاعفاتها — تبدأ من محرّر الزيارة.</p></div>';
+
+      // صفحة ٤: تقويم الأسنان (إن فُعّلت الميزة)
+      var orthoAdjTl = '<div class="or-adj-tl">'
+        + '<div class="or-adj"><div class="or-adj-row"><div style="min-width:0;"><div class="or-adj-date">' + formatDateAr('2026-06-01') + '</div><div class="or-adj-note">شدّ الأسلاك · تبديل المطّاط</div></div></div></div>'
+        + '<div class="or-adj"><div class="or-adj-row"><div style="min-width:0;"><div class="or-adj-date">' + formatDateAr('2026-05-01') + '</div><div class="or-adj-note">تركيب الحاصرات</div></div></div></div>'
+        + '</div>';
+      var orthoPage = !showOrtho ? '' :
+        '<div class="obp-wrap">'
+          + '<div class="dc-card"><h4 class="dc-card-title"><i class="fas fa-teeth-open"></i> تقويم نشط</h4>'
+            + '<div class="sg-sched"><div class="sg-row"><div style="min-width:0;"><div class="sg-name">تقويم ثابت</div>'
+              + '<div class="or-meta"><span class="or-chip"><b>البدء:</b> ' + formatDateAr('2026-05-01') + '</span>'
+              + '<span class="or-chip"><b>المدّة:</b> 18 شهر</span><span class="or-chip"><b>جلسات الشدّ:</b> 2</span></div>'
+              + '<div class="sg-fromvisit"><i class="fas fa-link"></i> من زيارة ' + formatDateAr(todayStr) + '</div></div>'
+              + '<div class="sg-right"><span class="sg-pill blue">نشط</span></div></div>'
+              + '<div class="or-adj-head"><span class="t">مواعيد الشدّ</span></div>' + orthoAdjTl + '</div></div>'
+          + '<p class="obp-hint">شاشة مستقلّة: تُبدأ من محرّر الزيارة، وتُتابَع مواعيد الشدّ حتى الإنهاء.</p></div>';
+
+      // شريط التبويبات — يظهر تبويب الميزة فقط إن فُعّلت
+      var tabs = [{ id: 'info', label: 'معلومات المريض', icon: 'fa-id-card' },
+                  { id: 'visit', label: 'الزيارة', icon: 'fa-notes-medical' }];
+      if (showSurg) tabs.push({ id: 'surgery', label: 'العمليات الجراحية', icon: 'fa-briefcase-medical' });
+      if (showOrtho) tabs.push({ id: 'ortho', label: 'تقويم الأسنان', icon: 'fa-teeth-open' });
+      var tabBar = '<div class="obp-tabs">' + tabs.map(function(t, i) {
+        return '<button class="obp-tab' + (i === 0 ? ' active' : '') + '" data-tab="' + t.id + '" onclick="obPrevShowTab(\'' + t.id + '\')"><i class="fas ' + t.icon + '"></i> ' + t.label + '</button>';
+      }).join('') + '</div>';
+
+      box.innerHTML = tabBar
+        + '<div class="obp-page" id="obpPageinfo">' + infoPage + '</div>'
+        + '<div class="obp-page" id="obpPagevisit" style="display:none;">' + visitPage + '</div>'
+        + (showSurg ? '<div class="obp-page" id="obpPagesurgery" style="display:none;">' + surgeryPage + '</div>' : '')
+        + (showOrtho ? '<div class="obp-page" id="obpPageortho" style="display:none;">' + orthoPage + '</div>' : '');
 
       var pane = document.getElementById('obPreview');
       if (pane) pane.classList.add('show');
     }
+    window.obPrevShowTab = function(id) {
+      ['info', 'visit', 'surgery', 'ortho'].forEach(function(t) {
+        var el = document.getElementById('obpPage' + t);
+        if (el) el.style.display = (t === id) ? '' : 'none';
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('#obPreview .obp-tab'), function(b) {
+        b.classList.toggle('active', b.getAttribute('data-tab') === id);
+      });
+    };
 
     function _obCloseChartPreview() {
       var pane = document.getElementById('obPreview');

@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=144">
+  <link rel="stylesheet" href="styles.css?v=146">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -679,8 +679,6 @@
             <div class="sgroup">
               <div class="sgroup-label">الاختصاص</div>
               <input type="text" id="settingsSpecialtyInput" class="form-input" placeholder="مثال: أمراض النساء والتوليد" onchange="autoSaveSettings()">
-              <p style="font-size:.72rem;color:var(--text-muted);line-height:1.6;margin:10px 0 8px;">من هنا: القالب الجاهز حسب التخصّص، خانات ملف المريض، والميزات الإضافية (أرشيف العمليات/التقويم).</p>
-              <button type="button" id="chartCustomizeBtn" class="btn-primary" style="width:100%;justify-content:center;gap:8px;" onclick="openChartCustomizer()"><i class="fas fa-sliders"></i> تخصيص الاضبارة والميزات</button>
             </div>
           </div>
 
@@ -1991,7 +1989,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=144"></script>
+  <script src="script.js?v=146"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

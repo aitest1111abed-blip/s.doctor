@@ -2729,6 +2729,19 @@ body.theme-dark .sg-note.comp{background:#2a1416;}
 }
 #onboardOverlay .obp-x:hover{background:var(--border); color:var(--text-primary);}
 #onboardOverlay .obp-body{padding:0; overflow-y:auto; flex:1; min-height:0;}
+/* تبويبات المعاينة — كل جزء صفحة مستقلّة حتى لا يختلط الثابت بالمتكرّر بالميزات */
+#onboardOverlay .obp-tabs{position:sticky; top:0; z-index:3; display:flex; gap:7px; flex-wrap:wrap;
+  padding:12px 18px; background:var(--surface); border-bottom:1px solid var(--border);}
+#onboardOverlay .obp-tab{display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--border);
+  background:var(--bg); color:var(--text-secondary); border-radius:10px; padding:8px 14px;
+  font-family:inherit; font-size:.82rem; font-weight:700; cursor:pointer; transition:background .15s,color .15s,border-color .15s;}
+#onboardOverlay .obp-tab:hover{border-color:var(--border-strong); color:var(--text-primary);}
+#onboardOverlay .obp-tab.active{background:var(--primary); color:#fff; border-color:transparent;}
+#onboardOverlay .obp-tab i{font-size:.78rem;}
+#onboardOverlay .obp-wrap{padding:20px; max-width:760px; margin:0 auto;}
+#onboardOverlay .obp-hint{margin:16px 0 0; font-size:.8rem; color:var(--text-muted); line-height:1.7;
+  text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px;}
+#onboardOverlay .obp-hint b{color:var(--text-primary); font-weight:800;}
 
 /* قسم: عنوانه ثم نسخة طبق الأصل من نموذج الاضبارة الحقيقي */
 #onboardOverlay .obp-sec{margin-bottom:16px;}
