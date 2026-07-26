@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=142">
+  <link rel="stylesheet" href="styles.css?v=144">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -679,6 +679,8 @@
             <div class="sgroup">
               <div class="sgroup-label">الاختصاص</div>
               <input type="text" id="settingsSpecialtyInput" class="form-input" placeholder="مثال: أمراض النساء والتوليد" onchange="autoSaveSettings()">
+              <p style="font-size:.72rem;color:var(--text-muted);line-height:1.6;margin:10px 0 8px;">من هنا: القالب الجاهز حسب التخصّص، خانات ملف المريض، والميزات الإضافية (أرشيف العمليات/التقويم).</p>
+              <button type="button" id="chartCustomizeBtn" class="btn-primary" style="width:100%;justify-content:center;gap:8px;" onclick="openChartCustomizer()"><i class="fas fa-sliders"></i> تخصيص الاضبارة والميزات</button>
             </div>
           </div>
 
@@ -700,20 +702,6 @@
                   <input type="tel" id="settingsLandlineInput" class="form-input" dir="ltr" placeholder="الرقم الأرضي" style="padding-right:28px;" onchange="autoSaveSettings()">
                 </div>
               </div>
-            </div>
-            <!-- تخصيص الاضبارة حسب التخصص -->
-            <div class="sgroup">
-              <div class="sgroup-label">اضبارة العيادة</div>
-              <p style="font-size:.74rem;color:var(--text-muted);line-height:1.6;margin:0 0 10px;">أضف خانات خاصة بتخصصك إلى ملف المريض (نص، رقم، تاريخ، قائمة منسدلة...). تظهر تلقائياً في الاضبارة والطباعة دون أي إعداد إضافي.</p>
-              <button type="button" id="chartCustomizeBtn" class="btn-primary" style="width:100%;justify-content:center;gap:8px;" onclick="openChartCustomizer()"><i class="fas fa-sliders"></i> خصّص اضبارتك</button>
-              <div class="srow" style="margin-top:14px;">
-                <div class="srow-label"><i class="fas fa-briefcase-medical"></i>أرشيف العمليات الجراحية</div>
-                <button type="button" id="surgicalToggleBtn" onclick="toggleSurgicalArchive()" role="switch" aria-checked="false"
-                  style="position:relative;width:48px;height:26px;border-radius:999px;border:none;background:var(--border-strong);cursor:pointer;transition:background .2s;flex-shrink:0;">
-                  <span id="surgicalToggleKnob" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s;"></span>
-                </button>
-              </div>
-              <p style="font-size:.72rem;color:var(--text-muted);line-height:1.6;margin:8px 0 0;">للجرّاحين: زرّ في الاضبارة يفتح شاشة لجدولة العمليات وتوثيق سوابقها ومضاعفاتها.</p>
             </div>
             <!-- النسخة الاحتياطية -->
             <div class="sgroup">
@@ -1375,6 +1363,19 @@
                 <button type="button" class="cf-apply-btn" style="margin-top:10px;" onclick="cfApplyPreset(document.getElementById('cfPresetSelect').value)"><i class="fas fa-wand-magic-sparkles"></i> تطبيق القالب</button>
               </div>
             </div>
+            <!-- ميزات إضافية حسب التخصّص (تظهر كأزرار في اضبارة المريض) -->
+            <div class="glass-card" style="padding:14px 16px;">
+              <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:10px;">ميزات إضافية للاضبارة</label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--text-primary);">
+                <input type="checkbox" id="cfFeatSurg" onchange="cfToggleSurgical(this.checked)" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;">
+                <span><i class="fas fa-briefcase-medical" style="color:var(--primary);margin-left:5px;"></i> أرشيف العمليات الجراحية</span>
+              </label>
+              <label id="cfFeatOrthoRow" style="display:none;align-items:center;gap:10px;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--text-primary);margin-top:11px;">
+                <input type="checkbox" id="cfFeatOrtho" onchange="cfToggleOrtho(this.checked)" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;">
+                <span><i class="fas fa-teeth-open" style="color:var(--primary);margin-left:5px;"></i> أرشيف تقويم الأسنان</span>
+              </label>
+              <p style="font-size:.7rem;color:var(--text-muted);line-height:1.6;margin:9px 0 0;">تظهر كأزرار في اضبارة المريض. التقويم لتخصّص الأسنان فقط.</p>
+            </div>
             <button onclick="saveChartTemplate()" class="cf-save-btn"><i class="fas fa-floppy-disk"></i> حفظ التخصيص</button>
           </div>
 
@@ -1990,7 +1991,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=142"></script>
+  <script src="script.js?v=144"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

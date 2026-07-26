@@ -3090,7 +3090,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     window.openSettingsModal = function() {
       switchSettingsPanel('profile');
       syncThemeToggle(document.body.classList.contains('theme-dark'));
-      syncSurgicalToggle(!!settings.surgicalArchive);
       document.getElementById('settingsTitleInput').value = settings.title || 'لوحة الطبيب';
       document.getElementById('profileDisplayName').textContent = settings.title || 'لوحة الطبيب';
       if (document.getElementById('profileSubtitle')) document.getElementById('profileSubtitle').textContent = settings.specialty || 'طبيب';
@@ -4863,8 +4862,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         }
       }
       info += surgHtml;
-      // تقويم الأسنان (الدورات النشطة) — تُطبع لتخصّص الأسنان
-      if (_dentalEnabled()) {
+      // تقويم الأسنان (الدورات النشطة) — تُطبع عند تفعيل ميزة التقويم
+      if (_orthoEnabled()) {
         var actOrtho = ((p.ortho || []).filter(function(o){ return o.status === 'active'; }));
         if (actOrtho.length) {
           info += '<div class="sec-title">تقويم الأسنان</div><div class="info-grid">'
@@ -5721,8 +5720,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + Object.keys(CHART_PRESETS).map(function(k) { return '<option value="' + _cfAttr(k) + '">' + escapeHtml(k) + '</option>'; }).join('');
       }
       renderCustomizerRows();
+      // حالة مفاتيح الميزات — العمليات لكل التخصّصات، التقويم للأسنان فقط
+      var _cfs = document.getElementById('cfFeatSurg'); if (_cfs) _cfs.checked = !!(settings && settings.surgicalArchive);
+      var _cfo = document.getElementById('cfFeatOrtho'); if (_cfo) _cfo.checked = !!(settings && settings.orthoArchive);
+      var _cfoRow = document.getElementById('cfFeatOrthoRow'); if (_cfoRow) _cfoRow.style.display = _dentalEnabled() ? 'flex' : 'none';
       document.getElementById('chartCustomizerModal').classList.remove('hidden');
       var _rail = document.getElementById('mainRail'); if (_rail) _rail.style.display = 'none';   // إخفاء السايدبار (ملء الشاشة)
+    };
+    window.cfToggleSurgical = function(on) {
+      settings.surgicalArchive = !!on;
+      saveSettingsToLocal(settings);
+      if (currentPatientIdForVisit && typeof _surgeryUpdateBadge === 'function') _surgeryUpdateBadge(currentPatientIdForVisit);
+    };
+    window.cfToggleOrtho = function(on) {
+      settings.orthoArchive = !!on;
+      saveSettingsToLocal(settings);
+      if (currentPatientIdForVisit && typeof _orthoUpdateBadge === 'function') _orthoUpdateBadge(currentPatientIdForVisit);
     };
     window.closeChartCustomizer = function() {
       document.getElementById('chartCustomizerModal').classList.add('hidden');
@@ -6637,12 +6650,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     //             endDate, notes, visitTs?, fromVisitDate?, adjustments:[{ts,date,note}] }]
     var _orPid = null, _orEditingTs = null, _orAdjOpen = null;
     function _orTypeLabel(t) { return t === 'removable' ? 'تقويم متحرّك' : t === 'clear' ? 'تقويم شفّاف' : 'تقويم ثابت'; }
+    // التقويم ميزة اختيارية تُفعّل من قسم التخصّص (للأسنان فقط) — لا تلقائياً بالتخصّص
+    function _orthoEnabled() { return !!(settings && settings.orthoArchive); }
 
     window._orthoUpdateBadge = function(pid) {
       var btn = document.getElementById('orthoArchiveBtn');
       var badge = document.getElementById('orthoBadge');
       if (!btn) return;
-      btn.style.display = _dentalEnabled() ? 'inline-flex' : 'none';
+      btn.style.display = _orthoEnabled() ? 'inline-flex' : 'none';
       if (!badge) return;
       var n = ((allPatients[pid] || {}).ortho || []).filter(function(o){ return o.status === 'active'; }).length;
       if (n > 0) { badge.textContent = n; badge.style.display = 'flex'; }
@@ -6814,7 +6829,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function _veLoadOrtho(p, v) {
       var card = document.getElementById('veOrthoCard');
       if (!card) return;
-      if (!_dentalEnabled()) { card.style.display = 'none'; return; }
+      if (!_orthoEnabled()) { card.style.display = 'none'; return; }
       card.style.display = '';
       var linked = v.vid ? ((p.ortho || []).filter(function(o){ return o.visitTs === v.vid && o.status === 'active'; })[0]) : null;
       var toggle = document.getElementById('veOrthoToggle');
@@ -6830,7 +6845,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
     }
     function _veFlushOrtho(p, v) {
-      if (!_dentalEnabled()) return;
+      if (!_orthoEnabled()) return;
       var toggle = document.getElementById('veOrthoToggle');
       if (!toggle) return;
       var type = (document.getElementById('veOrthoType') || {}).value || 'fixed';
@@ -7250,6 +7265,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         mobile: s.mobile || '',
         landline: s.landline || '',
         logo: s.logo || null,
+        surgicalArchive: !!s.surgicalArchive,
+        orthoArchive: !!s.orthoArchive,
         preset: '',
         fields: {
           patient: Array.isArray(t.patient) ? t.patient.map(_obCloneField) : [],
@@ -7326,76 +7343,87 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
        الحقول في الاضبارة الحقيقية (نموذج معلومات المريض ومحرّر الزيارة)، مع نسخة
        طبق الأصل من ترميز الحقول المدمجة في patientInfoModal / ve-card.
        فما يراه الطبيب هنا هو حرفياً ما سيظهر له بعد الحفظ. لا تُحفظ أي بيانات. */
+    /* ── معاينة الاضبارة — شاشة كاملة بنفس بنية الاضبارة الحقيقية ──
+       تُبنى بنفس أصناف الاضبارة (pf-hero / pf-tiles / pf-tile / chart-layout /
+       pf-tl / chart-visit) — لا نموذج مبسّط — فما يراه الطبيب هنا هو حرفياً شكل
+       الاضبارة من الداخل، بقيم نموذجية وخانات تخصّصه المسودّة. لا يُحفظ شيء. */
     function _obOpenChartPreview() {
       var st = _obState, box = document.getElementById('obPrevBody');
       if (!box) return;
-
       var pf = st.fields.patient.filter(function(f) { return (f.label || '').trim(); });
       var vf = st.fields.visit.filter(function(f) { return (f.label || '').trim(); });
 
-      // ve-card واحدة لخانات الزيارة — مطابقة لبطاقة «قياسات وحقول مخصّصة» في محرّر الزيارة
-      function visitCard(id, title, dim) {
-        return '<div class="obp-vwrap"' + (dim ? ' style="opacity:.6"' : '') + '>' +
-          '<div class="obp-vdate">' + title + '</div>' +
-          '<div class="ve-card">' +
-            '<label class="ve-label"><span class="ve-ico" style="background:#eef2ff;border-color:#c7d2fe;">' +
-              '<i class="fas fa-ruler-combined" style="font-size:.7rem;color:#4f46e5;"></i></span> قياسات وحقول مخصّصة</label>' +
-            '<div id="' + id + '"></div>' +
-            (vf.length ? '' : '<div class="obp-empty">لم تُضف خانات زيارة — لن تظهر هذه البطاقة أصلاً.</div>') +
-          '</div>' +
-        '</div>';
+      function sample(f) {
+        var t = f.type || 'text';
+        if (t === 'number') return '١٢٠';
+        if (t === 'date') return formatDateAr('2024-03-15');
+        if (t === 'checkbox') return 'نعم';
+        if (t === 'select') return (f.options && f.options[0]) || 'خيار';
+        if (t === 'textarea') return 'مثال توضيحي لمحتوى هذا الحقل';
+        return 'قيمة نموذجية';
+      }
+      var _isAll = function(f) { return typeof _cfIsAllergy === 'function' && _cfIsAllergy(f); };
+
+      // تنبيه الحساسية (سطر بلا حاوية) من خانات المريض المعرّفة كحساسية
+      var allergyLine = pf.filter(_isAll).map(function(f) {
+        return '<div class="pf-alertline"><span class="pf-alerttag">تنبيه</span>'
+          + '<span class="pf-alerttext"><b>' + escapeHtml(f.label) + ':</b> ' + escapeHtml(sample(f)) + '</span></div>';
+      }).join('');
+      // خانات المريض المخصّصة (غير الحساسية) كبلاطات — نفس _pfTile الحقيقي
+      var custTiles = pf.filter(function(f) { return !_isAll(f); }).map(function(f) {
+        return _pfTile(f.label, escapeHtml(sample(f)), { icon: _cfTypeIcon(f.type) });
+      }).join('');
+
+      var infoTiles = allergyLine
+        + _pfTile('رقم الهاتف', '<span dir="ltr">0955 123 456</span>', { icon: 'fa-phone' })
+        + _pfTile('تاريخ الميلاد', formatDateAr('1990-05-12'), { icon: 'fa-calendar-day' })
+        + _pfTile('العمر', '35 سنة', { icon: 'fa-hourglass-half' })
+        + _pfTile('زمرة الدم', 'O+', { icon: 'fa-droplet', iconColor: '#dc2626', valColor: '#dc2626' })
+        + _pfTile('العنوان', 'دمشق — المزّة', { icon: 'fa-location-dot' })
+        + _pfTile('إجمالي الزيارات', '٣', { icon: 'fa-clock-rotate-left' })
+        + custTiles
+        + _pfTile('أمراض مزمنة', 'سكري · ضغط', { full: true, icon: 'fa-heart-pulse', iconColor: '#d97706', valColor: '#d97706' });
+
+      // شبكة حقول الزيارة المخصّصة — نفس شكل renderVisitCustomHtml
+      function vCustom() {
+        var items = vf.map(function(f) {
+          return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 9px;min-width:0;">'
+            + '<div style="font-size:.66rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">' + escapeHtml(f.label) + '</div>'
+            + '<div style="font-size:.82rem;font-weight:700;color:var(--text-primary);word-break:break-word;">' + escapeHtml(sample(f)) + '</div></div>';
+        });
+        return items.length ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:12px;">' + items.join('') + '</div>' : '';
+      }
+      function visitCard(headline, dateStr, expanded) {
+        var body = expanded
+          ? (_visitSection('الشكوى', 'fa-comment-medical', 'ألم وتورّم منذ ثلاثة أيام')
+             + vCustom()
+             + _visitSection('التشخيص', 'fa-notes-medical', headline)
+             + _visitSection('الوصفة الطبية', 'fa-prescription', 'دواء · جرعة · مدّة — مثال'))
+          : '';
+        return '<div class="chart-visit" style="border:1.5px solid var(--border);border-right:4px solid var(--primary);border-radius:12px;overflow:hidden;background:var(--surface);">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;">'
+            + '<div style="min-width:0;"><div style="font-weight:800;font-size:.88rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(headline) + '</div>'
+            + '<div style="font-size:.74rem;color:var(--text-muted);margin-top:2px;">' + dateStr + ' · كشف</div></div>'
+            + '<i class="fas fa-chevron-' + (expanded ? 'up' : 'down') + '" style="color:var(--text-muted);flex-shrink:0;"></i></div>'
+          + (expanded ? '<div style="padding:0 13px 13px;border-top:1px dashed var(--border);">' + body + '</div>' : '')
+          + '</div>';
       }
 
       box.innerHTML =
-        '<div class="obp-sec">' +
-          '<div class="obp-cap"><i class="fas fa-id-card"></i> معلومات المريض' +
-            '<span>ثابتة — تُكتب مرّة واحدة وتبقى في ملفه</span></div>' +
-          '<div class="obp-mock">' +
-            '<div><label class="form-label">الاسم</label>' +
-              '<input type="text" class="form-input" value="مريض تجريبي" readonly></div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
-              '<div><label class="form-label">رقم الهاتف</label>' +
-                '<input type="tel" class="form-input" dir="ltr" value="09XXXXXXXX" readonly></div>' +
-              '<div><label class="form-label">تاريخ الميلاد ' +
-                '<span style="color:var(--primary);font-weight:800;">(٢٥ سنة)</span></label>' +
-                '<input type="text" class="form-input" style="direction:ltr;" value="2001-01-01" readonly></div>' +
-            '</div>' +
-            '<div><label class="form-label">العنوان</label>' +
-              '<input type="text" class="form-input" placeholder="المدينة / الحي" readonly></div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
-              '<div><label class="form-label"><i class="fas fa-droplet" style="color:#dc2626;margin-left:4px;"></i> زمرة الدم</label>' +
-                '<select class="form-input" disabled><option>— غير محدد —</option></select></div>' +
-              '<div></div>' +
-            '</div>' +
-            '<div><label class="form-label"><i class="fas fa-heart-pulse" style="color:#d97706;margin-left:4px;"></i> أمراض مزمنة</label>' +
-              '<textarea class="form-input" rows="2" style="resize:vertical;" placeholder="مثال: سكري، ضغط، ربو... (افصل بفاصلة)" readonly></textarea></div>' +
-            '<div id="obPrevPatientCF"></div>' +
-            (pf.length ? '' : '<div class="obp-empty">لم تُضف خانات مريض — سيظهر النموذج بحقوله المدمجة فقط.</div>') +
-          '</div>' +
-        '</div>' +
-
-        '<div class="obp-sec">' +
-          '<div class="obp-cap"><i class="fas fa-notes-medical"></i> أرشيف الزيارات' +
-            '<span>تتكرّر — لكل زيارة قيمها وتاريخها</span></div>' +
-          visitCard('obPrevVisitCF1', 'زيارة اليوم', false) +
-          visitCard('obPrevVisitCF2', 'زيارة سابقة', true) +
-        '</div>' +
-
-        '<div class="obp-note">لاحظ الفرق: خانات المريض ظهرت <b>مرّة واحدة</b> في نموذج معلوماته، ' +
-        'بينما تكرّرت خانات الزيارة مع <b>كل زيارة</b> بقيم مستقلّة — فتقارن تطوّر الحالة بين موعد وآخر.</div>';
-
-      // ★ نفس الدالة التي تبني الحقول في الاضبارة الحقيقية — ومن ثمّ تطابق مضمون
-      if (typeof buildCustomFieldInputs === 'function') {
-        buildCustomFieldInputs(document.getElementById('obPrevPatientCF'), pf, {}, 'حقول مخصّصة');
-        buildCustomFieldInputs(document.getElementById('obPrevVisitCF1'), vf, {}, { variant: 'editor' });
-        buildCustomFieldInputs(document.getElementById('obPrevVisitCF2'), vf, {}, { variant: 'editor' });
-      }
-      // معاينة فقط: تُعطّل كل المدخلات المبنيّة حتى لا يظنّها الطبيب قابلة للتعبئة
-      Array.prototype.forEach.call(box.querySelectorAll('input,select,textarea'), function(el) {
-        el.setAttribute('tabindex', '-1');
-        if (el.type === 'checkbox' || el.tagName === 'SELECT') el.disabled = true;
-        else el.readOnly = true;
-      });
+        '<div class="pf-hero"><div class="pf-head"><div class="pf-avatar">م</div>'
+          + '<div class="pf-id"><h3 class="pf-name">مريض تجريبي</h3><p class="pf-phone" dir="ltr">0955 123 456</p></div></div></div>'
+        + '<div style="padding:20px;background:var(--bg);"><div class="chart-layout">'
+          + '<div class="glass-card chart-info-card" style="padding:16px;">'
+            + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4></div>'
+            + '<div class="pf-tiles">' + infoTiles + '</div></div>'
+          + '<div style="display:flex;flex-direction:column;gap:14px;min-width:0;">'
+            + '<div class="glass-card" style="padding:16px;">'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-folder-open" style="margin-left:6px;"></i>أرشيف الزيارات <span style="font-size:.72rem;color:var(--text-muted);font-weight:600;">(٢)</span></h4></div>'
+              + '<div class="pf-tl" style="display:flex;flex-direction:column;gap:10px;">'
+                + visitCard('زيارة اليوم', formatDateAr(todayStr), true)
+                + visitCard('مراجعة سابقة', formatDateAr('2024-02-20'), false)
+              + '</div></div></div>'
+        + '</div></div>';
 
       var pane = document.getElementById('obPreview');
       if (pane) pane.classList.add('show');
@@ -7416,6 +7444,23 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         var opts = names.map(function(s) {
           return '<option' + (s === st.specialty ? ' selected' : '') + '>' + _obEsc(s) + '</option>';
         }).join('');
+        // قسم الميزات — يظهر بعد اختيار التخصّص؛ التقويم لخيار الأسنان فقط
+        var _obDental = /أسنان|اسنان|dental/i.test(st.specialty || '');
+        var _obChk = 'width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;';
+        var _obRowSt = 'display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.92rem;font-weight:600;color:var(--text-primary);';
+        var featHtml = st.specialty ? (
+          '<div class="ob-f wide" style="grid-column:1/-1;">' +
+            '<label>ميزات إضافية للاضبارة</label>' +
+            '<div style="display:flex;flex-direction:column;gap:11px;margin-top:6px;">' +
+              '<label style="' + _obRowSt + '"><input type="checkbox" id="obFeatSurg" style="' + _obChk + '"' + (st.surgicalArchive ? ' checked' : '') + '>' +
+                '<span><i class="fas fa-briefcase-medical" style="color:var(--primary);margin-left:5px;"></i> أرشيف العمليات الجراحية</span></label>' +
+              (_obDental ? '<label style="' + _obRowSt + '"><input type="checkbox" id="obFeatOrtho" style="' + _obChk + '"' + (st.orthoArchive ? ' checked' : '') + '>' +
+                '<span><i class="fas fa-teeth-open" style="color:var(--primary);margin-left:5px;"></i> أرشيف تقويم الأسنان</span></label>' : '') +
+            '</div>' +
+            '<span class="help">تظهر كأزرار في اضبارة المريض — يمكن تعديلها لاحقاً.</span>' +
+          '</div>'
+        ) : '';
+
         body.innerHTML = '<div class="ob-pane ob-body">' +
           _obHead(0, 'معلومات الطبيب') +
           '<div class="ob-grid">' +
@@ -7425,16 +7470,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
             '<div class="ob-f"><label for="obSpec">التخصّص</label>' +
               '<select id="obSpec"><option value="" disabled' + (st.specialty ? '' : ' selected') + '>اختر تخصّصك</option>' + opts + '</select>' +
               '<span class="help accent">عليه تُبنى خانات الاضبارة الجاهزة.</span></div>' +
+            featHtml +
           '</div>' +
-          _obTip('تنويه مهم: ', 'التخصّص <b style="display:inline">يُختار مرّة واحدة</b> — عليه تُبنى خانات الاضبارة وتقارير العيادة. أمّا بقية الإعدادات (الاسم، العنوان، الأرقام، الصورة، الخانات) فتعدّلها متى شئت من الإعدادات.') +
+          _obTip('تنويه مهم: ', 'التخصّص <b style="display:inline">يُختار مرّة واحدة</b> — عليه تُبنى خانات الاضبارة وتقارير العيادة. أمّا بقية الإعدادات (الاسم، العنوان، الأرقام، الصورة، الخانات، والميزات) فتعدّلها متى شئت من الإعدادات.') +
         '</div>';
 
         document.getElementById('obName').oninput = function() { st.title = this.value; _obSyncChrome(); };
         document.getElementById('obSpec').onchange = function() {
           st.specialty = this.value;
           _obApplyPreset(this.value);
+          if (!/أسنان|اسنان|dental/i.test(this.value)) st.orthoArchive = false;   // التقويم للأسنان فقط
           _obSyncChrome();
+          _obRender();   // لإظهار قسم الميزات المناسب للتخصّص
         };
+        var _fs = document.getElementById('obFeatSurg'); if (_fs) _fs.onchange = function() { st.surgicalArchive = this.checked; };
+        var _fo = document.getElementById('obFeatOrtho'); if (_fo) _fo.onchange = function() { st.orthoArchive = this.checked; };
       }
 
       else if (st.step === 1) {
@@ -7731,6 +7781,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         visit: clean('visit')(st.fields.visit),
         dental: /أسنان|اسنان|dental/i.test(st.specialty || '')
       };
+      // الميزات المختارة من قسم التخصّص — التقويم للأسنان فقط
+      settings.surgicalArchive = !!st.surgicalArchive;
+      settings.orthoArchive = /أسنان|اسنان|dental/i.test(st.specialty || '') && !!st.orthoArchive;
       settings.onboarded = true;
       settings.onboardedAt = Date.now();
 
