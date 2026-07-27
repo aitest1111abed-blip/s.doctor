@@ -563,73 +563,60 @@
     .patient-action-btn.secondary { background: #64748b !important; color: white !important; }
     .patient-action-btn.danger    { background: var(--red) !important; color: white !important; }
 
-    /* ===== دفتر المرضى: هيدر ناعم بلا أيقونة + خانة بحث مدمجة ===== */
-    .pb-hdr{
-      display:flex; align-items:center; gap:14px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:14px; padding:9px 9px 9px 16px; margin-bottom:20px;
-      box-shadow:var(--shadow-sm);
-    }
-    .pb-hdr-info{ display:flex; align-items:center; gap:9px; flex-shrink:0; }
-    .pb-hdr-title{ font-size:1rem; font-weight:800; color:var(--text-primary); margin:0; line-height:1; }
-    .pb-hdr-count{ font-size:.73rem; font-weight:700; color:var(--primary); background:var(--primary-light); padding:3px 11px; border-radius:20px; white-space:nowrap; }
+    /* ===== دفتر المرضى: هيدر بسيط (عنوان + شارة) وخانة بحث ناعمة بأيقونة ===== */
+    .pb-hdr{ display:flex; align-items:center; gap:22px; margin-bottom:26px; }
+    .pb-hdr-info{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
+    .pb-hdr-title{ font-size:1.4rem; font-weight:800; color:var(--text-primary); margin:0; line-height:1; }
+    .pb-hdr-count{ font-size:.8rem; font-weight:700; color:var(--primary); background:var(--primary-light); padding:5px 14px; border-radius:20px; white-space:nowrap; }
+    .pb-search-wrap{ flex:1; position:relative; min-width:0; }
+    .pb-search-ico{ position:absolute; left:18px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:.95rem; pointer-events:none; }
     .pb-search{
-      flex:1; min-width:0; height:34px; box-sizing:border-box;
-      border:1.5px solid #111827; border-radius:9px;
-      background:var(--surface); color:#111827;
-      padding:0 13px; font-family:inherit; font-size:.85rem; font-weight:500;
+      width:100%; height:52px; box-sizing:border-box;
+      border:1.5px solid var(--border); border-radius:16px;
+      background:var(--surface); color:var(--text-primary);
+      padding:0 20px 0 46px; font-family:inherit; font-size:.9rem; font-weight:500;
       transition:border-color .15s, box-shadow .15s;
     }
     .pb-search::placeholder{ color:var(--text-muted); font-weight:400; }
-    .pb-search:focus{ outline:none; border-color:#000; box-shadow:0 0 0 2px rgba(0,0,0,.06); }
-    body.theme-dark .pb-search{ border-color:#e5e7eb; color:#f1f5f9; }
-    body.theme-dark .pb-search:focus{ border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.08); }
-    @media (max-width:560px){
-      .pb-hdr{ flex-wrap:wrap; }
-      .pb-search{ flex:1 1 100%; order:2; }
+    .pb-search:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-faint); }
+    @media (max-width:640px){
+      .pb-hdr{ flex-wrap:wrap; gap:14px; }
+      .pb-hdr-info{ order:1; }
+      .pb-search-wrap{ order:2; flex:1 1 100%; }
     }
 
-    /* ===== دفتر المرضى: فولدرات ناعمة مدوّرة بلمسة تركوازية ===== */
-    #patientsGrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(196px,1fr)); gap:26px 16px; }
+    /* ===== دفتر المرضى: كروت ناعمة مدوّرة (بدون لسان) ===== */
+    #patientsGrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(238px,1fr)); gap:24px; }
     .pb-folder{
-      position:relative; margin-top:12px; min-height:104px; display:flex; flex-direction:column;
+      position:relative; min-height:150px; display:flex; flex-direction:column;
       background:var(--surface); border:1px solid var(--border);
-      border-radius:18px; padding:15px 16px 13px; cursor:default;
-      transition:transform .18s, box-shadow .18s, border-color .18s, background .18s; box-shadow:var(--shadow-sm);
+      border-radius:20px; padding:16px 18px 15px; cursor:default;
+      transition:transform .18s, box-shadow .18s, border-color .18s;
+      box-shadow:0 4px 18px -10px rgba(15,23,42,.16);
     }
-    /* لسان صغير ناعم في الأعلى (وسط اللسان لجهة البداية) */
-    .pb-folder::before{
-      content:""; position:absolute; top:-9px; inset-inline-start:18px; width:44px; height:11px;
-      background:var(--surface); border:1px solid var(--border); border-bottom:none;
-      border-radius:10px 10px 0 0;
-    }
-    .pb-folder:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--primary); background:var(--primary-faint); }
-    .pb-folder:hover::before{ background:var(--primary-faint); border-color:var(--primary); }
+    .pb-folder:hover{ transform:translateY(-3px); box-shadow:0 12px 30px -14px rgba(15,23,42,.28); border-color:var(--primary-light); }
     .pb-fmenu{
-      position:absolute; top:11px; inset-inline-end:11px; width:26px; height:26px; border-radius:50%;
-      border:none; background:transparent; color:var(--text-muted); cursor:pointer; opacity:0;
-      display:flex; align-items:center; justify-content:center; font-size:.8rem; transition:background .15s, color .15s, opacity .15s;
+      position:absolute; top:14px; inset-inline-end:14px; width:24px; height:26px; border-radius:8px;
+      border:none; background:transparent; color:var(--text-muted); cursor:pointer;
+      display:flex; align-items:center; justify-content:center; font-size:.9rem; transition:background .15s, color .15s;
     }
-    .pb-folder:hover .pb-fmenu{ opacity:1; }
     .pb-fmenu:hover{ background:var(--primary-light); color:var(--primary); }
     .pb-fname{
-      font-size:.96rem; font-weight:800; color:var(--text-primary); line-height:1.35; margin-top:2px; padding-inline-end:28px;
+      font-size:1.12rem; font-weight:800; color:var(--text-primary); line-height:1.3; margin-top:2px; padding-inline-end:26px;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-    .pb-fcount{ font-size:.78rem; font-weight:700; color:var(--primary); margin-top:3px; }
-    .pb-ffoot{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; padding-top:10px; }
-    .pb-fmeta{ font-size:.72rem; font-weight:500; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .pb-fact{ display:none; gap:6px; flex-shrink:0; }
-    .pb-folder:hover .pb-fmeta{ display:none; }
-    .pb-folder:hover .pb-fact{ display:flex; }
+    .pb-fcount{ font-size:.86rem; font-weight:700; color:var(--primary); margin-top:8px; }
+    .pb-fmeta{ font-size:.78rem; font-weight:500; color:var(--text-muted); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .pb-fact{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:auto; padding-top:16px; }
     .pb-fbtn{
-      width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary);
-      cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.78rem; text-decoration:none;
-      transition:border-color .15s, color .15s, background .15s;
+      width:42px; height:42px; border-radius:50%; border:1.5px solid var(--border); background:var(--surface); color:var(--text-secondary);
+      cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; text-decoration:none;
+      transition:border-color .15s, color .15s, background .15s, transform .1s;
     }
     .pb-fbtn:hover{ border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
-    /* اللمس: الأزرار بدل المعلومة دائماً */
-    @media (hover:none){ .pb-fact{ display:flex; } .pb-folder .pb-fmeta{ display:none; } .pb-fmenu{ opacity:1; } }
+    .pb-fbtn:active{ transform:scale(.92); }
+    .pb-fbtn-wa{ color:#16a34a; }
+    .pb-fbtn-wa:hover{ border-color:#16a34a; color:#16a34a; background:rgba(22,163,74,.08); }
 
     .patients-list { display: flex; flex-direction: column; gap: 8px; }
     .patient-row {

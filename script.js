@@ -1953,12 +1953,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + '<button class="pb-fmenu" title="فتح الإضبارة" onclick="openPatientDetailsModal(\'' + p.id + '\')"><i class="fas fa-ellipsis-vertical"></i></button>'
         + '<div class="pb-fname">' + escapeHtml(p.name || '—') + '</div>'
         + '<div class="pb-fcount">' + (p.totalVisits || 0) + ' زيارة</div>'
-        + '<div class="pb-ffoot">'
-          + '<span class="pb-fmeta">' + escapeHtml(lv.txt) + '</span>'
-          + '<div class="pb-fact">'
-            + '<button class="pb-fbtn" title="زيارة جديدة" onclick="addNewVisit(\'' + p.id + '\')"><i class="fas fa-plus"></i></button>'
-            + '<a class="pb-fbtn" href="https://wa.me/' + phone + '" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>'
-          + '</div>'
+        + '<div class="pb-fmeta">' + escapeHtml(lv.txt) + '</div>'
+        + '<div class="pb-fact">'
+          + '<button class="pb-fbtn" title="زيارة جديدة" onclick="addNewVisit(\'' + p.id + '\')"><i class="fas fa-plus"></i></button>'
+          + '<a class="pb-fbtn pb-fbtn-wa" href="https://wa.me/' + phone + '" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>'
         + '</div>'
       + '</div>';
     }
