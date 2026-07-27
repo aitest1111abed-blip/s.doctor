@@ -1948,14 +1948,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function _pbCard(p) {
       var phone = normalizePhone(p.phone);
       var lv = _pbLastVisit(p);
-      var initial = ((p.name || '؟').trim().charAt(0)) || '؟';
       return '<div class="pb-folder" '
-          + 'title="كليك يمين: فتح الإضبارة — ' + escapeHtml(lv.txt) + '" oncontextmenu="event.preventDefault();openPatientDetailsModal(\'' + p.id + '\');return false;">'
+          + 'title="كليك يمين: فتح الإضبارة" oncontextmenu="event.preventDefault();openPatientDetailsModal(\'' + p.id + '\');return false;">'
         + '<button class="pb-fmenu" title="فتح الإضبارة" onclick="openPatientDetailsModal(\'' + p.id + '\')"><i class="fas fa-ellipsis-vertical"></i></button>'
         + '<div class="pb-fname">' + escapeHtml(p.name || '—') + '</div>'
+        + '<div class="pb-fcount">' + (p.totalVisits || 0) + ' زيارة</div>'
         + '<div class="pb-ffoot">'
-          + '<span class="pb-favatar">' + escapeHtml(initial) + '</span>'
-          + '<span class="pb-fcount">' + (p.totalVisits || 0) + ' زيارة</span>'
+          + '<span class="pb-fmeta">' + escapeHtml(lv.txt) + '</span>'
           + '<div class="pb-fact">'
             + '<button class="pb-fbtn" title="زيارة جديدة" onclick="addNewVisit(\'' + p.id + '\')"><i class="fas fa-plus"></i></button>'
             + '<a class="pb-fbtn" href="https://wa.me/' + phone + '" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>'
