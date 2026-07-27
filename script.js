@@ -508,7 +508,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         }
         // حساب جديد بلا تخصّص ولا علامة onboarded ⇒ تُعرض شاشة الإعداد مرّة واحدة
         if (typeof maybeStartOnboarding === 'function') maybeStartOnboarding();
-      }).catch(function(){});
+        // كُشِف القرار: إن لم تُفتح شاشة الإعداد فالحساب مُعَدّ ⇒ أظهر التطبيق
+        var _ov = document.getElementById('onboardOverlay');
+        if (!(_ov && _ov.classList.contains('show'))) document.documentElement.classList.remove('ob-pending');
+      }).catch(function(){ document.documentElement.classList.remove('ob-pending'); });
 
       // التنبيه المخصص
       window._fb.getDoc('config', 'customAlert').then(function(snap) {
@@ -3035,6 +3038,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     let settings = {};
     // تحميل فوري من التخزين المحلي حتى لا تختفي المعلومات عند تحديث الصفحة
     (function() { try { var raw = localStorage.getItem(SETTINGS_KEY); if (raw) settings = JSON.parse(raw) || {}; } catch (e) {} })();
+    // منع ومضة التطبيق قبل شاشة الإعداد: إن كان الحساب يحتاج إعداداً (حسب المخزّن
+    // المحلي) نُخفي محتوى التطبيق فوراً؛ يُكشف بعد بتّ الأمر (جلب الإعدادات) أو أماناً بعد ٤ث.
+    (function() {
+      try {
+        if (!settings.onboarded && !((settings.specialty || '') + '').trim()) {
+          document.documentElement.classList.add('ob-pending');
+          setTimeout(function() { document.documentElement.classList.remove('ob-pending'); }, 4000);
+        }
+      } catch (e) {}
+    })();
 
     function applySettings() {
       const title = settings.title || 'لوحة الطبيب';
@@ -7289,6 +7302,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var ov = document.getElementById('onboardOverlay');
       if (ov) ov.classList.remove('show');
       document.body.style.overflow = '';
+      document.documentElement.classList.remove('ob-pending');   // كشف التطبيق بعد الإعداد
     }
 
     function _obApplyPreset(name) {
@@ -7458,17 +7472,18 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
               + '<div class="or-adj-head"><span class="t">مواعيد الشدّ</span></div>' + orthoAdjTl + '</div></div>'
           + '<p class="obp-hint">شاشة مستقلّة: تُبدأ من محرّر الزيارة، وتُتابَع مواعيد الشدّ حتى الإنهاء.</p></div>';
 
-      // شريط التبويبات — يظهر تبويب الميزة فقط إن فُعّلت
-      var tabs = [{ id: 'info', label: 'معلومات المريض', icon: 'fa-id-card' },
-                  { id: 'visit', label: 'الزيارة', icon: 'fa-notes-medical' }];
-      if (showSurg) tabs.push({ id: 'surgery', label: 'العمليات الجراحية', icon: 'fa-briefcase-medical' });
-      if (showOrtho) tabs.push({ id: 'ortho', label: 'تقويم الأسنان', icon: 'fa-teeth-open' });
-      var tabBar = '<div class="obp-tabs">' + tabs.map(function(t, i) {
-        return '<button class="obp-tab' + (i === 0 ? ' active' : '') + '" data-tab="' + t.id + '" onclick="obPrevShowTab(\'' + t.id + '\')"><i class="fas ' + t.icon + '"></i> ' + t.label + '</button>';
-      }).join('') + '</div>';
+      // تبويبات نصّية فقط (بلا حاويات ولا أيقونات) — تُحقن في هيدر المعاينة منصّفةً
+      var tabs = [{ id: 'info', label: 'معلومات المريض' },
+                  { id: 'visit', label: 'الزيارة' }];
+      if (showSurg) tabs.push({ id: 'surgery', label: 'العمليات الجراحية' });
+      if (showOrtho) tabs.push({ id: 'ortho', label: 'تقويم الأسنان' });
+      var tabBar = tabs.map(function(t, i) {
+        return '<button class="obp-tab' + (i === 0 ? ' active' : '') + '" data-tab="' + t.id + '" onclick="obPrevShowTab(\'' + t.id + '\')">' + t.label + '</button>';
+      }).join('');
+      var tabsBox = document.getElementById('obPrevTabs'); if (tabsBox) tabsBox.innerHTML = tabBar;
 
-      box.innerHTML = tabBar
-        + '<div class="obp-page" id="obpPageinfo">' + infoPage + '</div>'
+      box.innerHTML =
+        '<div class="obp-page" id="obpPageinfo">' + infoPage + '</div>'
         + '<div class="obp-page" id="obpPagevisit" style="display:none;">' + visitPage + '</div>'
         + (showSurg ? '<div class="obp-page" id="obpPagesurgery" style="display:none;">' + surgeryPage + '</div>' : '')
         + (showOrtho ? '<div class="obp-page" id="obpPageortho" style="display:none;">' + orthoPage + '</div>' : '');
@@ -7501,21 +7516,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         var opts = names.map(function(s) {
           return '<option' + (s === st.specialty ? ' selected' : '') + '>' + _obEsc(s) + '</option>';
         }).join('');
-        // قسم الميزات — يظهر بعد اختيار التخصّص؛ التقويم لخيار الأسنان فقط
+        // قسم الميزات — قوائم منسدلة (نعم/لا) بنفس هيئة حقل التخصّص، بلا أيقونات.
+        // تظهر بعد اختيار التخصّص؛ والتقويم لخيار الأسنان فقط.
         var _obDental = /أسنان|اسنان|dental/i.test(st.specialty || '');
-        var _obChk = 'width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;';
-        var _obRowSt = 'display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.92rem;font-weight:600;color:var(--text-primary);';
+        function _obYesNo(id, on) {
+          return '<select id="' + id + '"><option value="0"' + (on ? '' : ' selected') + '>لا</option>'
+            + '<option value="1"' + (on ? ' selected' : '') + '>نعم</option></select>';
+        }
         var featHtml = st.specialty ? (
-          '<div class="ob-f wide" style="grid-column:1/-1;">' +
-            '<label>ميزات إضافية للاضبارة</label>' +
-            '<div style="display:flex;flex-direction:column;gap:11px;margin-top:6px;">' +
-              '<label style="' + _obRowSt + '"><input type="checkbox" id="obFeatSurg" style="' + _obChk + '"' + (st.surgicalArchive ? ' checked' : '') + '>' +
-                '<span><i class="fas fa-briefcase-medical" style="color:var(--primary);margin-left:5px;"></i> أرشيف العمليات الجراحية</span></label>' +
-              (_obDental ? '<label style="' + _obRowSt + '"><input type="checkbox" id="obFeatOrtho" style="' + _obChk + '"' + (st.orthoArchive ? ' checked' : '') + '>' +
-                '<span><i class="fas fa-teeth-open" style="color:var(--primary);margin-left:5px;"></i> أرشيف تقويم الأسنان</span></label>' : '') +
-            '</div>' +
-            '<span class="help">تظهر كأزرار في اضبارة المريض — يمكن تعديلها لاحقاً.</span>' +
-          '</div>'
+          '<div class="ob-f"><label for="obFeatSurgSel">أرشيف العمليات الجراحية</label>' +
+            _obYesNo('obFeatSurgSel', st.surgicalArchive) +
+            '<span class="help">شاشة لجدولة العمليات وتوثيق سوابقها.</span></div>' +
+          (_obDental
+            ? '<div class="ob-f"><label for="obFeatOrthoSel">أرشيف تقويم الأسنان</label>' +
+                _obYesNo('obFeatOrthoSel', st.orthoArchive) +
+                '<span class="help">شاشة لدورات التقويم ومواعيد الشدّ.</span></div>'
+            : '')
         ) : '';
 
         body.innerHTML = '<div class="ob-pane ob-body">' +
@@ -7540,8 +7556,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           _obSyncChrome();
           _obRender();   // لإظهار قسم الميزات المناسب للتخصّص
         };
-        var _fs = document.getElementById('obFeatSurg'); if (_fs) _fs.onchange = function() { st.surgicalArchive = this.checked; };
-        var _fo = document.getElementById('obFeatOrtho'); if (_fo) _fo.onchange = function() { st.orthoArchive = this.checked; };
+        var _fs = document.getElementById('obFeatSurgSel'); if (_fs) _fs.onchange = function() { st.surgicalArchive = this.value === '1'; };
+        var _fo = document.getElementById('obFeatOrthoSel'); if (_fo) _fo.onchange = function() { st.orthoArchive = this.value === '1'; };
       }
 
       else if (st.step === 1) {
@@ -7601,12 +7617,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
 
       else if (st.step === 2) {
-        var pnames = (typeof CHART_PRESETS !== 'undefined') ? Object.keys(CHART_PRESETS) : [];
-        var chips = pnames.map(function(s) {
-          return '<button class="ob-chip' + (s === st.preset ? ' on' : '') + '" type="button" data-p="' + _obEsc(s) + '">' +
-            _obEsc(s) + (s === st.specialty ? '<span class="tag">مقترح</span>' : '') + '</button>';
-        }).join('');
-
         function grp(scope, title, note) {
           var arr = st.fields[scope];
           var rows = arr.length
@@ -7659,9 +7669,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
         body.innerHTML = '<div class="ob-pane ob-body">' +
           _obHead(2, 'تخصيص الاضبارة', 'ابدأ من قالب جاهز ثم عدّله كما تشاء — القالب نقطة انطلاق، لا قيد.') +
-          '<div class="ob-f"><label>القوالب الجاهزة</label>' +
-            '<div class="ob-chips">' + chips + '</div>' +
-            '<span class="help">اختيار قالب يستبدل الخانات الحالية بخانات ذلك التخصّص.</span></div>' +
+          // لا يُعاد اختيار التخصّص هنا — اختير في الخطوة ١. مربّع واحد يجلب قالبه الجاهز.
+          '<div class="ob-f"><label>القالب الجاهز</label>' +
+            '<label class="ob-tplchk"><input type="checkbox" id="obUsePreset"' + (st.preset && st.preset === st.specialty ? ' checked' : '') + '>' +
+              '<span>أريد قالباً جاهزاً لتخصّص «' + (_obEsc(st.specialty) || 'تخصّصك') + '» — قابل للتعديل</span></label>' +
+            '<span class="help">يملأ خاناتٍ مقترحةً لتخصّصك تلقائياً، ثم عدّلها كما تشاء.</span></div>' +
           _obTip('ما الفرق بين النوعين؟ ',
             '<b style="display:inline;color:var(--primary)">خانات المريض</b> ثابتة: تكتبها مرّة واحدة وتبقى في ملفه مهما تكرّرت زياراته — كزمرة الدم والسوابق الجراحية. ' +
             'و<b style="display:inline;color:var(--primary)">خانات الزيارة</b> متغيّرة: تُملأ من جديد في كل زيارة وتُحفظ مع تاريخها، فتبني سجلاً زمنياً تتابع فيه تطوّر الحالة — كضغط الدم ونتيجة تحليل.<br>' +
@@ -7669,7 +7681,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           grp('patient', 'خانات المريض', 'تُكتب مرّة واحدة وتبقى ثابتة في أعلى الاضبارة — مثل: السوابق الجراحية، الحساسية من دواء، التاريخ العائلي.') +
           grp('visit', 'خانات الزيارة', 'تتكرّر مع كل زيارة ويُحفظ لكلٍّ تاريخها في أرشيف الزيارات — مثل: الوزن اليوم، نتيجة فحص، الدواء الموصوف.') +
           '<div class="ob-prevbar">' +
-            '<button class="ob-prevbtn" type="button" id="obPrevBtn">👁 معاينة شكل الاضبارة</button>' +
+            '<button class="ob-prevbtn" type="button" id="obPrevBtn"><i class="fas fa-eye"></i> معاينة الاضبارة</button>' +
             '<span class="ob-prevhint">شاهد كيف ستظهر هذه الخانات في ملف المريض قبل أن تنهي.</span>' +
           '</div>' +
           _obTip('ملاحظة: ', 'الخانات المدمجة (الاسم، العمر، الهاتف، زمرة الدم، الأمراض المزمنة) موجودة أصلاً في كل اضبارة — أضف هنا ما يخصّ تخصّصك فقط.') +
@@ -7678,9 +7690,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         var prevBtn = document.getElementById('obPrevBtn');
         if (prevBtn) prevBtn.onclick = _obOpenChartPreview;
 
-        Array.prototype.forEach.call(body.querySelectorAll('.ob-chip'), function(b) {
-          b.onclick = function() { _obApplyPreset(this.getAttribute('data-p')); _obRender(); };
-        });
+        var _up = document.getElementById('obUsePreset');
+        if (_up) _up.onchange = function() {
+          if (this.checked && st.specialty) _obApplyPreset(st.specialty);
+          else { st.fields = { patient: [], visit: [] }; st.preset = ''; }
+          _obRender();
+        };
         Array.prototype.forEach.call(body.querySelectorAll('.ob-cfadd'), function(b) {
           b.onclick = function() {
             var sc = this.getAttribute('data-add');
@@ -7771,23 +7786,37 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
 
       else {
+        var _feats = [];
+        if (st.surgicalArchive) _feats.push('أرشيف العمليات');
+        if (st.orthoArchive) _feats.push('تقويم الأسنان');
         body.innerHTML = '<div class="ob-pane ob-done">' +
-          '<div class="ob-seal">' +
-            '<svg class="ring" viewBox="0 0 104 104"><circle cx="52" cy="52" r="49"/></svg>' +
-            '<div class="mark"><img src="./icon-192.png" alt="DocBook" onerror="this.style.display=\'none\'"></div>' +
+          '<div class="ob-done-hero">' +
+            '<img class="ob-done-logo" src="./icon-192.png" alt="DocBook" onerror="this.style.display=\'none\'">' +
+            '<h2>عيادتك جاهزة</h2>' +
           '</div>' +
-          '<h2>عيادتك جاهزة</h2>' +
-          '<p>حُفظت الإعدادات. لن تظهر هذه الشاشة مرّة أخرى — يفتح التطبيق مباشرةً في كل دخول.</p>' +
+          '<p>راجِع الملخّص أدناه ثم ابدأ. لن تظهر هذه الشاشة مرّة أخرى — يفتح التطبيق مباشرةً في كل دخول.</p>' +
           '<dl class="ob-recap">' +
             '<div><dt>الطبيب</dt><dd>' + (_obEsc(st.title) || '—') + '</dd></div>' +
             '<div><dt>التخصّص</dt><dd>' + (_obEsc(st.specialty) || '—') + '</dd></div>' +
+            '<div><dt>الجوال</dt><dd>' + (_obEsc(st.mobile) || '—') + '</dd></div>' +
+            '<div><dt>الأرضي</dt><dd>' + (_obEsc(st.landline) || '—') + '</dd></div>' +
             '<div><dt>العنوان</dt><dd>' + (_obEsc(st.address) || '—') + '</dd></div>' +
+            '<div><dt>الميزات</dt><dd>' + (_feats.length ? _feats.join(' · ') : '—') + '</dd></div>' +
             '<div><dt>خانات المريض</dt><dd>' + st.fields.patient.length + ' خانة</dd></div>' +
             '<div><dt>خانات الزيارة</dt><dd>' + st.fields.visit.length + ' خانة</dd></div>' +
           '</dl>' +
           '<button class="ob-btn primary" type="button" id="obStart">ابدأ الآن</button>' +
+        '</div>' +
+        '<div class="ob-launch" id="obLaunch">' +
+          '<div class="ob-ecg-wrap"><svg viewBox="0 0 300 44" preserveAspectRatio="none">' +
+            '<path class="ob-ecg" pathLength="100" d="M0,22 L50,22 L58,19 L64,22 L74,22 L84,2 L90,42 L96,22 L104,30 L112,22 L300,22"/></svg></div>' +
+          '<div class="ob-launch-txt">جارٍ تجهيز عيادتك…</div>' +
         '</div>';
-        document.getElementById('obStart').onclick = closeOnboarding;
+        document.getElementById('obStart').onclick = function() {
+          var launch = document.getElementById('obLaunch');
+          if (launch) launch.classList.add('show');
+          setTimeout(closeOnboarding, 3000);
+        };
       }
 
       _obSyncChrome();
