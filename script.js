@@ -1921,25 +1921,53 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
       _pbRenderRows(Object.values(allPatients));
     }
+    // ── دفتر المرضى كفولدرات — «الاضبارة» تعني ملفاً، والزيارات عناصره ──
+    // كل لوحة: [bg1, bg2] خلفية باستيل + [accent] للأفاتار، تُشتقّ من اسم المريض.
+    var _PB_FOLDERS = [
+      ['#ede9fe','#ddd6fe','#7c3aed'], ['#e0f2fe','#bae6fd','#0284c7'], ['#ffedd5','#fed7aa','#ea580c'],
+      ['#dcfce7','#bbf7d0','#16a34a'], ['#fce7f3','#fbcfe8','#db2777'], ['#ccfbf1','#99f6e4','#0d9488'],
+      ['#e0e7ff','#c7d2fe','#4f46e5'], ['#fef9c3','#fef08a','#ca8a04']
+    ];
+    function _pbPalette(name) {
+      var h = 0, s = name || '', i;
+      for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+      return _PB_FOLDERS[h % _PB_FOLDERS.length];
+    }
+    function _pbLastVisit(p) {
+      var d = p.lastVisit || '';
+      if (!d && p.appointments && p.appointments.length) {
+        d = p.appointments.map(function(a){ return a.date; }).filter(Boolean).sort().pop() || '';
+      }
+      if (!d) return { txt: 'مريض جديد', active: false };
+      try {
+        var days = Math.round((new Date().setHours(0,0,0,0) - parseLocalISODate(d).getTime()) / 86400000);
+        var t = days <= 0 ? 'اليوم' : days === 1 ? 'أمس' : days < 30 ? ('قبل ' + days + ' يوم') : formatDateAr(d);
+        return { txt: 'آخر زيارة ' + t, active: days <= 90 };
+      } catch (e) { return { txt: formatDateAr(d), active: true }; }
+    }
+    function _pbCard(p) {
+      var phone = normalizePhone(p.phone);
+      var lv = _pbLastVisit(p);
+      var initial = ((p.name || '؟').trim().charAt(0)) || '؟';
+      var c = _pbPalette(p.name || '');
+      return '<div class="pb-folder" style="--fg1:' + c[0] + ';--fg2:' + c[1] + ';--fac:' + c[2] + ';" '
+          + 'title="كليك يمين: فتح الإضبارة — ' + escapeHtml(lv.txt) + '" oncontextmenu="event.preventDefault();openPatientDetailsModal(\'' + p.id + '\');return false;">'
+        + '<button class="pb-fmenu" title="فتح الإضبارة" onclick="openPatientDetailsModal(\'' + p.id + '\')"><i class="fas fa-ellipsis-vertical"></i></button>'
+        + '<div class="pb-fname">' + escapeHtml(p.name || '—') + '</div>'
+        + '<div class="pb-ffoot">'
+          + '<span class="pb-favatar">' + escapeHtml(initial) + '</span>'
+          + '<span class="pb-fcount">' + (p.totalVisits || 0) + ' زيارة</span>'
+          + '<div class="pb-fact">'
+            + '<button class="pb-fbtn" title="زيارة جديدة" onclick="addNewVisit(\'' + p.id + '\')"><i class="fas fa-plus"></i></button>'
+            + '<a class="pb-fbtn" href="https://wa.me/' + phone + '" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>'
+          + '</div>'
+        + '</div>'
+      + '</div>';
+    }
     function _pbRenderRows(patients) {
       const grid = document.getElementById('patientsGrid');
       if (!patients.length) { grid.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--text-muted)">لا يوجد مرضى</div>'; return; }
-      grid.innerHTML = patients.map(p => {
-        const phone = normalizePhone(p.phone);
-        return `<div class="patient-row" title="كليك يمين: فتح إضبارة المريض" oncontextmenu="event.preventDefault();openPatientDetailsModal('${p.id}');return false;">
-          <div class="pr-name">
-            <div class="pr-name-t">${escapeHtml(p.name)}</div>
-            <div class="pr-phone-sub" dir="ltr">${escapeHtml(p.phone||'')}</div>
-          </div>
-          <div class="pr-visits"><i class="fas fa-calendar-check" style="font-size:.72rem;"></i> ${p.totalVisits||0} زيارة</div>
-          <div class="pr-actions">
-            <button class="pr-btn primary"   title="إضافة زيارة" onclick="addNewVisit('${p.id}')"><i class="fas fa-plus"></i></button>
-            <button class="pr-btn secondary" title="تفاصيل / الإضبارة" onclick="openPatientDetailsModal('${p.id}')"><i class="fas fa-eye"></i></button>
-            <a class="pr-btn whatsapp" href="https://wa.me/${phone}" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-            <a class="pr-btn call" href="tel:${phone}" title="اتصال"><i class="fas fa-phone"></i></a>
-          </div>
-        </div>`;
-      }).join('');
+      grid.innerHTML = patients.map(_pbCard).join('');
     }
 
     window.openPatientDetailsModal = function(patientId) {
