@@ -28,6 +28,8 @@
   var RX = ['باراسيتامول 500مغ ٣× يومياً','أموكسيسيلين 1غ مرّتين × ٧ أيام','أوميبرازول 20مغ قبل الفطور','مضاد التهاب موضعي دهناً','راحة وسوائل + خافض حرارة','فيتامين D أسبوعياً','مضادّ حساسية مساءً'];
   var BLOOD = ['A+','O+','B+','AB+','A-','O-','B-'];
   var CHRONIC = ['سكري','ضغط','ربو','قصور درقية'];
+  var SENTENCES = ['لا شكاوى حالية والفحص ضمن الطبيعي','تحسّن ملحوظ بعد العلاج السابق','استمرار الأعراض بشكل خفيف','الحالة مستقرّة والمتابعة دورية','يُنصح بإعادة التقييم بعد أسبوعين','لا مضاعفات، الاستجابة جيّدة للعلاج'];
+  var SHORTTEXT = ['طبيعي','ضمن الحدود','خفيف','متوسط','مستقرّ','جيّد','لا يوجد'];
 
   var rnd = function (a) { return a[Math.floor(Math.random() * a.length)]; };
   var pad = function (n) { return String(n).padStart(2, '0'); };
@@ -35,7 +37,31 @@
   var todayISO = iso(new Date());
   function wStatus() { var r = Math.random(); return r < 0.6 ? 'Accepted' : (r < 0.9 ? 'Visited' : 'NoShow'); }
 
-  function buildPatient() {
+  // قيمة عشوائية لحقل مخصّص حسب نوعه/دوره (تُطابق ما يخزّنه محرّر الاضبارة)
+  function cfVal(f) {
+    var role = f.role || '', t = f.type;
+    if (t === 'checkbox') return Math.random() < 0.5 ? true : null;
+    if (t === 'select') { var o = f.options || []; return o.length ? rnd(o) : null; }
+    if (t === 'number') {
+      if (role === 'weight') return 3 + Math.floor(Math.random() * 87);
+      if (role === 'height') return 40 + Math.floor(Math.random() * 150);
+      if (role === 'hc')     return 30 + Math.floor(Math.random() * 25);
+      if (role === 'iop_od' || role === 'iop_os') return 10 + Math.floor(Math.random() * 12);
+      return 1 + Math.floor(Math.random() * 100);
+    }
+    if (t === 'date') { var d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random() * 40)); return iso(d); }
+    if (role === 'bp') return (110 + Math.floor(Math.random() * 30)) + '/' + (70 + Math.floor(Math.random() * 20));
+    if (role === 'va_od' || role === 'va_os') return rnd(['6/6','6/9','6/12','6/18','6/24']);
+    return t === 'textarea' ? rnd(SENTENCES) : rnd(SHORTTEXT);
+  }
+  function fillCustom(fields) {
+    var c = {};
+    (fields || []).forEach(function (f) { if (f && f.id) { var v = cfVal(f); if (v !== null && v !== undefined) c[f.id] = v; } });
+    return c;
+  }
+
+  function buildPatient(tpl) {
+    tpl = tpl || { patient: [], visit: [] };
     var name = rnd(FIRST) + (Math.random() < 0.65 ? ' ' + rnd(LAST) : '');
     var phone = '09' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
     var by = 1955 + Math.floor(Math.random() * 63);
@@ -49,6 +75,7 @@
         date: iso(d), slot: rnd(SLOTS), visitType: rnd(TYPES),
         complaint: rnd(COMPLAINTS), clinicalExam: rnd(EXAMS),
         diagnosis: rnd(DIAGS), prescription: rnd(RX),
+        custom: fillCustom(tpl.visit),          // حقول الزيارة المخصّصة (قالب الطبيب)
         noteUpdatedAt: Date.now(), source: 'chart'
       });
     }
@@ -56,6 +83,7 @@
       name: name, phone: phone, address: '', bloodType: rnd(BLOOD),
       chronicDiseases: Math.random() < 0.3 ? rnd(CHRONIC) : '',
       birthDate: bd, appointments: visits, totalVisits: visits.length,
+      custom: fillCustom(tpl.patient),          // حقول المريض المخصّصة (قالب الطبيب)
       firstVisit: visits[0].date, lastVisit: visits[visits.length - 1].date,
       seedTag: 'devseed'
     };
@@ -72,9 +100,18 @@
   var fb = null;
   async function seed(n, log, done) {
     fb = window._fb; var ok = 0, err = 0;
+    // اقرأ قالب الاضبارة (الحقول المخصّصة) مرّة واحدة لتُعبّأ في كل مريض/زيارة
+    var tpl = { patient: [], visit: [] };
+    try {
+      var s = await fb.getDoc('settings', 'doctor');
+      var ct = (s && s.exists() && s.data().chartTemplate) || {};
+      tpl.patient = Array.isArray(ct.patient) ? ct.patient : [];
+      tpl.visit   = Array.isArray(ct.visit)   ? ct.visit   : [];
+      log('القالب: ' + tpl.patient.length + ' حقل مريض · ' + tpl.visit.length + ' حقل زيارة');
+    } catch (e) { log('⚠ تعذّر قراءة القالب — سأملأ الحقول المدمجة فقط'); }
     for (var i = 0; i < n; i++) {
       try {
-        var p = buildPatient();
+        var p = buildPatient(tpl);
         await fb.addDoc(fb.col('patients'), p);
         await fb.addDoc(fb.col('appointments'), buildTodayAppt(p));
         ok++; log('✓ ' + p.name + ' — ' + p.totalVisits + ' زيارة');
