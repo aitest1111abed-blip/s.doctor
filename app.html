@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=154">
+  <link rel="stylesheet" href="styles.css?v=155">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -218,14 +218,10 @@
         </div>
       </main>
 
-      <!-- معاينة الاضبارة — بلا هيدر: تبويبات نصّية رفيعة + زرّ إغلاق، ثم المحتوى -->
+      <!-- معاينة الاضبارة — صفحة واحدة (كل الأقسام) بلا هيدر ولا أطراف فارغة -->
       <div class="obp" id="obPreview">
         <div class="obp-card">
-          <div class="obp-nav">
-            <span class="obp-nav-sp" aria-hidden="true"></span>
-            <div class="obp-tabs" id="obPrevTabs"></div>
-            <button class="obp-x" onclick="_obCloseChartPreview()" type="button" aria-label="إغلاق المعاينة">✕</button>
-          </div>
+          <div class="obp-nav"><button class="obp-x" onclick="_obCloseChartPreview()" type="button" aria-label="إغلاق المعاينة">✕</button></div>
           <div class="obp-body" id="obPrevBody"></div>
         </div>
       </div>
@@ -1990,7 +1986,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=154"></script>
+  <script src="script.js?v=155"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

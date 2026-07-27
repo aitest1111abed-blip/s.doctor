@@ -7429,7 +7429,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       // صفحة ١: معلومات المريض الثابتة (الهيدر pf-hero مشترك خارج الصفحات)
       var infoPage =
         '<div class="obp-wrap"><div class="glass-card" style="padding:16px;">'
-          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4></div>'
           + '<div class="pf-tiles">' + infoTiles + '</div></div>'
           + '<p class="obp-hint">هذه الخانات <b>ثابتة</b> — تُكتب مرّة واحدة وتبقى في ملف المريض مهما تكرّرت زياراته.</p></div>';
 
@@ -7482,20 +7481,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + '<p class="obp-hint">شاشة مستقلّة: تُبدأ من محرّر الزيارة، وتُتابَع مواعيد الشدّ حتى الإنهاء.</p></div>';
 
       // تبويبات نصّية فقط (بلا هيدر)
-      var tabs = [{ id: 'info', label: 'معلومات المريض' },
-                  { id: 'visit', label: 'الزيارة' }];
-      if (showSurg) tabs.push({ id: 'surgery', label: 'العمليات الجراحية' });
-      if (showOrtho) tabs.push({ id: 'ortho', label: 'تقويم الأسنان' });
-      var tabBar = tabs.map(function(t, i) {
-        return '<button class="obp-tab' + (i === 0 ? ' active' : '') + '" data-tab="' + t.id + '" onclick="obPrevShowTab(\'' + t.id + '\')">' + t.label + '</button>';
-      }).join('');
-      var tabsBox = document.getElementById('obPrevTabs'); if (tabsBox) tabsBox.innerHTML = tabBar;
-
+      // كل الأقسام في صفحة واحدة قابلة للتمرير — بلا تبويبات، بعنوان لكل قسم
+      function _obSectH(t) { return '<div class="obp-sect-h">' + t + '</div>'; }
       box.innerHTML =
-        '<div class="obp-page" id="obpPageinfo">' + infoPage + '</div>'
-        + '<div class="obp-page" id="obpPagevisit" style="display:none;">' + visitPage + '</div>'
-        + (showSurg ? '<div class="obp-page" id="obpPagesurgery" style="display:none;">' + surgeryPage + '</div>' : '')
-        + (showOrtho ? '<div class="obp-page" id="obpPageortho" style="display:none;">' + orthoPage + '</div>' : '');
+        _obSectH('معلومات المريض') + infoPage
+        + _obSectH('الزيارة') + visitPage
+        + (showSurg ? _obSectH('العمليات الجراحية') + surgeryPage : '')
+        + (showOrtho ? _obSectH('تقويم الأسنان') + orthoPage : '');
 
       // حقول التخصّص في تبويب الزيارة — تُبنى بنفس دالّة محرّر الزيارة الحقيقي
       var _vcf = document.getElementById('obPrevVisitCF');
