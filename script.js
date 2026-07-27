@@ -7433,11 +7433,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           + '<div class="pf-tiles">' + infoTiles + '</div></div>'
           + '<p class="obp-hint">هذه الخانات <b>ثابتة</b> — تُكتب مرّة واحدة وتبقى في ملف المريض مهما تكرّرت زياراته.</p></div>';
 
-      // صفحة ٢: اضبارة الزيارة (تتكرّر لكل زيارة)
+      // صفحة ٢: الزيارة = محرّر الزيارة الحقيقي (SOAP بنفس ve-card) + حقول التخصّص
+      var _veSpan = ' <span style="font-weight:500;font-size:.74rem;color:var(--text-muted);">';
       var visitPage =
-        '<div class="obp-wrap"><div class="glass-card" style="padding:16px;">'
-          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-notes-medical" style="margin-left:6px;"></i>زيارة المريض</h4></div>'
-          + '<div class="pf-tl" style="display:flex;flex-direction:column;gap:10px;">' + visitCard('زيارة اليوم', formatDateAr(todayStr), true) + '</div></div>'
+        '<div class="obp-wrap"><div class="ve-soap">'
+          + '<div class="ve-step"><div class="ve-card"><label class="ve-label">الشكوى' + _veSpan + '— ماذا يقول المريض؟</span></label>'
+            + '<textarea readonly rows="1">ألم وتورّم منذ ثلاثة أيام</textarea></div></div>'
+          + (vf.length
+              ? '<div class="ve-step"><div class="ve-card"><label class="ve-label">القياسات' + _veSpan + '— حقول تخصّصك</span></label><div id="obPrevVisitCF"></div></div></div>'
+              : '')
+          + '<div class="ve-step"><div class="ve-card"><label class="ve-label">الفحص السريري</label>'
+            + '<textarea readonly rows="1">إصغاء وجسّ — علامات سريرية نموذجية</textarea></div></div>'
+          + '<div class="ve-step"><div class="ve-card"><label class="ve-label">التشخيص</label>'
+            + '<textarea readonly rows="1">تشخيص نموذجي</textarea></div></div>'
+          + '<div class="ve-step"><div class="ve-card"><label class="ve-label">الخطة — الوصفة' + _veSpan + '— ما يخرج به المريض</span></label>'
+            + '<textarea id="obPrevRx" readonly rows="3">الدواء · الجرعة · المدّة — مثال</textarea></div></div>'
+          + '</div>'
           + '<p class="obp-hint">تتكرّر مع <b>كل زيارة</b> — لكلٍّ قيمها وتاريخها، فتقارن تطوّر الحالة بين موعد وآخر.</p></div>';
 
       // صفحة ٣: أرشيف العمليات الجراحية (إن فُعّلت الميزة) — بنفس أصناف الشاشة الحقيقية
@@ -7470,21 +7481,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
               + '<div class="or-adj-head"><span class="t">مواعيد الشدّ</span></div>' + orthoAdjTl + '</div></div>'
           + '<p class="obp-hint">شاشة مستقلّة: تُبدأ من محرّر الزيارة، وتُتابَع مواعيد الشدّ حتى الإنهاء.</p></div>';
 
-      // الهيدر المشترك = هيدر الاضبارة الحقيقي في التطبيق (pf-hero) مع زرّ الإغلاق
-      var heroBox = document.getElementById('obPrevHero');
-      if (heroBox) heroBox.innerHTML =
-        '<div class="pf-hero"><div class="pf-head">'
-          + '<div class="pf-avatar">م</div>'
-          + '<div class="pf-id"><h3 class="pf-name">مريض تجريبي</h3><p class="pf-phone" dir="ltr">0955 123 456</p></div>'
-          + '<div class="pf-head-actions">'
-            + '<a class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>'
-            + '<a class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>'
-            + '<button class="pf-actbtn" title="طباعة"><i class="fas fa-print"></i></button>'
-          + '</div>'
-          + '<button class="pf-close" onclick="_obCloseChartPreview()" title="إغلاق"><i class="fas fa-times"></i></button>'
-        + '</div></div>';
-
-      // تبويبات نصّية فقط تحت الهيدر (بلا حاويات)
+      // تبويبات نصّية فقط (بلا هيدر)
       var tabs = [{ id: 'info', label: 'معلومات المريض' },
                   { id: 'visit', label: 'الزيارة' }];
       if (showSurg) tabs.push({ id: 'surgery', label: 'العمليات الجراحية' });
@@ -7499,6 +7496,20 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + '<div class="obp-page" id="obpPagevisit" style="display:none;">' + visitPage + '</div>'
         + (showSurg ? '<div class="obp-page" id="obpPagesurgery" style="display:none;">' + surgeryPage + '</div>' : '')
         + (showOrtho ? '<div class="obp-page" id="obpPageortho" style="display:none;">' + orthoPage + '</div>' : '');
+
+      // حقول التخصّص في تبويب الزيارة — تُبنى بنفس دالّة محرّر الزيارة الحقيقي
+      var _vcf = document.getElementById('obPrevVisitCF');
+      if (_vcf && typeof buildCustomFieldInputs === 'function') {
+        buildCustomFieldInputs(_vcf, vf, {}, { variant: 'editor' });
+        Array.prototype.forEach.call(_vcf.querySelectorAll('input,select,textarea'), function(el) {
+          if (el.tagName === 'SELECT' || el.type === 'checkbox') el.disabled = true; else el.readOnly = true;
+          el.setAttribute('tabindex', '-1');
+        });
+      }
+      // نموّ حقول النصّ لتظهر بمحتواها (كالمحرّر الحقيقي)
+      if (typeof veAutoGrow === 'function') {
+        Array.prototype.forEach.call(box.querySelectorAll('.ve-card textarea'), veAutoGrow);
+      }
 
       var pane = document.getElementById('obPreview');
       if (pane) pane.classList.add('show');
