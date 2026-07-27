@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=161">
+  <link rel="stylesheet" href="styles.css?v=162">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -613,17 +613,13 @@
       <!-- قسم دفتر المرضى -->
       <section id="patientBookSection" class="hidden">
         <div class="glass-card">
-          <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-3">
-              <div class="card-icon"><i class="fas fa-address-book"></i></div>
-              <div><h2 class="font-bold text-base" style="color:var(--text-primary)">دفتر المرضى</h2><div class="card-subtitle">سجل المرضى والزيارات</div></div>
+          <div class="pb-hdr">
+            <div class="pb-hdr-info">
+              <h2 class="pb-hdr-title">دفتر المرضى</h2>
+              <span class="pb-hdr-count"><span id="totalPatientsCount">0</span> مريض</span>
             </div>
-            <div class="flex gap-2">
-              <!-- تم إزالة زر إضافة مريض جديد بناء على طلب المستخدم -->
-              <div style="padding:4px 12px;background:var(--primary-light);color:var(--primary);border-radius:20px;font-size:.75rem;font-weight:700;white-space:nowrap;"><i class="fas fa-users ml-1"></i> <span id="totalPatientsCount">0</span></div>
-            </div>
+            <input type="text" id="patientBookSearch" class="pb-search" placeholder="ابحث باسم المريض أو رقم الهاتف...">
           </div>
-          <div class="mb-4"><input type="text" id="patientBookSearch" class="w-full p-3 pr-10 rounded-lg" style="background:var(--primary-faint);border:1.5px solid var(--border);color:var(--text-primary);border-radius:10px;font-family:inherit;" placeholder="ابحث باسم المريض أو رقم الهاتف..."></div>
           <div class="patients-list" id="patientsGrid"></div>
         </div>
       </section>
@@ -2000,7 +1996,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=161"></script>
+  <script src="script.js?v=162"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
