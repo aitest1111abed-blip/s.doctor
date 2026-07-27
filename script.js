@@ -7617,7 +7617,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
 
       else if (st.step === 2) {
+        // الخانات المدمجة (ثابتة دائماً في الاضبارة) — تُعرض كمرجع غير قابل للتعديل
+        // فتُطابق قائمةُ الإعداد الاضبارةَ ومعلومات المريض تماماً بلا نقص.
+        var _OB_BUILTIN = {
+          patient: ['الاسم', 'رقم الهاتف', 'تاريخ الميلاد', 'زمرة الدم', 'العنوان', 'الأمراض المزمنة'],
+          visit: ['الشكوى', 'الفحص السريري', 'التشخيص', 'الوصفة الطبية']
+        };
         function grp(scope, title, note) {
+          var builtin = (_OB_BUILTIN[scope] || []).map(function(lbl) {
+            return '<div class="ob-cfrow ob-builtin"><span class="ob-builtin-lbl">' + _obEsc(lbl) + '</span><span class="ob-cftag">مدمجة</span></div>';
+          }).join('');
           var arr = st.fields[scope];
           var rows = arr.length
             ? arr.map(function(f, i) {
@@ -7625,7 +7634,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
                   return '<option value="' + t.v + '"' + (t.v === f.type ? ' selected' : '') + '>' + t.label + '</option>';
                 }).join('');
                 return '<div class="ob-cfrow" data-s="' + scope + '" data-i="' + i + '">' +
-                  '<div class="ob-cftype" aria-hidden="true">' + (_obICONS[f.type] || 'أ') + '</div>' +
                   '<input class="ob-cfin" type="text" value="' + _obEsc(f.label) + '" placeholder="اسم الخانة" aria-label="اسم الخانة">' +
                   '<button class="ob-cfdel" type="button" aria-label="حذف خانة">✕</button>' +
                   '<select class="ob-cfsel" aria-label="نوع الخانة">' + o + '</select>' +
@@ -7662,29 +7670,37 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           return '<div class="ob-cfsec"><p class="ob-cfhead">' + title +
               (arr.length ? ' <span style="font-weight:400;opacity:.6;">(' + arr.length + ')</span>' : '') + '</p>' +
             '<p class="ob-cfnote">' + note + '</p>' +
-            '<div class="ob-cflist">' + rows +
+            '<div class="ob-cflist">' +
+              '<div class="ob-builtin-lbltop">خانات مدمجة (تظهر دائماً في الاضبارة)</div>' + builtin + rows +
               '<button class="ob-cfadd" type="button" data-add="' + scope + '">＋ إضافة خانة</button>' +
             '</div></div>';
         }
 
         body.innerHTML = '<div class="ob-pane ob-body">' +
           _obHead(2, 'تخصيص الاضبارة', 'ابدأ من قالب جاهز ثم عدّله كما تشاء — القالب نقطة انطلاق، لا قيد.') +
-          // لا يُعاد اختيار التخصّص هنا — اختير في الخطوة ١. مربّع واحد يجلب قالبه الجاهز.
-          '<div class="ob-f"><label>القالب الجاهز</label>' +
-            '<label class="ob-tplchk"><input type="checkbox" id="obUsePreset"' + (st.preset && st.preset === st.specialty ? ' checked' : '') + '>' +
-              '<span>أريد قالباً جاهزاً لتخصّص «' + (_obEsc(st.specialty) || 'تخصّصك') + '» — قابل للتعديل</span></label>' +
-            '<span class="help">يملأ خاناتٍ مقترحةً لتخصّصك تلقائياً، ثم عدّلها كما تشاء.</span></div>' +
-          _obTip('ما الفرق بين النوعين؟ ',
-            '<b style="display:inline;color:var(--primary)">خانات المريض</b> ثابتة: تكتبها مرّة واحدة وتبقى في ملفه مهما تكرّرت زياراته — كزمرة الدم والسوابق الجراحية. ' +
-            'و<b style="display:inline;color:var(--primary)">خانات الزيارة</b> متغيّرة: تُملأ من جديد في كل زيارة وتُحفظ مع تاريخها، فتبني سجلاً زمنياً تتابع فيه تطوّر الحالة — كضغط الدم ونتيجة تحليل.<br>' +
-            '<b style="display:inline">القاعدة:</b> اسأل نفسك «هل تتغيّر هذه المعلومة بين زيارة وأخرى؟» — إن كان الجواب نعم فهي خانة زيارة، وإلا فهي خانة مريض.') +
-          grp('patient', 'خانات المريض', 'تُكتب مرّة واحدة وتبقى ثابتة في أعلى الاضبارة — مثل: السوابق الجراحية، الحساسية من دواء، التاريخ العائلي.') +
-          grp('visit', 'خانات الزيارة', 'تتكرّر مع كل زيارة ويُحفظ لكلٍّ تاريخها في أرشيف الزيارات — مثل: الوزن اليوم، نتيجة فحص، الدواء الموصوف.') +
-          '<div class="ob-prevbar">' +
-            '<button class="ob-prevbtn" type="button" id="obPrevBtn"><i class="fas fa-eye"></i> معاينة الاضبارة</button>' +
-            '<span class="ob-prevhint">شاهد كيف ستظهر هذه الخانات في ملف المريض قبل أن تنهي.</span>' +
+          '<div class="ob-cfcols">' +
+            // العمود اليمين (الرئيسي): القالب + الخانات + المعاينة
+            '<div class="ob-cfmain">' +
+              '<div class="ob-f"><label>القالب الجاهز</label>' +
+                '<label class="ob-tplchk"><input type="checkbox" id="obUsePreset"' + (st.preset && st.preset === st.specialty ? ' checked' : '') + '>' +
+                  '<span>أريد قالباً جاهزاً لتخصّص «' + (_obEsc(st.specialty) || 'تخصّصك') + '» — قابل للتعديل</span></label>' +
+                '<span class="help">يملأ خاناتٍ مقترحةً لتخصّصك تلقائياً، ثم عدّلها كما تشاء.</span></div>' +
+              grp('patient', 'خانات المريض', 'تُكتب مرّة واحدة وتبقى ثابتة في أعلى الاضبارة — مثل: السوابق الجراحية، الحساسية من دواء، التاريخ العائلي.') +
+              grp('visit', 'خانات الزيارة', 'تتكرّر مع كل زيارة ويُحفظ لكلٍّ تاريخها في أرشيف الزيارات — مثل: الوزن اليوم، نتيجة فحص، الدواء الموصوف.') +
+              '<div class="ob-prevbar">' +
+                '<button class="ob-prevbtn" type="button" id="obPrevBtn"><i class="fas fa-eye"></i> معاينة الاضبارة</button>' +
+                '<span class="ob-prevhint">شاهد كيف ستظهر هذه الخانات في ملف المريض قبل أن تنهي.</span>' +
+              '</div>' +
+            '</div>' +
+            // العمود اليسار (الجانبي): شرح الفرق بين النوعين
+            '<aside class="ob-cfaside">' +
+              _obTip('ما الفرق بين النوعين؟ ',
+                '<b style="display:inline;color:var(--primary)">خانات المريض</b> ثابتة: تكتبها مرّة واحدة وتبقى في ملفه مهما تكرّرت زياراته — كزمرة الدم والسوابق الجراحية. ' +
+                'و<b style="display:inline;color:var(--primary)">خانات الزيارة</b> متغيّرة: تُملأ من جديد في كل زيارة وتُحفظ مع تاريخها، فتبني سجلاً زمنياً تتابع فيه تطوّر الحالة — كضغط الدم ونتيجة تحليل.<br>' +
+                '<b style="display:inline">القاعدة:</b> اسأل نفسك «هل تتغيّر هذه المعلومة بين زيارة وأخرى؟» — إن كان الجواب نعم فهي خانة زيارة، وإلا فهي خانة مريض.') +
+              _obTip('ملاحظة: ', 'الخانات <b style="display:inline">المدمجة</b> موجودة أصلاً في كل اضبارة (تُعرض هنا كمرجع بلا تعديل) — أضف تحتها ما يخصّ تخصّصك فقط.') +
+            '</aside>' +
           '</div>' +
-          _obTip('ملاحظة: ', 'الخانات المدمجة (الاسم، العمر، الهاتف، زمرة الدم، الأمراض المزمنة) موجودة أصلاً في كل اضبارة — أضف هنا ما يخصّ تخصّصك فقط.') +
         '</div>';
 
         var prevBtn = document.getElementById('obPrevBtn');
@@ -7753,7 +7769,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
             f.type = this.value;
             if (f.type !== 'select') { f.options = []; optIn.value = ''; }
             if (!_cfRoleAllowed(f.role, f.type, sc)) f.role = '';   // دور لم يعد يناسب النوع
-            row.querySelector('.ob-cftype').textContent = _obICONS[this.value] || 'أ';
             syncOptState();
             syncUnit();
             syncRole();
