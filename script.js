@@ -1949,8 +1949,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var phone = normalizePhone(p.phone);
       var lv = _pbLastVisit(p);
       var initial = ((p.name || '؟').trim().charAt(0)) || '؟';
-      var c = _pbPalette(p.name || '');
-      return '<div class="pb-folder" style="--fg1:' + c[0] + ';--fg2:' + c[1] + ';--fac:' + c[2] + ';" '
+      return '<div class="pb-folder" '
           + 'title="كليك يمين: فتح الإضبارة — ' + escapeHtml(lv.txt) + '" oncontextmenu="event.preventDefault();openPatientDetailsModal(\'' + p.id + '\');return false;">'
         + '<button class="pb-fmenu" title="فتح الإضبارة" onclick="openPatientDetailsModal(\'' + p.id + '\')"><i class="fas fa-ellipsis-vertical"></i></button>'
         + '<div class="pb-fname">' + escapeHtml(p.name || '—') + '</div>'

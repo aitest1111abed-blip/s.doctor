@@ -564,46 +564,47 @@
     .patient-action-btn.danger    { background: var(--red) !important; color: white !important; }
 
     /* ===== دفتر المرضى: صفوف أفقية (مثل عرض التفاصيل في ويندوز) ===== */
-    /* ── دفتر المرضى كفولدرات عريضة (مطابقة للريفرنس): الاسم فوق، أفاتار+عدّاد أسفل ── */
-    #patientsGrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px 20px; }
+    /* ── دفتر المرضى كفولدرات صغيرة بيضاء بلمسة تركوازية ── */
+    #patientsGrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:20px 16px; }
     .pb-folder{
-      position:relative; margin-top:14px; min-height:130px; display:flex; flex-direction:column;
-      background:linear-gradient(155deg, var(--fg1), var(--fg2));
-      border-radius:16px; border-start-start-radius:0; padding:15px 17px 14px; cursor:default;
-      color:#1e293b; transition:transform .16s, box-shadow .16s; box-shadow:0 1px 2px rgba(15,23,42,.05);
+      position:relative; margin-top:12px; min-height:98px; display:flex; flex-direction:column;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; border-start-start-radius:0; padding:12px 13px 11px; cursor:default;
+      transition:transform .16s, box-shadow .16s, border-color .16s; box-shadow:var(--shadow-sm);
     }
-    /* لسان الملفّ في الأعلى من جهة البداية (يمين في RTL) — يندمج بلون أعلى التدرّج */
+    /* لسان الملفّ — لمسة تركوازية فاتحة فوق من جهة البداية */
     .pb-folder::before{
-      content:""; position:absolute; top:-13px; inset-inline-start:0; width:44%; height:15px;
-      background:var(--fg1); border-radius:13px 13px 0 0;
+      content:""; position:absolute; top:-11px; inset-inline-start:-1px; width:44%; height:13px;
+      background:var(--primary-light); border:1px solid var(--border); border-bottom:none;
+      border-radius:11px 11px 0 0;
     }
-    .pb-folder:hover{ transform:translateY(-3px); box-shadow:0 16px 30px -14px rgba(15,23,42,.3); }
+    .pb-folder:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:var(--border-strong); }
     .pb-fmenu{
-      position:absolute; top:13px; inset-inline-end:13px; width:28px; height:28px; border-radius:50%;
-      border:none; background:rgba(255,255,255,.55); color:#334155; cursor:pointer;
-      display:flex; align-items:center; justify-content:center; font-size:.8rem; transition:background .15s;
+      position:absolute; top:10px; inset-inline-end:10px; width:26px; height:26px; border-radius:50%;
+      border:none; background:var(--bg); color:var(--text-muted); cursor:pointer;
+      display:flex; align-items:center; justify-content:center; font-size:.78rem; transition:background .15s, color .15s;
     }
-    .pb-fmenu:hover{ background:rgba(255,255,255,.92); }
+    .pb-fmenu:hover{ background:var(--primary-light); color:var(--primary); }
     .pb-fname{
-      font-size:1.02rem; font-weight:700; color:#0f172a; line-height:1.35; margin-top:4px; padding-inline-end:36px;
+      font-size:.94rem; font-weight:800; color:var(--text-primary); line-height:1.35; margin-top:4px; padding-inline-end:32px;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .pb-ffoot{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; }
     .pb-favatar{
-      width:27px; height:27px; border-radius:50%; background:var(--fac); color:#fff; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:800;
-      box-shadow:0 3px 8px -3px var(--fac);
+      width:26px; height:26px; border-radius:50%; background:var(--primary); color:#fff; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:.82rem; font-weight:800;
+      box-shadow:0 3px 8px -4px rgba(13,148,136,.6);
     }
-    .pb-fcount{ font-size:.8rem; font-weight:600; color:#475569; }
+    .pb-fcount{ font-size:.76rem; font-weight:600; color:var(--text-muted); }
     .pb-fact{ display:none; gap:6px; }
     .pb-folder:hover .pb-fcount{ display:none; }
     .pb-folder:hover .pb-fact{ display:flex; }
     .pb-fbtn{
-      width:29px; height:29px; border-radius:50%; border:none; background:rgba(255,255,255,.7); color:#0f172a;
-      cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.78rem; text-decoration:none;
-      transition:background .15s;
+      width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary);
+      cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.76rem; text-decoration:none;
+      transition:border-color .15s, color .15s, background .15s;
     }
-    .pb-fbtn:hover{ background:#fff; }
+    .pb-fbtn:hover{ border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
     /* اللمس: الأزرار بدل العدّاد دائماً */
     @media (hover:none){ .pb-fact{ display:flex; } .pb-folder .pb-fcount{ display:none; } }
 
