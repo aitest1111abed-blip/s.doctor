@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=152">
+  <link rel="stylesheet" href="styles.css?v=153">
 
   <!-- ═══════════════ PWA — DocBook ═══════════════ -->
   <meta name="application-name" content="DocBook" />
@@ -218,14 +218,11 @@
         </div>
       </main>
 
-      <!-- معاينة شكل الاضبارة قبل الإنهاء — شاشة كاملة، تبويبات نصّية منصّفة -->
+      <!-- معاينة الاضبارة — نفس بنية الاضبارة الحقيقية بالتطبيق (هيدر pf-hero + جسم) -->
       <div class="obp" id="obPreview">
         <div class="obp-card">
-          <div class="obp-head">
-            <button class="obp-x" id="obPrevClose" type="button" aria-label="إغلاق المعاينة">✕</button>
-            <div class="obp-tabs" id="obPrevTabs"></div>
-            <span class="obp-head-sp" aria-hidden="true"></span>
-          </div>
+          <div id="obPrevHero"></div>
+          <div class="obp-nav" id="obPrevTabs"></div>
           <div class="obp-body" id="obPrevBody"></div>
         </div>
       </div>
@@ -1990,7 +1987,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=152"></script>
+  <script src="script.js?v=153"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {

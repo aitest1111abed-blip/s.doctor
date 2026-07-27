@@ -7426,11 +7426,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var showSurg = !!st.surgicalArchive;
       var showOrtho = !!st.orthoArchive;
 
-      // صفحة ١: معلومات المريض الثابتة
+      // صفحة ١: معلومات المريض الثابتة (الهيدر pf-hero مشترك خارج الصفحات)
       var infoPage =
-        '<div class="pf-hero"><div class="pf-head"><div class="pf-avatar">م</div>'
-          + '<div class="pf-id"><h3 class="pf-name">مريض تجريبي</h3><p class="pf-phone" dir="ltr">0955 123 456</p></div></div></div>'
-        + '<div class="obp-wrap"><div class="glass-card" style="padding:16px;">'
+        '<div class="obp-wrap"><div class="glass-card" style="padding:16px;">'
           + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4></div>'
           + '<div class="pf-tiles">' + infoTiles + '</div></div>'
           + '<p class="obp-hint">هذه الخانات <b>ثابتة</b> — تُكتب مرّة واحدة وتبقى في ملف المريض مهما تكرّرت زياراته.</p></div>';
@@ -7472,7 +7470,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
               + '<div class="or-adj-head"><span class="t">مواعيد الشدّ</span></div>' + orthoAdjTl + '</div></div>'
           + '<p class="obp-hint">شاشة مستقلّة: تُبدأ من محرّر الزيارة، وتُتابَع مواعيد الشدّ حتى الإنهاء.</p></div>';
 
-      // تبويبات نصّية فقط (بلا حاويات ولا أيقونات) — تُحقن في هيدر المعاينة منصّفةً
+      // الهيدر المشترك = هيدر الاضبارة الحقيقي في التطبيق (pf-hero) مع زرّ الإغلاق
+      var heroBox = document.getElementById('obPrevHero');
+      if (heroBox) heroBox.innerHTML =
+        '<div class="pf-hero"><div class="pf-head">'
+          + '<div class="pf-avatar">م</div>'
+          + '<div class="pf-id"><h3 class="pf-name">مريض تجريبي</h3><p class="pf-phone" dir="ltr">0955 123 456</p></div>'
+          + '<div class="pf-head-actions">'
+            + '<a class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>'
+            + '<a class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>'
+            + '<button class="pf-actbtn" title="طباعة"><i class="fas fa-print"></i></button>'
+          + '</div>'
+          + '<button class="pf-close" onclick="_obCloseChartPreview()" title="إغلاق"><i class="fas fa-times"></i></button>'
+        + '</div></div>';
+
+      // تبويبات نصّية فقط تحت الهيدر (بلا حاويات)
       var tabs = [{ id: 'info', label: 'معلومات المريض' },
                   { id: 'visit', label: 'الزيارة' }];
       if (showSurg) tabs.push({ id: 'surgery', label: 'العمليات الجراحية' });

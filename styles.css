@@ -2732,22 +2732,15 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
   animation:obpUp .26s cubic-bezier(.22,.61,.36,1) both;
 }
 @keyframes obpUp{from{opacity:0; transform:translateY(16px);}to{opacity:1; transform:none;}}
-/* هيدر المعاينة: زرّ إغلاق + تبويبات نصّية منصّفة (بلا أيقونات ولا حاويات) */
-#onboardOverlay .obp-head{
-  display:flex; align-items:center; gap:12px;
-  padding:0 16px; height:52px; background:var(--surface);
-  border-bottom:1px solid var(--border); flex-shrink:0;
+/* الهيدر المشترك = هيدر الاضبارة الحقيقي بالتطبيق (pf-hero بزرّ الإغلاق) */
+#onboardOverlay #obPrevHero{flex-shrink:0;}
+/* شريط تبويبات نصّي رفيع تحت الهيدر — بلا حاويات، تحته خطّ للنشط */
+#onboardOverlay .obp-nav{
+  flex-shrink:0; display:flex; gap:26px; justify-content:center; flex-wrap:wrap;
+  padding:0 18px; background:var(--surface); border-bottom:1px solid var(--border);
 }
-#onboardOverlay .obp-x{
-  background:none; border:none; cursor:pointer; color:var(--text-muted);
-  width:34px; height:34px; border-radius:9px; font-size:1rem; line-height:1; flex-shrink:0;
-  display:flex; align-items:center; justify-content:center; transition:background .15s, color .15s;
-}
-#onboardOverlay .obp-x:hover{background:var(--bg); color:var(--text-primary);}
-#onboardOverlay .obp-head-sp{width:34px; flex-shrink:0;}   /* موازن ليتوسّط شريط التبويبات */
-#onboardOverlay .obp-tabs{flex:1; display:flex; gap:26px; justify-content:center; flex-wrap:wrap; min-width:0;}
 #onboardOverlay .obp-tab{
-  background:none; border:none; padding:6px 2px; font-family:inherit; font-size:.9rem; font-weight:700;
+  background:none; border:none; padding:11px 2px; font-family:inherit; font-size:.88rem; font-weight:700;
   color:var(--text-muted); cursor:pointer; border-bottom:2.5px solid transparent;
   transition:color .15s, border-color .15s; white-space:nowrap;
 }
