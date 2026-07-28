@@ -31,11 +31,22 @@
   var SENTENCES = ['لا شكاوى حالية والفحص ضمن الطبيعي','تحسّن ملحوظ بعد العلاج السابق','استمرار الأعراض بشكل خفيف','الحالة مستقرّة والمتابعة دورية','يُنصح بإعادة التقييم بعد أسبوعين','لا مضاعفات، الاستجابة جيّدة للعلاج'];
   var SHORTTEXT = ['طبيعي','ضمن الحدود','خفيف','متوسط','مستقرّ','جيّد','لا يوجد'];
 
+  // ── ثوابت التجربة القوية ──
+  var SPAN_DAYS    = 90;      // توزيع تواريخ الزيارات على آخر ٣ أشهر (كلّها ماضية)
+  var APPT_WINDOW  = 45;      // مواعيد مجموعة appointments لآخر ٤٥ يوم فقط (النافذة المقروءة)
+  var WRITE_BUDGET = 18000;   // قاطع أمان تحت حدّ ٢٠٬٠٠٠ كتابة/يوم المجاني
+  var BATCH_MAX    = 450;     // عمليات/دفعة (هامش تحت حدّ ٥٠٠)
+  var TODAY_APPTS  = 50;      // عدد مواعيد «اليوم» المضمونة لتعمير لوحة اليوم
+
   var rnd = function (a) { return a[Math.floor(Math.random() * a.length)]; };
   var pad = function (n) { return String(n).padStart(2, '0'); };
   var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
   var todayISO = iso(new Date());
+  function daysAgoISO(n) { var d = new Date(); d.setDate(d.getDate() - n); return iso(d); }
+  function genId(prefix) { return (prefix || 'seed') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9); }
   function wStatus() { var r = Math.random(); return r < 0.6 ? 'Accepted' : (r < 0.9 ? 'Visited' : 'NoShow'); }
+  // حالة نهائية للمواعيد الماضية (لا تُشغّل عاصفة auto-NoShow عند التحميل)
+  function pastStatus() { return Math.random() < 0.85 ? 'Visited' : 'NoShow'; }
 
   // قيمة عشوائية لحقل مخصّص حسب نوعه/دوره (تُطابق ما يخزّنه محرّر الاضبارة)
   function cfVal(f) {
@@ -60,19 +71,22 @@
     return c;
   }
 
-  function buildPatient(tpl) {
+  function buildPatient(tpl, forceToday) {
     tpl = tpl || { patient: [], visit: [] };
     var name = rnd(FIRST) + (Math.random() < 0.65 ? ' ' + rnd(LAST) : '');
     var phone = '09' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
     var by = 1955 + Math.floor(Math.random() * 63);
     var bd = iso(new Date(by, Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 28)));
-    var nV = 1 + Math.floor(Math.random() * 4);
+    // زيارات موزّعة على آخر ٩٠ يوم (كلّها ماضية): متوسط ٥، سقف ٨ — آمن لحدّ المستند ١MiB
+    var nV = 2 + Math.floor(Math.random() * 7);
+    var offs = [];
+    for (var i = 0; i < nV; i++) offs.push(Math.floor(Math.random() * (SPAN_DAYS + 1)));
+    if (forceToday) offs[0] = 0;                 // نضمن زيارة اليوم لتعمير لوحة اليوم
+    offs.sort(function (a, b) { return b - a; }); // الأقدم أولاً → الأحدث آخراً (تصاعدي بالتاريخ)
     var visits = [];
     for (var k = 0; k < nV; k++) {
-      var daysAgo = (nV - k) * 7 + Math.floor(Math.random() * 5);
-      var d = new Date(); d.setDate(d.getDate() - daysAgo);
       visits.push({
-        date: iso(d), slot: rnd(SLOTS), visitType: rnd(TYPES),
+        date: daysAgoISO(offs[k]), slot: rnd(SLOTS), visitType: rnd(TYPES),
         complaint: rnd(COMPLAINTS), clinicalExam: rnd(EXAMS),
         diagnosis: rnd(DIAGS), prescription: rnd(RX),
         custom: fillCustom(tpl.visit),          // حقول الزيارة المخصّصة (قالب الطبيب)
@@ -88,18 +102,21 @@
       seedTag: 'devseed'
     };
   }
-  function buildTodayAppt(p) {
+  // موعد بمجموعة appointments بتاريخ/حالة مُعطَيَين (يُطابق زيارة داخل الاضبارة)
+  function buildAppt(p, v) {
+    var isToday = v.date === todayISO;
     return {
-      id: 'appt_seed_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      id: genId('appt_seed'),
       PatientName: p.name, Phone: p.phone, BirthDate: p.birthDate, Address: '',
-      VisitType: rnd(TYPES), Date: todayISO, Slot: rnd(SLOTS),
-      Status: wStatus(), source: 'devseed', createdAt: Date.now()
+      VisitType: v.visitType, Date: v.date, Slot: v.slot,
+      Status: isToday ? wStatus() : pastStatus(),   // الماضي: حالة نهائية (لا auto-NoShow)
+      source: 'devseed', createdAt: Date.now()
     };
   }
 
   var fb = null;
-  async function seed(n, log, done) {
-    fb = window._fb; var ok = 0, err = 0;
+  async function seed(n, log, prog, done) {
+    fb = window._fb;
     // اقرأ قالب الاضبارة (الحقول المخصّصة) مرّة واحدة لتُعبّأ في كل مريض/زيارة
     var tpl = { patient: [], visit: [] };
     try {
@@ -109,25 +126,69 @@
       tpl.visit   = Array.isArray(ct.visit)   ? ct.visit   : [];
       log('القالب: ' + tpl.patient.length + ' حقل مريض · ' + tpl.visit.length + ' حقل زيارة');
     } catch (e) { log('⚠ تعذّر قراءة القالب — سأملأ الحقول المدمجة فقط'); }
+
+    var apptWinStart = daysAgoISO(APPT_WINDOW);   // مواعيد appointments لآخر ٤٥ يوم فقط
+    var batch = fb.batch(), ops = 0, writes = 0, ptDone = 0, stopped = false, err = 0;
+    async function flush() { if (!ops) return; await batch.commit(); batch = fb.batch(); ops = 0; }
+
     for (var i = 0; i < n; i++) {
+      if (writes >= WRITE_BUDGET) { stopped = true; break; }   // قاطع أمان حصّة اليوم
       try {
-        var p = buildPatient(tpl);
-        await fb.addDoc(fb.col('patients'), p);
-        await fb.addDoc(fb.col('appointments'), buildTodayAppt(p));
-        ok++; log('✓ ' + p.name + ' — ' + p.totalVisits + ' زيارة');
-      } catch (e) { err++; log('✕ فشل: ' + (e.code || e.message)); }
+        var p = buildPatient(tpl, i < TODAY_APPTS);            // أول ٥٠ مريض: زيارة اليوم مضمونة
+        batch.set(fb.docRef('patients', genId('seed')), p); ops++; writes++;
+        for (var k = 0; k < p.appointments.length; k++) {
+          var v = p.appointments[k];
+          if (v.date >= apptWinStart) {                        // موعد فقط ضمن النافذة المقروءة
+            batch.set(fb.docRef('appointments', genId('appt_seed')), buildAppt(p, v)); ops++; writes++;
+          }
+        }
+        ptDone++;
+        if (ops >= BATCH_MAX) await flush();
+        if (prog && ptDone % 25 === 0) prog(ptDone, n, writes);
+      } catch (e) { err++; log('✕ ' + (e.code || e.message)); }
     }
-    done(ok, err);
+    try { await flush(); } catch (e) { err++; log('✕ ' + (e.code || e.message)); }
+    if (prog) prog(ptDone, n, writes);
+    if (stopped) log('⛔ بلغتَ حدّ اليوم الآمن (' + WRITE_BUDGET + ' كتابة) — أكمل الباقي غداً');
+    done(ptDone, writes, err, stopped);
   }
-  async function wipe(log, done) {
-    fb = window._fb; var del = 0;
+  // حذف مصفوفة مراجع بدفعات ≤BATCH_MAX
+  async function delRefs(refs) {
+    var batch = fb.batch(), ops = 0, n = 0;
+    for (var i = 0; i < refs.length; i++) {
+      batch.delete(refs[i]); ops++; n++;
+      if (ops >= BATCH_MAX) { await batch.commit(); batch = fb.batch(); ops = 0; }
+    }
+    if (ops) await batch.commit();
+    return n;
+  }
+  function refsOf(snap) { return snap.docs.map(function (d) { return d.ref; }); }
+
+  async function wipe(log, prog, done) {
+    fb = window._fb; var total = 0;
     try {
-      var ps = await fb.getDocs(fb.col('patients'));
-      for (var i = 0; i < ps.docs.length; i++) { if (ps.docs[i].data().seedTag === 'devseed') { await fb.deleteDoc(fb.docRef('patients', ps.docs[i].id)); del++; } }
-      var as = await fb.getDocs(fb.col('appointments'));
-      for (var j = 0; j < as.docs.length; j++) { if (as.docs[j].data().source === 'devseed') { await fb.deleteDoc(fb.docRef('appointments', as.docs[j].id)); del++; } }
+      // مرضى البذّار
+      var ps = await fb.getDocs(fb.query(fb.col('patients'), fb.where('seedTag', '==', 'devseed')));
+      total += await delRefs(refsOf(ps)); if (prog) prog('المرضى', total);
+
+      // مواعيد البذّار
+      var aSeed = await fb.getDocs(fb.query(fb.col('appointments'), fb.where('source', '==', 'devseed')));
+      total += await delRefs(refsOf(aSeed)); if (prog) prog('مواعيد البذّار', total);
+
+      // مواعيد البوت — واجمع apptId لأقفالها
+      var aBot = await fb.getDocs(fb.query(fb.col('appointments'), fb.where('source', '==', 'online')));
+      var botIds = {};
+      aBot.docs.forEach(function (d) { var id = (d.data() || {}).id; if (id) botIds[id] = 1; });
+      total += await delRefs(refsOf(aBot)); if (prog) prog('مواعيد البوت', total);
+
+      // أقفال البوت فقط: bookedSlots اللي apptId تبعها ضمن مواعيد البوت المحذوفة
+      var bs = await fb.getDocs(fb.col('bookedSlots'));
+      var lockRefs = bs.docs.filter(function (d) { return botIds[(d.data() || {}).apptId]; }).map(function (d) { return d.ref; });
+      total += await delRefs(lockRefs); if (prog) prog('أقفال البوت', total);
+
+      if (total > 15000) log('⚠ حُذف ' + total + ' — قريب من حدّ ٢٠٬٠٠٠ حذف/يوم');
     } catch (e) { log('✕ ' + (e.code || e.message)); }
-    done(del);
+    done(total);
   }
 
   // ── لوحة عائمة ──
@@ -141,32 +202,54 @@
         + '<b style="font-size:.95rem;">🌱 بذّار تجريبي</b>'
         + '<button id="dsX" style="border:none;background:none;cursor:pointer;color:#94a3b8;font-size:1.1rem;">×</button></div>'
       + '<div style="font-size:.72rem;color:#f59e0b;font-weight:700;margin-bottom:12px;">أداة داخلية — احذفها قبل البيع</div>'
-      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
         + '<label style="font-size:.82rem;font-weight:700;">عدد المرضى</label>'
-        + '<input id="dsN" type="number" value="15" min="1" max="100" style="width:70px;height:36px;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;font-size:1rem;font-family:inherit;"></div>'
-      + '<button id="dsGo" style="width:100%;height:42px;border:none;border-radius:10px;background:#0d9488;color:#fff;font-weight:800;font-family:inherit;cursor:pointer;font-size:.9rem;margin-bottom:8px;">بذر مرضى + مواعيد اليوم</button>'
-      + '<button id="dsWipe" style="width:100%;height:38px;border:1.5px solid #fca5a5;border-radius:10px;background:#fee2e2;color:#dc2626;font-weight:800;font-family:inherit;cursor:pointer;font-size:.82rem;">🧹 امسح بيانات البذر</button>'
-      + '<div id="dsLog" style="margin-top:12px;max-height:150px;overflow-y:auto;font-size:.75rem;line-height:1.7;color:#475569;"></div>';
+        + '<input id="dsN" type="number" value="3000" min="1" max="5000" style="width:84px;height:36px;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;font-size:1rem;font-family:inherit;"></div>'
+      + '<div id="dsEst" style="font-size:.72rem;color:#64748b;margin-bottom:10px;"></div>'
+      + '<button id="dsGo" style="width:100%;height:42px;border:none;border-radius:10px;background:#0d9488;color:#fff;font-weight:800;font-family:inherit;cursor:pointer;font-size:.9rem;margin-bottom:8px;">بذر مرضى + زيارات ٣ أشهر</button>'
+      + '<button id="dsWipe" style="width:100%;height:38px;border:1.5px solid #fca5a5;border-radius:10px;background:#fee2e2;color:#dc2626;font-weight:800;font-family:inherit;cursor:pointer;font-size:.82rem;">🧹 امسح بيانات البذّار + البوت</button>'
+      + '<div id="dsProg" style="margin-top:10px;font-size:.78rem;font-weight:700;color:#0d9488;min-height:1em;"></div>'
+      + '<div id="dsLog" style="margin-top:8px;max-height:130px;overflow-y:auto;font-size:.75rem;line-height:1.7;color:#475569;"></div>';
     document.body.appendChild(box);
 
-    var logEl = box.querySelector('#dsLog');
-    var goBtn = box.querySelector('#dsGo');
+    var logEl  = box.querySelector('#dsLog');
+    var progEl = box.querySelector('#dsProg');
+    var estEl  = box.querySelector('#dsEst');
+    var nInput = box.querySelector('#dsN');
+    var goBtn  = box.querySelector('#dsGo');
     var wipeBtn = box.querySelector('#dsWipe');
     function log(t) { var d = document.createElement('div'); d.textContent = t; logEl.prepend(d); }
+    var fmt = function (x) { return x.toLocaleString('en-US'); };
+
+    // تقدير الكتابات: مريض (١) + مواعيد النافذة (~٢٫٥) ≈ ن×٣٫٥
+    function refreshEst() {
+      var n = Math.max(1, Math.min(5000, +nInput.value || 0));
+      var est = Math.round(n * 3.5);
+      var pct = Math.round(est / 20000 * 100);
+      estEl.innerHTML = '≈ ' + fmt(est) + ' كتابة (~' + pct + '٪ من حصّة اليوم ٢٠٬٠٠٠)'
+        + (est > WRITE_BUDGET ? ' <span style="color:#dc2626;font-weight:700;">— سيتوقّف عند ' + fmt(WRITE_BUDGET) + '</span>' : '');
+    }
+    nInput.oninput = refreshEst; refreshEst();
 
     box.querySelector('#dsX').onclick = function () { box.remove(); };
     goBtn.onclick = function () {
-      var n = Math.max(1, Math.min(100, +box.querySelector('#dsN').value || 15));
-      goBtn.disabled = true; goBtn.textContent = 'جارٍ البذر…';
-      seed(n, log, function (ok, err) {
-        goBtn.disabled = false; goBtn.textContent = 'بذر مرضى + مواعيد اليوم';
-        log('— تمّ: ' + ok + ' ✓ / ' + err + ' ✕ — حدّث الصفحة (F5) إن لم يظهروا فوراً');
+      var n = Math.max(1, Math.min(5000, +nInput.value || 3000));
+      goBtn.disabled = true; wipeBtn.disabled = true; goBtn.textContent = 'جارٍ البذر…';
+      var prog = function (done, total, writes) { progEl.textContent = Math.round(done / total * 100) + '٪ · ' + fmt(done) + '/' + fmt(total) + ' مريض · ' + fmt(writes) + ' كتابة'; };
+      seed(n, log, prog, function (ptDone, writes, err, stopped) {
+        goBtn.disabled = false; wipeBtn.disabled = false; goBtn.textContent = 'بذر مرضى + زيارات ٣ أشهر';
+        progEl.textContent = (stopped ? '⛔ توقّف: ' : '✅ تمّ: ') + fmt(ptDone) + ' مريض · ' + fmt(writes) + ' كتابة' + (err ? ' · ' + err + ' ✕' : '');
+        log('— حدّث الصفحة (F5) إن لم تظهر البيانات فوراً');
       });
     };
     wipeBtn.onclick = function () {
-      if (!confirm('حذف كل بيانات البذر (المرضى + المواعيد المُولّدة)؟')) return;
-      wipeBtn.disabled = true; wipeBtn.textContent = 'جارٍ الحذف…';
-      wipe(log, function (del) { wipeBtn.disabled = false; wipeBtn.textContent = '🧹 امسح بيانات البذر'; log('— حُذف ' + del + ' مستنداً'); });
+      if (!confirm('بداية نظيفة: حذف كل بيانات البذّار + مواعيد البوت وأقفالها؟')) return;
+      wipeBtn.disabled = true; goBtn.disabled = true; wipeBtn.textContent = 'جارٍ الحذف…';
+      var prog = function (label, count) { progEl.textContent = '🧹 ' + label + '… · ' + fmt(count) + ' محذوف'; };
+      wipe(log, prog, function (del) {
+        wipeBtn.disabled = false; goBtn.disabled = false; wipeBtn.textContent = '🧹 امسح بيانات البذّار + البوت';
+        progEl.textContent = '✅ حُذف ' + fmt(del) + ' مستنداً — بداية نظيفة';
+      });
     };
   }
 })();
