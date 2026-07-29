@@ -31,6 +31,15 @@
   var SENTENCES = ['لا شكاوى حالية والفحص ضمن الطبيعي','تحسّن ملحوظ بعد العلاج السابق','استمرار الأعراض بشكل خفيف','الحالة مستقرّة والمتابعة دورية','يُنصح بإعادة التقييم بعد أسبوعين','لا مضاعفات، الاستجابة جيّدة للعلاج'];
   var SHORTTEXT = ['طبيعي','ضمن الحدود','خفيف','متوسط','مستقرّ','جيّد','لا يوجد'];
 
+  // ── بيانات العمليات / التقويم / مخطّط الأسنان ──
+  var SURGERIES  = ['قلع ضرس العقل الجراحي','زرعة سنّية','رفع الجيب الفكّي','استئصال كيس فكّي','تطعيم عظمي','كشط لثوي جراحي','قلع جراحي لسنّ منطمر','تركيب جسر ثابت'];
+  var SURG_COMP  = ['نزف بسيط ضُبط موضعياً','تورّم خفيف زال خلال أيام','لا مضاعفات تُذكر'];
+  var TEETH      = [11,12,13,14,15,16,17,18,21,22,23,24,25,26,27,28,31,32,33,34,35,36,37,38,41,42,43,44,45,46,47,48];
+  var DC_FIND    = ['caries','sec_caries','pain','fracture','gum','mobility','impacted','missing'];
+  var DC_TREAT   = ['filled','root','crowned','bridge','implant','extracted','cleaning'];
+  var ORTHO_TYPES = ['fixed','removable','clear'];
+  var ADJ_NOTES  = ['شدّ الأسلاك','تبديل المطّاط','تعديل القوس','متابعة دورية','تفعيل الجهاز'];
+
   // ── ثوابت التجربة القوية ──
   var SPAN_DAYS    = 90;      // توزيع تواريخ الزيارات على آخر ٣ أشهر (كلّها ماضية)
   var APPT_WINDOW  = 45;      // مواعيد مجموعة appointments لآخر ٤٥ يوم فقط (النافذة المقروءة)
@@ -71,6 +80,45 @@
     return c;
   }
 
+  // مخطّط الأسنان: أحداث لكل سنّ (موجودات + معالجات) خلال آخر ٩٠ يوم
+  function dentalEventsFor() {
+    var evs = [], m = 2 + Math.floor(Math.random() * 5);   // ٢–٦ أحداث
+    for (var i = 0; i < m; i++) {
+      var type = Math.random() < 0.55 ? rnd(DC_TREAT) : rnd(DC_FIND);
+      evs.push({ ts: Date.now() + i, tooth: rnd(TEETH), type: type, date: daysAgoISO(Math.floor(Math.random() * (SPAN_DAYS + 1))) });
+    }
+    return evs;
+  }
+  // دورة تقويم واحدة (نشطة غالباً) مع جلسات شدّ
+  function orthoFor() {
+    var completed = Math.random() < 0.3;
+    var adjs = [], na = 1 + Math.floor(Math.random() * 4);
+    for (var i = 0; i < na; i++) adjs.push({ ts: Date.now() + i, date: daysAgoISO(Math.floor(Math.random() * 80)), note: rnd(ADJ_NOTES) });
+    adjs.sort(function (a, b) { return a.date.localeCompare(b.date); });
+    var o = {
+      ts: Date.now(), type: rnd(ORTHO_TYPES),
+      startDate: daysAgoISO(60 + Math.floor(Math.random() * 360)),   // بدأ قبل ٢–١٤ شهر
+      expectedMonths: 12 + Math.floor(Math.random() * 13),
+      notes: '', status: completed ? 'completed' : 'active', adjustments: adjs
+    };
+    if (completed) o.endDate = daysAgoISO(Math.floor(Math.random() * 25));
+    return [o];
+  }
+  // عملية/عمليتان: منجَزة (تاريخ ماضٍ) أو مجدولة (تاريخ مستقبلي)
+  function surgeriesFor() {
+    var arr = [], n = 1 + (Math.random() < 0.3 ? 1 : 0);
+    for (var i = 0; i < n; i++) {
+      var done = Math.random() < 0.7;
+      arr.push({
+        ts: Date.now() + i, name: rnd(SURGERIES),
+        date: done ? daysAgoISO(Math.floor(Math.random() * SPAN_DAYS)) : daysAgoISO(-(1 + Math.floor(Math.random() * 30))),
+        note: '', complications: done && Math.random() < 0.35 ? rnd(SURG_COMP) : '',
+        status: done ? 'done' : 'scheduled'
+      });
+    }
+    return arr;
+  }
+
   function buildPatient(tpl, forceToday) {
     tpl = tpl || { patient: [], visit: [] };
     var name = rnd(FIRST) + (Math.random() < 0.65 ? ' ' + rnd(LAST) : '');
@@ -93,7 +141,7 @@
         noteUpdatedAt: Date.now(), source: 'chart'
       });
     }
-    return {
+    var pt = {
       name: name, phone: phone, address: '', bloodType: rnd(BLOOD),
       chronicDiseases: Math.random() < 0.3 ? rnd(CHRONIC) : '',
       birthDate: bd, appointments: visits, totalVisits: visits.length,
@@ -101,6 +149,11 @@
       firstVisit: visits[0].date, lastVisit: visits[visits.length - 1].date,
       seedTag: 'devseed'
     };
+    // أقسام إضافية (كلّها داخل وثيقة المريض ⇒ صفر كتابة إضافية)
+    if (Math.random() < 0.50) pt.dentalEvents = dentalEventsFor();   // مخطّط الأسنان
+    if (Math.random() < 0.15) pt.ortho       = orthoFor();          // تقويم الأسنان
+    if (Math.random() < 0.15) pt.surgeries   = surgeriesFor();      // العمليات الجراحية
+    return pt;
   }
   // موعد بمجموعة appointments بتاريخ/حالة مُعطَيَين (يُطابق زيارة داخل الاضبارة)
   function buildAppt(p, v) {
