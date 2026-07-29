@@ -5501,12 +5501,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // جدول مقارنة عام: يجمع كل الحقول غير القابلة للرسم (نصّ/نصّ طويل/نعم-لا) عموداً فعموداً عبر الزيارات
     function _scTable(cols, rows) {
-      // الجدول يُغلَّف دوماً بصندوق var(--bg) (_scBuildBody) — فترويسته تستعمل var(--surface) لتتباين عنه
-      var head = '<tr><th style="padding:8px 10px;text-align:start;font-size:.72rem;font-weight:700;color:var(--text-muted);background:var(--surface);white-space:nowrap;">الزيارة</th>' +
-        cols.map(function(c) { return '<th style="padding:8px 10px;text-align:start;font-size:.72rem;font-weight:700;color:var(--text-muted);background:var(--surface);white-space:nowrap;">' + escapeHtml(c) + '</th>'; }).join('') + '</tr>';
+      // الجدول يُغلَّف دوماً بصندوق var(--bg) (_scBuildBody) — فترويسته تستعمل var(--surface) لتتباين عنه.
+      // عمود «الزيارة» لاصق (sticky) أثناء التمرير الأفقي كي يبقى التاريخ مرجعاً مرئياً.
+      var thB = 'padding:9px 11px;text-align:start;font-size:.72rem;font-weight:800;color:var(--text-secondary);background:var(--surface);white-space:nowrap;border-bottom:1.5px solid var(--border);';
+      var head = '<tr><th style="' + thB + 'position:sticky;inset-inline-start:0;z-index:3;">الزيارة</th>' +
+        cols.map(function(c) { return '<th style="' + thB + '">' + escapeHtml(c) + '</th>'; }).join('') + '</tr>';
       var body = rows.map(function(r) {
-        return '<tr><td style="padding:9px 10px;font-size:.8rem;font-weight:700;color:var(--primary);white-space:nowrap;border-top:1px solid var(--border);background:var(--surface);">' + escapeHtml(r.date) + '</td>' +
-          r.vals.map(function(v) { return '<td style="padding:9px 10px;font-size:.8rem;color:var(--text-primary);border-top:1px solid var(--border);background:var(--surface);max-width:220px;">' + escapeHtml(v || '—') + '</td>'; }).join('') + '</tr>';
+        return '<tr class="sc-row"><td style="padding:9px 11px;font-size:.8rem;font-weight:800;color:var(--primary);white-space:nowrap;border-top:1px solid var(--border);background:var(--surface);position:sticky;inset-inline-start:0;z-index:1;">' + escapeHtml(r.date) + '</td>' +
+          r.vals.map(function(v) { return '<td style="padding:9px 11px;font-size:.8rem;color:var(--text-primary);border-top:1px solid var(--border);background:var(--surface);max-width:220px;">' + escapeHtml(v || '—') + '</td>'; }).join('') + '</tr>';
       }).join('');
       return '<div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;">' +
         '<table style="width:100%;border-collapse:collapse;min-width:420px;"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';

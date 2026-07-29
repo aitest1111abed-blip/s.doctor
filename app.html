@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=167">
+  <link rel="stylesheet" href="styles.css?v=168">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -1420,15 +1420,18 @@
   <!-- 🦷 مخطط الأسنان — صفحة كاملة -->
   <!-- ★ مودال الأداة السريرية للتخصّص — بنفس هيكل مودال مخطّط الأسنان (dc-page) -->
   <div id="specialtyToolModal" class="hidden fixed inset-0 z-[190] dc-page">
-    <div class="dc-page-head">
-      <button onclick="closeSpecialtyTool()" class="dc-back" title="رجوع"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
-      <span class="dc-head-ic" id="scIcon"></span>
-      <div class="dc-head-txt">
-        <h3 id="scTitle"></h3>
-        <p id="scPatientName"></p>
+    <!-- الهيدر بنفس هوية «تفاصيل الاضبارة» (pf-hero) للتناسق عبر كل التخصّصات -->
+    <div class="pf-hero sc-hero">
+      <div class="pf-head">
+        <span class="pf-avatar" id="scIcon"></span>
+        <div class="pf-id sc-id">
+          <h3 id="scTitle" class="pf-name"></h3>
+          <p id="scPatientName" class="pf-sub"></p>
+        </div>
+        <button onclick="closeSpecialtyTool()" class="dc-back" title="رجوع"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
       </div>
     </div>
-    <div class="dc-page-body" style="display:block;max-width:760px;margin:0 auto;width:100%;">
+    <div class="dc-page-body" style="display:block;width:100%;">
       <div id="scBody"></div>
     </div>
   </div>
@@ -1999,9 +2002,9 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=167"></script>
+  <script src="script.js?v=168"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
-  <script src="dev-seed.js?v=167"></script>
+  <script src="dev-seed.js?v=168"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
