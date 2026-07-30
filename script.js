@@ -6964,10 +6964,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var def = DC_EVENTS[k];
       var sel = teEventTypes.indexOf(k) !== -1;
       return '<button class="te-event-btn' + (sel ? ' sel' : '') + '" onclick="teSelectEvent(\'' + k + '\')"'
-        + ' style="' + (sel ? 'border-color:' + def.color + ';background:' + def.color + '14;color:' + def.color + ';' : '') + '">'
-        + '<span class="te-check"><i class="fas fa-check"></i></span>'
-        + '<span class="te-dot" style="background:' + def.color + '22;border-color:' + def.color + ';"></span>'
-        + def.label + '</button>';
+        + ' style="' + (sel ? 'border-color:' + def.color + ';background:' + def.color + '12;color:' + def.color + ';' : '') + '">'
+        + '<span class="te-dot" style="background:' + def.color + ';"></span>'
+        + '<span class="te-lbl">' + def.label + '</span></button>';
     }
     function teRenderEventGrids() {
       document.getElementById('teEventsFindings').innerHTML = DC_FINDINGS.map(teEventBtn).join('');
