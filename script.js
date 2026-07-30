@@ -1950,7 +1950,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var lv = _pbLastVisit(p);
       return '<div class="pb-folder" '
           + 'title="كليك يمين: فتح الإضبارة" oncontextmenu="event.preventDefault();openPatientDetailsModal(\'' + p.id + '\');return false;">'
-        + '<button class="pb-fmenu" title="فتح الإضبارة" onclick="openPatientDetailsModal(\'' + p.id + '\')"><i class="fas fa-ellipsis-vertical"></i></button>'
+        + '<button class="pb-fmenu" title="عرض الإضبارة" onclick="openPatientDetailsModal(\'' + p.id + '\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>'
         + '<div class="pb-fname">' + escapeHtml(p.name || '—') + '</div>'
         + '<div class="pb-fcount">' + (p.totalVisits || 0) + ' زيارة</div>'
         + '<div class="pb-fmeta">' + escapeHtml(lv.txt) + '</div>'
