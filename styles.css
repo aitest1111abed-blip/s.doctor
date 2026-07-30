@@ -1736,26 +1736,25 @@
 
     /* ── Pill ── */
     .doc-fab-pill {
-      display: flex; align-items: center; gap: 10px;
-      background: white; border-radius: 999px; border: none;
-      padding: 8px 18px 8px 8px;
-      box-shadow: 0 4px 18px rgba(0,0,0,.12), 0 1px 4px rgba(0,0,0,.07);
+      display: flex; align-items: center; gap: 9px;
+      background: var(--surface); border-radius: 13px; border: 1px solid var(--border);
+      padding: 5px 13px 5px 5px;
+      box-shadow: 0 6px 18px -6px rgba(15,23,42,.22), 0 2px 6px -3px rgba(15,23,42,.12);
       cursor: pointer; white-space: nowrap; font-family: inherit;
       opacity: 0; pointer-events: none;
       transform: translateY(8px) scale(.95);
       transition: opacity .22s ease, transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .18s;
     }
-    .doc-fab-pill:hover { box-shadow: 0 6px 22px rgba(0,0,0,.16); transform: scale(1.03) !important; }
+    .doc-fab-pill:hover { box-shadow: 0 10px 26px -8px rgba(15,23,42,.3); transform: scale(1.03) !important; }
     .doc-fab-pill.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    /* أيقونة موحّدة اللون (teal) عبر كل الحبّات — بلا ألوان متفرّقة */
     .doc-fab-pill-icon {
-      width: 36px; height: 36px; border-radius: 50%;
+      width: 30px; height: 30px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; color: white; font-size: 1rem;
+      flex-shrink: 0; color: #fff;
+      background: linear-gradient(135deg, var(--primary-5), var(--primary-7));
     }
-    .doc-fab-pill-icon.next-p  { background: linear-gradient(135deg,#059669,#065f46); }
-    .doc-fab-pill-icon.enter-p { background: linear-gradient(135deg,#2563eb,#1e40af); }
-    .doc-fab-pill-icon.custom-p{ background: linear-gradient(135deg,#f59e0b,#d97706); }
-    .doc-fab-pill-label { font-size: .85rem; font-weight: 700; color: #1e293b; }
+    .doc-fab-pill-label { font-size: .83rem; font-weight: 700; color: var(--text-primary); }
     .doc-fab-pill-sublabel {
       font-size: .72rem; color: #94a3b8; cursor: pointer; padding: 4px;
       border-radius: 6px; transition: background .15s;
