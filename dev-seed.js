@@ -31,6 +31,32 @@
   var SENTENCES = ['لا شكاوى حالية والفحص ضمن الطبيعي','تحسّن ملحوظ بعد العلاج السابق','استمرار الأعراض بشكل خفيف','الحالة مستقرّة والمتابعة دورية','يُنصح بإعادة التقييم بعد أسبوعين','لا مضاعفات، الاستجابة جيّدة للعلاج'];
   var SHORTTEXT = ['طبيعي','ضمن الحدود','خفيف','متوسط','مستقرّ','جيّد','لا يوجد'];
 
+  // ── محتوى سريري حسب التخصّص (شكوى/فحص/تشخيص/وصفة) — يُقرأ التخصّص من الإعدادات تلقائياً ──
+  var SPECIALTY_CONTENT = {
+    eye: {
+      complaints: ['زغللة وضبابية في الرؤية','احمرار وحكّة بالعين','دماع مستمرّ','ألم عيني مع صداع','ضعف الرؤية الليلية','جفاف وحرقة بالعينين','رؤية هالات حول الأضواء','حساسية شديدة للضوء','إفراز صباحي بالعين','ذبابة طائرة أمام العين'],
+      exams: ['حدة الإبصار 6/9 يمنى · 6/6 يسرى','ضغط العين 15/16 ملم زئبق','القرنية شفافة والحدقة متفاعلة','قعر العين طبيعي بلا نزوف','بداية إعتام عدسة خفيف','ملتحمة هادئة بلا احتقان','الغرفة الأمامية عميقة وهادئة'],
+      diags: ['التهاب ملتحمة تحسّسي','متلازمة جفاف العين','قصر نظر بسيط','طول نظر شيخوخي','بداية ساد نووي','التهاب حفّة الجفن','ارتفاع ضغط عين — يُتابع','خطأ انكساري'],
+      rx: ['قطرة دموع صناعية ٤× يومياً','قطرة مضاد حيوي ٣× × ٥ أيام','نظّارة طبية حسب القياس','قطرة خافضة لضغط العين مساءً','مضاد هيستامين موضعي','مرهم مضاد التهاب ليلاً']
+    }
+    // بقيّة التخصّصات تستعمل المحتوى العام (COMPLAINTS/EXAMS/DIAGS/RX)
+  };
+  function specContent(spec) {
+    return SPECIALTY_CONTENT[spec] || { complaints: COMPLAINTS, exams: EXAMS, diags: DIAGS, rx: RX };
+  }
+  // يفهم التخصّص المختار من نصّ الإعدادات
+  function detectSpecialty(name) {
+    var s = String(name || '');
+    if (/عيون|عين|بصر/.test(s))         return 'eye';
+    if (/أسنان|اسنان|سنّ|سن/.test(s))    return 'dental';
+    if (/أطفال|اطفال/.test(s))           return 'peds';
+    if (/نسائ|توليد|حمل/.test(s))        return 'obgyn';
+    if (/قلب/.test(s))                   return 'cardio';
+    if (/جلد/.test(s))                   return 'derm';
+    if (/عظم|عظام|مفاصل/.test(s))        return 'ortho';
+    return 'general';
+  }
+
   // ── بيانات العمليات / التقويم / مخطّط الأسنان ──
   var SURGERIES  = ['قلع ضرس العقل الجراحي','زرعة سنّية','رفع الجيب الفكّي','استئصال كيس فكّي','تطعيم عظمي','كشط لثوي جراحي','قلع جراحي لسنّ منطمر','تركيب جسر ثابت'];
   var SURG_COMP  = ['نزف بسيط ضُبط موضعياً','تورّم خفيف زال خلال أيام','لا مضاعفات تُذكر'];
@@ -57,26 +83,62 @@
   // حالة نهائية للمواعيد الماضية (لا تُشغّل عاصفة auto-NoShow عند التحميل)
   function pastStatus() { return Math.random() < 0.85 ? 'Visited' : 'NoShow'; }
 
-  // قيمة عشوائية لحقل مخصّص حسب نوعه/دوره (تُطابق ما يخزّنه محرّر الاضبارة)
-  function cfVal(f) {
+  // ── مولّدات قيم واقعية ──
+  function num(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function bpVal()   { return (110 + Math.floor(Math.random() * 30)) + '/' + (70 + Math.floor(Math.random() * 20)); }
+  function vaVal()   { return rnd(['6/6','6/9','6/12','6/18','6/24','6/36']); }
+  function refractionVal() { return rnd(['plano','-0.75','-1.25','-2.00','-2.50','-3.25','+0.50','+1.00','+1.75','+2.25']); }
+  function recentDate() { var d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random() * 40)); return iso(d); }
+  function lmpVal()  { var d = new Date(); d.setDate(d.getDate() - (28 + Math.floor(Math.random() * 230))); return iso(d); }
+  function has(s, arr) { s = String(s || ''); for (var i = 0; i < arr.length; i++) if (s.indexOf(arr[i]) !== -1) return true; return false; }
+
+  // تخمين قيمة حقل من تسميته حسب التخصّص (يُستدعى بعد فشل الدور الصريح)
+  function labelGuess(lbl, spec) {
+    var L = String(lbl || '').toLowerCase();
+    // علامات حيوية مشتركة لأي تخصّص
+    if (has(lbl, ['وزن'])) return num(3, 90);
+    if (has(lbl, ['طول', 'قامة'])) return num(40, 190);
+    if (has(lbl, ['ضغط الدم']) || (has(lbl, ['الضغط']) && !has(lbl, ['عين']))) return bpVal();
+    if (has(lbl, ['حرارة'])) return (36 + Math.random() * 2.4).toFixed(1);
+    if (has(lbl, ['نبض'])) return num(60, 100);
+    if (has(lbl, ['سكر', 'غلوكوز'])) return num(80, 180);
+    if (has(lbl, ['تشبّع', 'أكسج']) || /spo/.test(L)) return num(94, 100);
+    // عيون
+    if (spec === 'eye') {
+      if (has(lbl, ['حدة', 'إبصار', 'ابصار', 'رؤية', 'بصر']) || /\bva\b/.test(L)) return vaVal();
+      if ((has(lbl, ['ضغط']) && has(lbl, ['عين'])) || has(lbl, ['توتر']) || /iop/.test(L)) return num(10, 21);
+      if (has(lbl, ['انكسار', 'قياس النظر', 'مقاس', 'تصحيح'])) return refractionVal();
+      if (has(lbl, ['قرنية'])) return rnd(['شفافة', 'طبيعية', 'وذمة خفيفة']);
+      if (has(lbl, ['شبكية', 'قعر', 'بقعة'])) return rnd(['طبيعية', 'اعتلال خفيف', 'بلا نزوف']);
+      if (has(lbl, ['عدسة'])) return rnd(['شفافة', 'بداية إعتام', 'ساد نووي']);
+      if (has(lbl, ['ملتحمة'])) return rnd(['هادئة', 'احتقان خفيف']);
+      if (has(lbl, ['جفن'])) return rnd(['طبيعي', 'التهاب حفّة خفيف']);
+      if (has(lbl, ['حدقة', 'بؤبؤ'])) return rnd(['متفاعلة', 'منتظمة متفاعلة']);
+    }
+    return undefined;
+  }
+
+  // قيمة حقل مخصّص: دور صريح ← تخمين من التسمية/التخصّص ← نوع عام
+  function cfVal(f, spec) {
     var role = f.role || '', t = f.type;
     if (t === 'checkbox') return Math.random() < 0.5 ? true : null;
     if (t === 'select') { var o = f.options || []; return o.length ? rnd(o) : null; }
-    if (t === 'number') {
-      if (role === 'weight') return 3 + Math.floor(Math.random() * 87);
-      if (role === 'height') return 40 + Math.floor(Math.random() * 150);
-      if (role === 'hc')     return 30 + Math.floor(Math.random() * 25);
-      if (role === 'iop_od' || role === 'iop_os') return 10 + Math.floor(Math.random() * 12);
-      return 1 + Math.floor(Math.random() * 100);
-    }
-    if (t === 'date') { var d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random() * 40)); return iso(d); }
-    if (role === 'bp') return (110 + Math.floor(Math.random() * 30)) + '/' + (70 + Math.floor(Math.random() * 20));
-    if (role === 'va_od' || role === 'va_os') return rnd(['6/6','6/9','6/12','6/18','6/24']);
+    if (role === 'weight') return num(3, 90);
+    if (role === 'height') return num(40, 190);
+    if (role === 'hc')     return num(30, 55);
+    if (role === 'bp')     return bpVal();
+    if (role === 'iop_od' || role === 'iop_os') return num(10, 21);
+    if (role === 'va_od'  || role === 'va_os')  return vaVal();
+    if (role === 'lmp' && t === 'date') return lmpVal();
+    var g = labelGuess(f.label, spec);
+    if (g !== undefined && g !== null) return g;
+    if (t === 'number') return num(1, 100);
+    if (t === 'date')   return recentDate();
     return t === 'textarea' ? rnd(SENTENCES) : rnd(SHORTTEXT);
   }
-  function fillCustom(fields) {
+  function fillCustom(fields, spec) {
     var c = {};
-    (fields || []).forEach(function (f) { if (f && f.id) { var v = cfVal(f); if (v !== null && v !== undefined) c[f.id] = v; } });
+    (fields || []).forEach(function (f) { if (f && f.id) { var v = cfVal(f, spec); if (v !== null && v !== undefined) c[f.id] = v; } });
     return c;
   }
 
@@ -119,48 +181,50 @@
     return arr;
   }
 
-  function buildPatient(tpl, forceToday) {
-    tpl = tpl || { patient: [], visit: [] };
-    var name = rnd(FIRST) + (Math.random() < 0.65 ? ' ' + rnd(LAST) : '');
-    var phone = '09' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
-    var by = 1955 + Math.floor(Math.random() * 63);
-    var bd = iso(new Date(by, Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 28)));
-    // زيارات موزّعة على آخر ٩٠ يوم (كلّها ماضية): متوسط ٥، سقف ٨ — آمن لحدّ المستند ١MiB
-    var nV = 2 + Math.floor(Math.random() * 7);
-    var offs = [];
-    for (var i = 0; i < nV; i++) offs.push(Math.floor(Math.random() * (SPAN_DAYS + 1)));
-    if (forceToday) offs[0] = 0;                 // نضمن زيارة اليوم لتعمير لوحة اليوم
-    offs.sort(function (a, b) { return b - a; }); // الأقدم أولاً → الأحدث آخراً (تصاعدي بالتاريخ)
-    var visits = [];
-    for (var k = 0; k < nV; k++) {
-      visits.push({
-        date: daysAgoISO(offs[k]), slot: rnd(SLOTS), visitType: rnd(TYPES),
-        complaint: rnd(COMPLAINTS), clinicalExam: rnd(EXAMS),
-        diagnosis: rnd(DIAGS), prescription: rnd(RX),
-        custom: fillCustom(tpl.visit),          // حقول الزيارة المخصّصة (قالب الطبيب)
-        noteUpdatedAt: Date.now(), source: 'chart'
-      });
-    }
-    var pt = {
-      name: name, phone: phone, address: '', bloodType: rnd(BLOOD),
-      chronicDiseases: Math.random() < 0.3 ? rnd(CHRONIC) : '',
-      birthDate: bd, appointments: visits, totalVisits: visits.length,
-      custom: fillCustom(tpl.patient),          // حقول المريض المخصّصة (قالب الطبيب)
-      firstVisit: visits[0].date, lastVisit: visits[visits.length - 1].date,
-      seedTag: 'devseed'
-    };
-    // أقسام إضافية (كلّها داخل وثيقة المريض ⇒ صفر كتابة إضافية)
-    if (Math.random() < 0.50) pt.dentalEvents = dentalEventsFor();   // مخطّط الأسنان
-    if (Math.random() < 0.15) pt.ortho       = orthoFor();          // تقويم الأسنان
-    if (Math.random() < 0.15) pt.surgeries   = surgeriesFor();      // العمليات الجراحية
-    return pt;
+  // اختيار k عناصر مميّزة عشوائياً من مصفوفة
+  function pickN(arr, k) {
+    var a = arr.slice(), out = [];
+    for (var i = 0; i < k && a.length; i++) out.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]);
+    return out;
   }
-  // موعد بمجموعة appointments بتاريخ/حالة مُعطَيَين (يُطابق زيارة داخل الاضبارة)
-  function buildAppt(p, v) {
+  // مريض «هيكل» بلا زيارات — تُضاف زياراته من الجدول لاحقاً
+  function newPatientShell(tpl, spec) {
+    var name = rnd(FIRST) + (Math.random() < 0.7 ? ' ' + rnd(LAST) : '');
+    var phone = '09' + String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
+    var by = 1948 + Math.floor(Math.random() * 70);
+    var bd = iso(new Date(by, Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 28)));
+    var doc = {
+      name: name, phone: phone, address: '', bloodType: rnd(BLOOD),
+      chronicDiseases: Math.random() < 0.28 ? rnd(CHRONIC) : '',
+      birthDate: bd, appointments: [], totalVisits: 0,
+      custom: fillCustom(tpl.patient, spec),   // حقول المريض المخصّصة حسب التخصّص
+      firstVisit: '', lastVisit: '', seedTag: 'devseed'
+    };
+    // أقسام الأسنان تُملأ فقط لتخصّص الأسنان
+    if (spec === 'dental') {
+      if (Math.random() < 0.55) doc.dentalEvents = dentalEventsFor();
+      if (Math.random() < 0.18) doc.ortho       = orthoFor();
+      if (Math.random() < 0.18) doc.surgeries   = surgeriesFor();
+    }
+    return { doc: doc, visits: [] };
+  }
+  // زيارة واحدة بتاريخ/وقت مُعطَيَين — محتواها حسب التخصّص
+  function buildVisit(date, slot, tpl, spec) {
+    var C = specContent(spec);
+    return {
+      date: date, slot: slot, visitType: rnd(TYPES),
+      complaint: rnd(C.complaints), clinicalExam: rnd(C.exams),
+      diagnosis: rnd(C.diags), prescription: rnd(C.rx),
+      custom: fillCustom(tpl.visit, spec),     // حقول الزيارة المخصّصة حسب التخصّص
+      noteUpdatedAt: Date.now(), source: 'chart'
+    };
+  }
+  // موعد بمجموعة appointments مُشتقّ من زيارة
+  function buildApptFrom(pat, v) {
     var isToday = v.date === todayISO;
     return {
       id: genId('appt_seed'),
-      PatientName: p.name, Phone: p.phone, BirthDate: p.birthDate, Address: '',
+      PatientName: pat.doc.name, Phone: pat.doc.phone, BirthDate: pat.doc.birthDate, Address: '',
       VisitType: v.visitType, Date: v.date, Slot: v.slot,
       Status: isToday ? wStatus() : pastStatus(),   // الماضي: حالة نهائية (لا auto-NoShow)
       source: 'devseed', createdAt: Date.now()
@@ -168,42 +232,72 @@
   }
 
   var fb = null;
-  async function seed(n, log, prog, done) {
+  async function seed(cfg, log, prog, done) {
     fb = window._fb;
-    // اقرأ قالب الاضبارة (الحقول المخصّصة) مرّة واحدة لتُعبّأ في كل مريض/زيارة
-    var tpl = { patient: [], visit: [] };
+    // اقرأ الإعدادات مرّة: القالب + التخصّص المختار (تلقائي)
+    var tpl = { patient: [], visit: [] }, spec = 'general', specName = '';
     try {
       var s = await fb.getDoc('settings', 'doctor');
-      var ct = (s && s.exists() && s.data().chartTemplate) || {};
+      var data = (s && s.exists() && s.data()) || {};
+      var ct = data.chartTemplate || {};
       tpl.patient = Array.isArray(ct.patient) ? ct.patient : [];
       tpl.visit   = Array.isArray(ct.visit)   ? ct.visit   : [];
-      log('القالب: ' + tpl.patient.length + ' حقل مريض · ' + tpl.visit.length + ' حقل زيارة');
-    } catch (e) { log('⚠ تعذّر قراءة القالب — سأملأ الحقول المدمجة فقط'); }
+      specName = data.specialty || '';
+      spec = detectSpecialty(specName);
+      log('التخصّص: «' + (specName || 'عام') + '» → ' + spec + ' · القالب ' + tpl.patient.length + '+' + tpl.visit.length + ' حقل');
+    } catch (e) { log('⚠ تعذّر قراءة الإعدادات — محتوى عام'); }
 
-    var apptWinStart = daysAgoISO(APPT_WINDOW);   // مواعيد appointments لآخر ٤٥ يوم فقط
-    var batch = fb.batch(), ops = 0, writes = 0, ptDone = 0, stopped = false, err = 0;
-    async function flush() { if (!ops) return; await batch.commit(); batch = fb.batch(); ops = 0; }
+    var days = SPAN_DAYS, perDay = Math.max(1, Math.min(SLOTS.length, cfg.perDay || 6));
+    var P = Math.max(1, Math.min(1000, cfg.patients || 180));
 
-    for (var i = 0; i < n; i++) {
-      if (writes >= WRITE_BUDGET) { stopped = true; break; }   // قاطع أمان حصّة اليوم
-      try {
-        var p = buildPatient(tpl, i < TODAY_APPTS);            // أول ٥٠ مريض: زيارة اليوم مضمونة
-        batch.set(fb.docRef('patients', genId('seed')), p); ops++; writes++;
-        for (var k = 0; k < p.appointments.length; k++) {
-          var v = p.appointments[k];
-          if (v.date >= apptWinStart) {                        // موعد فقط ضمن النافذة المقروءة
-            batch.set(fb.docRef('appointments', genId('appt_seed')), buildAppt(p, v)); ops++; writes++;
-          }
-        }
-        ptDone++;
-        if (ops >= BATCH_MAX) await flush();
-        if (prog && ptDone % 25 === 0) prog(ptDone, n, writes);
-      } catch (e) { err++; log('✕ ' + (e.code || e.message)); }
+    // ١) بِركة مرضى بحقول مخصّصة حسب التخصّص
+    var patients = [];
+    for (var i = 0; i < P; i++) patients.push(newPatientShell(tpl, spec));
+
+    // ٢) جدول واقعي: perDay مواعيد/يوم عبر آخر days يوم — كل موعد = زيارة لمريض عشوائي
+    var apptData = [];
+    for (var d = days - 1; d >= 0; d--) {
+      var date = daysAgoISO(d);
+      var slots = pickN(SLOTS, perDay);
+      for (var j = 0; j < slots.length; j++) {
+        var pat = patients[Math.floor(Math.random() * patients.length)];
+        var v = buildVisit(date, slots[j], tpl, spec);
+        pat.visits.push(v);
+        apptData.push(buildApptFrom(pat, v));
+      }
     }
-    try { await flush(); } catch (e) { err++; log('✕ ' + (e.code || e.message)); }
-    if (prog) prog(ptDone, n, writes);
-    if (stopped) log('⛔ بلغتَ حدّ اليوم الآمن (' + WRITE_BUDGET + ' كتابة) — أكمل الباقي غداً');
-    done(ptDone, writes, err, stopped);
+    // ٣) أنهِ وثائق المرضى (اضمن زيارة لكل مريض، رتّب، احسب الإجماليات)
+    var patDocs = [];
+    patients.forEach(function (p) {
+      if (!p.visits.length) p.visits.push(buildVisit(daysAgoISO(Math.floor(Math.random() * days)), rnd(SLOTS), tpl, spec));
+      p.visits.sort(function (a, b) { return a.date.localeCompare(b.date); });
+      p.doc.appointments = p.visits;
+      p.doc.totalVisits = p.visits.length;
+      p.doc.firstVisit = p.visits[0].date;
+      p.doc.lastVisit = p.visits[p.visits.length - 1].date;
+      patDocs.push(p.doc);
+    });
+
+    // ٤) كتابة بدفعات (مرضى ثم مواعيد) مع قاطع الحصّة
+    var totalOps = patDocs.length + apptData.length;
+    var batch = fb.batch(), ops = 0, writes = 0, err = 0, stopped = false;
+    async function flush() { if (!ops) return; await batch.commit(); batch = fb.batch(); ops = 0; }
+    async function put(colName, id, docData) {
+      if (writes >= WRITE_BUDGET) { stopped = true; return; }
+      batch.set(fb.docRef(colName, id), docData); ops++; writes++;
+      if (ops >= BATCH_MAX) await flush();
+      if (prog && writes % 50 === 0) prog(writes, totalOps);
+    }
+    try {
+      for (var pi = 0; pi < patDocs.length && !stopped; pi++) await put('patients', genId('seed'), patDocs[pi]);
+      for (var ai = 0; ai < apptData.length && !stopped; ai++) await put('appointments', apptData[ai].id, apptData[ai]);
+      await flush();
+    } catch (e) { err++; log('✕ ' + (e.code || e.message)); }
+
+    if (prog) prog(writes, totalOps);
+    if (stopped) log('⛔ بلغتَ حدّ اليوم الآمن (' + WRITE_BUDGET + ' كتابة) — أكمل غداً');
+    log('✅ ' + patDocs.length + ' مريض · ' + apptData.length + ' موعد (' + perDay + '/يوم × ' + days + ' يوم)');
+    done(patDocs.length, apptData.length, writes, err, stopped);
   }
   // حذف مصفوفة مراجع بدفعات ≤BATCH_MAX
   async function delRefs(refs) {
@@ -255,11 +349,13 @@
         + '<b style="font-size:.95rem;">🌱 بذّار تجريبي</b>'
         + '<button id="dsX" style="border:none;background:none;cursor:pointer;color:#94a3b8;font-size:1.1rem;">×</button></div>'
       + '<div style="font-size:.72rem;color:#f59e0b;font-weight:700;margin-bottom:12px;">أداة داخلية — احذفها قبل البيع</div>'
-      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
-        + '<label style="font-size:.82rem;font-weight:700;">عدد المرضى</label>'
-        + '<input id="dsN" type="number" value="3000" min="1" max="5000" style="width:84px;height:36px;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;font-size:1rem;font-family:inherit;"></div>'
+      + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap;">'
+        + '<label style="font-size:.8rem;font-weight:700;">مرضى</label>'
+        + '<input id="dsN" type="number" value="180" min="1" max="1000" style="width:66px;height:36px;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;font-size:1rem;font-family:inherit;">'
+        + '<label style="font-size:.8rem;font-weight:700;">مواعيد/يوم</label>'
+        + '<input id="dsPd" type="number" value="6" min="1" max="17" style="width:52px;height:36px;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;font-size:1rem;font-family:inherit;"></div>'
       + '<div id="dsEst" style="font-size:.72rem;color:#64748b;margin-bottom:10px;"></div>'
-      + '<button id="dsGo" style="width:100%;height:42px;border:none;border-radius:10px;background:#0d9488;color:#fff;font-weight:800;font-family:inherit;cursor:pointer;font-size:.9rem;margin-bottom:8px;">بذر مرضى + زيارات ٣ أشهر</button>'
+      + '<button id="dsGo" style="width:100%;height:42px;border:none;border-radius:10px;background:#0d9488;color:#fff;font-weight:800;font-family:inherit;cursor:pointer;font-size:.88rem;margin-bottom:8px;">بذر مرضى + جدول ٣ أشهر</button>'
       + '<button id="dsWipe" style="width:100%;height:38px;border:1.5px solid #fca5a5;border-radius:10px;background:#fee2e2;color:#dc2626;font-weight:800;font-family:inherit;cursor:pointer;font-size:.82rem;">🧹 امسح بيانات البذّار + البوت</button>'
       + '<div id="dsProg" style="margin-top:10px;font-size:.78rem;font-weight:700;color:#0d9488;min-height:1em;"></div>'
       + '<div id="dsLog" style="margin-top:8px;max-height:130px;overflow-y:auto;font-size:.75rem;line-height:1.7;color:#475569;"></div>';
@@ -269,29 +365,31 @@
     var progEl = box.querySelector('#dsProg');
     var estEl  = box.querySelector('#dsEst');
     var nInput = box.querySelector('#dsN');
+    var pdInput = box.querySelector('#dsPd');
     var goBtn  = box.querySelector('#dsGo');
     var wipeBtn = box.querySelector('#dsWipe');
     function log(t) { var d = document.createElement('div'); d.textContent = t; logEl.prepend(d); }
     var fmt = function (x) { return x.toLocaleString('en-US'); };
 
-    // تقدير الكتابات: مريض (١) + مواعيد النافذة (~٢٫٥) ≈ ن×٣٫٥
+    // تقدير الكتابات = مرضى + (مواعيد/يوم × ٩٠)
     function refreshEst() {
-      var n = Math.max(1, Math.min(5000, +nInput.value || 0));
-      var est = Math.round(n * 3.5);
-      var pct = Math.round(est / 20000 * 100);
-      estEl.innerHTML = '≈ ' + fmt(est) + ' كتابة (~' + pct + '٪ من حصّة اليوم ٢٠٬٠٠٠)'
-        + (est > WRITE_BUDGET ? ' <span style="color:#dc2626;font-weight:700;">— سيتوقّف عند ' + fmt(WRITE_BUDGET) + '</span>' : '');
+      var n = Math.max(1, Math.min(1000, +nInput.value || 0));
+      var pd = Math.max(1, Math.min(17, +pdInput.value || 6));
+      var appts = pd * 90, est = n + appts;
+      estEl.innerHTML = '≈ ' + fmt(est) + ' كتابة · ' + fmt(appts) + ' موعد (' + pd + '/يوم × ٩٠)'
+        + (est > WRITE_BUDGET ? ' <span style="color:#dc2626;font-weight:700;">— يتوقّف عند ' + fmt(WRITE_BUDGET) + '</span>' : '');
     }
-    nInput.oninput = refreshEst; refreshEst();
+    nInput.oninput = refreshEst; pdInput.oninput = refreshEst; refreshEst();
 
     box.querySelector('#dsX').onclick = function () { box.remove(); };
     goBtn.onclick = function () {
-      var n = Math.max(1, Math.min(5000, +nInput.value || 3000));
+      var n = Math.max(1, Math.min(1000, +nInput.value || 180));
+      var pd = Math.max(1, Math.min(17, +pdInput.value || 6));
       goBtn.disabled = true; wipeBtn.disabled = true; goBtn.textContent = 'جارٍ البذر…';
-      var prog = function (done, total, writes) { progEl.textContent = Math.round(done / total * 100) + '٪ · ' + fmt(done) + '/' + fmt(total) + ' مريض · ' + fmt(writes) + ' كتابة'; };
-      seed(n, log, prog, function (ptDone, writes, err, stopped) {
-        goBtn.disabled = false; wipeBtn.disabled = false; goBtn.textContent = 'بذر مرضى + زيارات ٣ أشهر';
-        progEl.textContent = (stopped ? '⛔ توقّف: ' : '✅ تمّ: ') + fmt(ptDone) + ' مريض · ' + fmt(writes) + ' كتابة' + (err ? ' · ' + err + ' ✕' : '');
+      var prog = function (writes, total) { progEl.textContent = Math.round(writes / (total || 1) * 100) + '٪ · ' + fmt(writes) + '/' + fmt(total) + ' كتابة'; };
+      seed({ patients: n, perDay: pd }, log, prog, function (patC, apptC, writes, err, stopped) {
+        goBtn.disabled = false; wipeBtn.disabled = false; goBtn.textContent = 'بذر مرضى + جدول ٣ أشهر';
+        progEl.textContent = (stopped ? '⛔ توقّف: ' : '✅ تمّ: ') + fmt(patC) + ' مريض · ' + fmt(apptC) + ' موعد' + (err ? ' · ' + err + ' ✕' : '');
         log('— حدّث الصفحة (F5) إن لم تظهر البيانات فوراً');
       });
     };
