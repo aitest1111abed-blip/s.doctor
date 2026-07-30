@@ -2060,7 +2060,28 @@
 .dc-summary{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px;}
 .dc-sum-chip{display:inline-flex;align-items:center;}
 .dc-legend-wrap{display:flex;flex-wrap:wrap;gap:7px;}
-.dc-events-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:7px;max-height:340px;overflow-y:auto;padding-left:2px;align-content:start;}
+.dc-events-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;max-height:min(58vh,520px);overflow-y:auto;padding-inline-end:2px;align-content:start;}
+/* بطاقة حدث مفصّلة (أوسع تفصيلاً من الملخّص) */
+.dc-ev{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 11px;display:flex;flex-direction:column;gap:7px;transition:border-color .15s,box-shadow .15s;}
+.dc-ev:hover{border-color:var(--border-strong);box-shadow:0 4px 12px -5px rgba(15,23,42,.16);}
+.dc-ev-top{display:flex;align-items:center;gap:8px;}
+.dc-ev-tooth{background:var(--primary);color:#fff;border-radius:7px;padding:2px 9px;font-weight:900;font-size:.75rem;font-family:var(--font-num);flex-shrink:0;}
+.dc-ev-tname{font-weight:800;font-size:.8rem;color:var(--text-primary);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dc-ev-date{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text-muted);font-weight:600;flex-shrink:0;}
+.dc-ev-body{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.dc-ev-kind{font-size:.63rem;font-weight:800;padding:2px 8px;border-radius:999px;letter-spacing:.3px;flex-shrink:0;}
+.dc-ev-kind.find{background:rgba(239,68,68,.13);color:#ef4444;}
+.dc-ev-kind.treat{background:var(--primary-faint);color:var(--primary);}
+.dc-ev-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.dc-ev-label{font-weight:800;font-size:.82rem;color:var(--text-primary);}
+.dc-ev-surf{font-size:.72rem;font-weight:700;}
+.dc-ev-note{font-size:.75rem;color:var(--text-secondary);line-height:1.55;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;}
+/* دليل الألوان بجانب نموذج الأسنان (المربّع) */
+.dc-arch-layout{display:flex;align-items:stretch;gap:16px;}
+.dc-arch-col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+.dc-arch-legend{flex:0 0 clamp(180px,24%,270px);display:flex;flex-direction:column;justify-content:center;gap:12px;border-inline-start:1.5px solid var(--border);padding-inline-start:16px;}
+.dc-arch-legend-title{font-size:.74rem;font-weight:800;color:var(--primary);letter-spacing:.3px;}
+@media(max-width:900px){.dc-arch-layout{flex-direction:column;}.dc-arch-legend{flex-basis:auto;border-inline-start:none;border-top:1.5px solid var(--border);padding-inline-start:0;padding-top:14px;}}
 .te-group-lb{display:flex;align-items:center;gap:6px;color:var(--primary);}
 @media(max-width:1024px){
   .dc-page-body{grid-template-columns:1fr;}

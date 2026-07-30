@@ -6456,15 +6456,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (!evs.length) { box.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-muted);font-size:.8rem;">لا توجد أحداث بعد — اضغط على أي سن لتسجيل أول حدث</div>'; return; }
       box.innerHTML = evs.map(function(e) {
         var def = dcEventDef(e);
-        return '<div style="display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:.8rem;flex-wrap:wrap;">'
-          + '<span style="background:var(--primary);color:#fff;border-radius:6px;padding:2px 9px;font-weight:900;font-size:.75rem;flex-shrink:0;">' + escapeHtml(String(e.tooth)) + '</span>'
-          + '<span style="width:9px;height:9px;border-radius:3px;background:' + def.color + ';flex-shrink:0;"></span>'
-          + '<span style="font-weight:800;color:var(--text-primary);flex:1;min-width:110px;">' + escapeHtml(def.label)
-          + (e.surfaces && e.surfaces.length ? ' <span style="font-weight:700;color:' + def.color + ';font-size:.7rem;">[' + e.surfaces.join('،') + ']</span>' : '')
-          + (e.note ? '<span style="color:var(--text-muted);font-weight:600;font-size:.74rem;"> — ' + escapeHtml(e.note) + '</span>' : '') + '</span>'
-          + '<span style="font-size:.7rem;color:var(--text-muted);flex-shrink:0;"><i class="far fa-calendar" style="font-size:.62rem;"></i> ' + formatDateAr(e.date) + '</span>'
-          + (e.ts ? '<button class="dc-tl-del" onclick="event.stopPropagation();dcDeleteEvent(' + e.ts + ')" title="حذف الحدث"><i class="fas fa-trash"></i></button>' : '')
-          + '</div>';
+        var kindCls = def.kind === 'finding' ? 'find' : (def.kind === 'treatment' ? 'treat' : '');
+        var kindTxt = def.kind === 'finding' ? 'موجود' : (def.kind === 'treatment' ? 'معالجة' : '');
+        var tName = (typeof dcToothName === 'function') ? dcToothName(e.tooth) : '';
+        return '<div class="dc-ev">'
+          + '<div class="dc-ev-top">'
+            + '<span class="dc-ev-tooth">' + escapeHtml(String(e.tooth)) + '</span>'
+            + '<span class="dc-ev-tname">' + escapeHtml(tName) + '</span>'
+            + '<span class="dc-ev-date"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + formatDateAr(e.date) + '</span>'
+            + (e.ts ? '<button class="dc-tl-del" onclick="event.stopPropagation();dcDeleteEvent(' + e.ts + ')" title="حذف الحدث"><i class="fas fa-trash"></i></button>' : '')
+          + '</div>'
+          + '<div class="dc-ev-body">'
+            + (kindTxt ? '<span class="dc-ev-kind ' + kindCls + '">' + kindTxt + '</span>' : '')
+            + '<span class="dc-ev-dot" style="background:' + def.color + ';"></span>'
+            + '<span class="dc-ev-label">' + escapeHtml(def.label) + '</span>'
+            + (e.surfaces && e.surfaces.length ? '<span class="dc-ev-surf" style="color:' + def.color + ';">[' + escapeHtml(e.surfaces.join('،')) + ']</span>' : '')
+          + '</div>'
+          + (e.note ? '<div class="dc-ev-note">' + escapeHtml(e.note) + '</div>' : '')
+        + '</div>';
       }).join('');
     }
     window.openDentalChart = function(pid) {

@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=173">
+  <link rel="stylesheet" href="styles.css?v=174">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -1499,9 +1499,17 @@
         </div>
         <div id="dcArchView" class="hidden">
           <div class="dc-card">
-            <div class="dc-jaw-label">الفك العلوي</div>
-            <div class="dc-arch" id="dcArch"></div>
-            <div class="dc-jaw-label">الفك السفلي</div>
+            <div class="dc-arch-layout">
+              <div class="dc-arch-col">
+                <div class="dc-jaw-label">الفك العلوي</div>
+                <div class="dc-arch" id="dcArch"></div>
+                <div class="dc-jaw-label">الفك السفلي</div>
+              </div>
+              <div class="dc-arch-legend">
+                <div class="dc-arch-legend-title">دليل الألوان</div>
+                <div id="dcLegend" class="dc-legend-wrap"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1533,11 +1541,7 @@
         </div>
       </aside>
       <aside class="dc-page-side">
-        <div class="dc-card">
-          <h4 class="dc-card-title"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.28-.44-.65-.44-1.12a1.64 1.64 0 0 1 1.67-1.67h1.99c3.05 0 5.55-2.5 5.55-5.55C21.97 6.01 17.46 2 12 2z"/></svg> دليل الألوان</h4>
-          <div id="dcLegend" class="dc-legend-wrap"></div>
-        </div>
-        <div class="dc-card">
+        <div class="dc-card" style="grid-column:1/-1;">
           <h4 class="dc-card-title"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> سجل الأحداث <span id="dcEventsCount" class="dc-count"></span></h4>
           <div id="dcEventsList" class="dc-events-list"></div>
         </div>
@@ -2035,9 +2039,9 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=173"></script>
+  <script src="script.js?v=174"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
-  <script src="dev-seed.js?v=173"></script>
+  <script src="dev-seed.js?v=174"></script>
   <script>
     function copyPhone(btn) {
       navigator.clipboard.writeText('+491773052955').then(function() {
