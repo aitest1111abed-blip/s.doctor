@@ -3052,8 +3052,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       saveSettingsToLocal(settings);
       // حدّث زرّ الدخول في الاضبارة إن كانت مفتوحة
       var _sbtn = document.getElementById('surgeryArchiveBtn');
-      if (_sbtn) _sbtn.style.display = settings.surgicalArchive ? 'inline-flex' : 'none';
+      if (_sbtn) _sbtn.style.display = settings.surgicalArchive ? 'flex' : 'none';
       if (settings.surgicalArchive && typeof _surgeryUpdateBadge === 'function' && currentPatientIdForVisit) _surgeryUpdateBadge(currentPatientIdForVisit);
+      if (typeof _pfSyncSectionsMenu === 'function') _pfSyncSectionsMenu();
     };
     (function() { try { if (localStorage.getItem(THEME_KEY) === 'dark') document.body.classList.add('theme-dark'); } catch (e) {} })();
     document.addEventListener('DOMContentLoaded', function() { syncThemeToggle(document.body.classList.contains('theme-dark')); });
@@ -4111,18 +4112,61 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       renderChartVisits(pid);
       // ★ زر الأداة السريرية في رأس الأرشيف: يظهر فقط إن وُجد حقل بزيارتين فأكثر فيهما قيم (يفتح مودال openSpecialtyTool)
       var _sbtn = document.getElementById('specialtyToolBtn');
-      if (_sbtn) _sbtn.style.display = (typeof _scBuildBody === 'function' && _scBuildBody(pid)) ? 'inline-flex' : 'none';
-      // 🦷 زر مخطط الأسنان في رأس الأرشيف: يظهر عند تفعيل الأسنان
+      if (_sbtn) _sbtn.style.display = (typeof _scBuildBody === 'function' && _scBuildBody(pid)) ? 'flex' : 'none';
+      // 🦷 عنصر مخطط الأسنان في القائمة: يظهر عند تفعيل الأسنان
       var _dbtn = document.getElementById('dentalArchiveBtn');
-      if (_dbtn) _dbtn.style.display = _dentalEnabled() ? 'inline-flex' : 'none';
-      // 🩺 زر العمليات الجراحية: يظهر عند تفعيل الميزة، مع شارة المتأخّرة
+      if (_dbtn) _dbtn.style.display = _dentalEnabled() ? 'flex' : 'none';
+      // 🩺 عنصر العمليات الجراحية: يظهر عند تفعيل الميزة، مع شارة المتأخّرة
       if (typeof _surgeryUpdateBadge === 'function') _surgeryUpdateBadge(pid);
-      // 🦷 زر تقويم الأسنان: يظهر لتخصّص الأسنان، مع شارة الدورات النشطة
+      // 🦷 عنصر تقويم الأسنان: يظهر لتخصّص الأسنان، مع شارة الدورات النشطة
       if (typeof _orthoUpdateBadge === 'function') _orthoUpdateBadge(pid);
+      if (typeof _pfSyncSectionsMenu === 'function') _pfSyncSectionsMenu();   // أظهر السهم إن توفّر قسم
       if (typeof chartResetBooking === 'function') chartResetBooking(pid);
       document.getElementById('patientDetailsModal').classList.remove('hidden');
       var _rail = document.getElementById('mainRail'); if (_rail) _rail.style.display = 'none';   // إخفاء السايدبار أثناء فتح الإضبارة
     };
+
+    // ── قائمة أقسام المريض المنسدلة (تُفتح بالسهم جنب الاسم) ──
+    window.togglePfSections = function(e) {
+      if (e) { e.stopPropagation(); e.preventDefault(); }
+      var panel = document.getElementById('pfSectionsPanel');
+      var btn = document.getElementById('pfSectionsBtn');
+      if (!panel || !btn) return;
+      if (panel.hasAttribute('hidden')) {
+        var nm = document.getElementById('modalPatientName');
+        var ph = document.getElementById('modalPatientPhone');
+        var av = document.getElementById('chartAvatar');
+        var mN = document.getElementById('pfMenuName'); if (mN && nm) mN.textContent = nm.textContent;
+        var mP = document.getElementById('pfMenuPhone'); if (mP && ph) mP.textContent = ph.textContent;
+        var mA = document.getElementById('pfMenuAvatar'); if (mA && av) mA.textContent = (av.textContent || '؟').trim() || '؟';
+        panel.removeAttribute('hidden'); btn.setAttribute('aria-expanded', 'true');
+      } else {
+        panel.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', 'false');
+      }
+    };
+    window.closePfSections = function() {
+      var panel = document.getElementById('pfSectionsPanel'), btn = document.getElementById('pfSectionsBtn');
+      if (panel && !panel.hasAttribute('hidden')) { panel.setAttribute('hidden', ''); if (btn) btn.setAttribute('aria-expanded', 'false'); }
+    };
+    window.pfSectionGo = function(fnName) {
+      closePfSections();
+      if (typeof window[fnName] === 'function') window[fnName](currentPatientIdForVisit);
+    };
+    // يُظهر السهم فقط إن توفّر قسم واحد على الأقل (وإلا فالقائمة فارغة)
+    window._pfSyncSectionsMenu = function() {
+      var menu = document.getElementById('pfSectionsMenu'); if (!menu) return;
+      var any = ['specialtyToolBtn', 'dentalArchiveBtn', 'orthoArchiveBtn', 'surgeryArchiveBtn'].some(function(id) {
+        var el = document.getElementById(id); return el && el.style.display !== 'none';
+      });
+      menu.style.display = any ? 'inline-flex' : 'none';
+      if (!any) closePfSections();
+    };
+    // إغلاق القائمة بالنقر خارجها أو بمفتاح Esc
+    document.addEventListener('click', function(e) {
+      var menu = document.getElementById('pfSectionsMenu');
+      if (menu && !menu.contains(e.target)) closePfSections();
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePfSections(); });
 
     function _visitSection(title, icon, text) {
       text = (text || '').trim();
@@ -6453,7 +6497,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var btn = document.getElementById('surgeryArchiveBtn');
       var badge = document.getElementById('surgeryBadge');
       if (!btn) return;
-      btn.style.display = _surgeryEnabled() ? 'inline-flex' : 'none';
+      btn.style.display = _surgeryEnabled() ? 'flex' : 'none';
       if (!badge) return;
       var n = _surgeryOverdue(allPatients[pid]);
       if (n > 0) { badge.textContent = n; badge.style.display = 'flex'; }
@@ -6696,7 +6740,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var btn = document.getElementById('orthoArchiveBtn');
       var badge = document.getElementById('orthoBadge');
       if (!btn) return;
-      btn.style.display = _orthoEnabled() ? 'inline-flex' : 'none';
+      btn.style.display = _orthoEnabled() ? 'flex' : 'none';
       if (!badge) return;
       var n = ((allPatients[pid] || {}).ortho || []).filter(function(o){ return o.status === 'active'; }).length;
       if (n > 0) { badge.textContent = n; badge.style.display = 'flex'; }
