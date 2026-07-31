@@ -136,11 +136,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     const daysAr = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
     const monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 
-    const today = new Date(); today.setHours(0,0,0,0);
-    const todayStr = toLocalISODate(today);
+    let today = new Date(); today.setHours(0,0,0,0);
+    let todayStr = toLocalISODate(today);
     const maxFutureDate = new Date(); maxFutureDate.setMonth(maxFutureDate.getMonth() + 3); maxFutureDate.setHours(23,59,59,999);
-    const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); thirtyDaysAgo.setHours(0,0,0,0);
-    const thirtyDaysAgoStr = toLocalISODate(thirtyDaysAgo);
+    let thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); thirtyDaysAgo.setHours(0,0,0,0);
+    let thirtyDaysAgoStr = toLocalISODate(thirtyDaysAgo);
+    // تدوير يوميّ: يُعيد حساب «اليوم» للوحات المفتوحة عبر منتصف الليل (بدل قيمة مجمّدة من وقت التحميل)
+    setInterval(function () {
+      var s = toLocalISODate(new Date());
+      if (s === todayStr) return;
+      today = new Date(); today.setHours(0, 0, 0, 0);
+      todayStr = s;
+      thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); thirtyDaysAgo.setHours(0, 0, 0, 0);
+      thirtyDaysAgoStr = toLocalISODate(thirtyDaysAgo);
+      try {
+        if (typeof renderCalendar === 'function') renderCalendar();
+        if (typeof _refreshServerStats === 'function') _refreshServerStats();
+      } catch (e) { console.error('[dayRollover]', e); }
+    }, 60000);
 
     let allRecords = [];
     let allPatients = {};
@@ -414,7 +427,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
           // ====== تحويل المواعيد المؤكدة الماضية تلقائياً إلى "لم يحضر" ======
           (function autoMarkNoShow() {
-            var todayStr = new Date().toISOString().slice(0, 10);
+            var todayStr = toLocalISODate(new Date());   // محلّي لا UTC — يطابق باقي المنطق ويتّسق مع الممرضة
             var toMark = allRecords.filter(function(r) {
               return r.Status === 'Accepted' && r.Date && r.Date < todayStr;
             });
@@ -4038,30 +4051,40 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // ===== فتح الإضبارة =====
     // فتح إضبارة المريض من بطاقة الموعد (كليك يمين على الجدول)
+    // لا تُنشَأ إضبارة جديدة هنا: إن لم توجد إضبارة (أوّل موعد للمريض) تظهر رسالة فقط —
+    // الإضبارة تُنشأ عند تسجيل حضوره من الممرّضة.
     window.openChartFromAppt = function(apptId) {
       var r = (allRecords || []).find(function(x) { return x.id === apptId; });
       if (!r) { showToast('الموعد غير موجود', 'error'); return; }
+      // ١) موعد مرتبط بمريض مسجّل (linkedPatientId) → افتح إضبارته مباشرة
+      if (r.linkedPatientId) {
+        if (allPatients[r.linkedPatientId]) openPatientDetailsModal(r.linkedPatientId);
+        else _openServedPatient(r.linkedPatientId, r.PatientName);
+        return;
+      }
       var ph = normalizePhone(r.Phone || r.phone || '');
+      // ٢) طابق بالهاتف بين المرضى المحمَّلين
       var pid = Object.keys(allPatients).find(function(k) {
         return ph && normalizePhone(allPatients[k].phone || '') === ph;
       });
       if (pid) { openPatientDetailsModal(pid); return; }
-      // لا توجد إضبارة لهذا المريض — أنشئها من بيانات الموعد
-      var newP = {
-        name: r.PatientName || '-', phone: r.Phone || '', address: r.Address || '',
-        bloodType: '', chronicDiseases: '', birthDate: '', appointments: [], totalVisits: 0,
-        // الحقل موجود دائماً ولو فارغاً: Firestore يُخفي أي مستند ينقصه حقل الترتيب،
-        // فمريض بلا زيارات كان سيختفي من أي قائمة مرتّبة بآخر زيارة.
-        lastVisit: ''
-      };
-      window._fb.addDoc(window._fb.col('patients'), newP)
-        .then(function(ref) {
-          allPatients[ref.id] = Object.assign({ id: ref.id }, newP);
-          showToast('تم إنشاء إضبارة جديدة لهذا المريض', 'success');
-          openPatientDetailsModal(ref.id);
-        })
-        .catch(function(e) { console.error(e); showToast('تعذّر إنشاء الإضبارة', 'error'); });
+      // ٣) ابحث في الخادم بالهاتف (قد تكون له إضبارة خارج المحمَّلين الأربعين)
+      if (ph && window._fb.where) {
+        window._fb.getDocs(window._fb.query(window._fb.col('patients'), window._fb.where('phone', '==', r.Phone)))
+          .then(function(snap) {
+            var d = snap.docs && snap.docs[0];
+            if (d) { allPatients[d.id] = Object.assign({ id: d.id }, d.data()); openPatientDetailsModal(d.id); }
+            else _noChartMsg(r);
+          })
+          .catch(function(e) { console.error(e); _noChartMsg(r); });
+        return;
+      }
+      _noChartMsg(r);
     };
+    // لا إضبارة لهذا المريض — أوّل موعد له
+    function _noChartMsg(r) {
+      showToast('«' + ((r && r.PatientName) || 'هذا المريض') + '» لا يمتلك إضبارة بعد — هذا أوّل موعد له؛ تُنشأ إضبارته عند تسجيل حضوره', 'info');
+    }
 
 
     // فتح إضبارة المريض الذي أرسلته الممرّضة (يجلبه من Firestore إن لم يكن محمّلاً)

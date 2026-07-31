@@ -2285,6 +2285,23 @@
 .pf-alerttext{font-size:.88rem;color:var(--text-primary);font-weight:700;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;}
 .pf-alerttext b{color:#dc2626;font-weight:800;}
 
+/* ══ اضبارة المريض على الهاتف فقط — مطابقة الشكل المطلوب ══ */
+@media (max-width:640px){
+  .pf-avatar{width:52px;height:52px;font-size:1.3rem;}
+  .pf-name{font-size:1.2rem;}
+  .pf-head{padding:12px 14px;gap:12px;}
+  /* تنبيه الحساسية = شريط محدّد واضح بإطار أحمر و⚠️، بمنتصف البطاقة */
+  .pf-alertline{justify-content:center;padding:11px 14px;margin:2px 0 12px;background:rgba(239,68,68,.09);border:1.5px solid rgba(239,68,68,.4);border-radius:12px;}
+  .pf-alertline::before{content:"⚠️";font-size:1rem;order:-1;}
+  .pf-alerttag{background:none;color:#ef4444;padding:0;font-size:.9rem;font-weight:800;}
+  .pf-alerttext{color:#ef4444;text-align:center;font-weight:800;}
+  .pf-alerttext b{color:#ef4444;}
+  /* صفوف المعلومات أوضح وأوسع */
+  .pf-tile{padding:11px 2px;}
+  .pf-tile .lab{font-size:.82rem;}
+  .pf-tile .val{font-size:.92rem;}
+}
+
 /* ═══ الهوية البصرية الموحّدة للأزرار ═══
    كل زرّ «تركوازي مصمت» صار: خلفية بيضاء + حدّ بلون النافبار (تركوازي غامق)
    + نصّ أسود + أيقونة تركوازية. الدلالات وحدها تحتفظ بلونها (حذف أحمر، واتساب
