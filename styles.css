@@ -2285,47 +2285,31 @@
 .pf-alerttext{font-size:.88rem;color:var(--text-primary);font-weight:700;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;}
 .pf-alerttext b{color:#dc2626;font-weight:800;}
 
-/* ══ اضبارة المريض على الهاتف — تحجيم وتباعد مريح لكل العناصر (بلا تلاصق، مطابقة المرجع) ══ */
+/* ══ اضبارة المريض على الهاتف — أحجام صغيرة وتباعد واضح بلا تلاصق (مطابقة المرجع) ══ */
 @media (max-width:640px){
-  /* الهيدر: أفاتار واسم أكبر + أزرار كبيرة موزّعة مريح */
-  #patientDetailsModal .pf-head{ padding:14px; gap:10px; }
-  #patientDetailsModal .pf-avatar{ width:54px; height:54px; font-size:1.35rem; }
-  #patientDetailsModal .pf-name{ font-size:1.28rem; }
-  #patientDetailsModal .pf-phone{ font-size:.92rem; }
-  #patientDetailsModal .pf-head-actions{ gap:10px; }
+  /* الهيدر: أزرار صغيرة موحّدة بتباعد واضح، بلا التفاف */
+  #patientDetailsModal .pf-head{ padding:12px; gap:8px; flex-wrap:nowrap; }
+  #patientDetailsModal .pf-avatar{ width:42px; height:42px; font-size:1.02rem; }
+  #patientDetailsModal .pf-name{ font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #patientDetailsModal .pf-phone{ font-size:.78rem; }
+  #patientDetailsModal .pf-head-actions{ gap:8px; flex-wrap:nowrap; }
   #patientDetailsModal .pf-actbtn,
-  #patientDetailsModal .pf-close{ width:46px; height:46px; border-radius:14px; font-size:1.12rem; }
-  #patientDetailsModal .pf-menu-trigger{ width:30px; height:30px; }
-  #patientDetailsModal .pf-menu-trigger svg{ width:18px; height:18px; }
+  #patientDetailsModal .pf-close{ width:36px; height:36px; border-radius:10px; font-size:.86rem; }
+  #patientDetailsModal .pf-menu-trigger{ width:24px; height:24px; }
 
-  /* البطاقات والعناوين والأزرار — أوسع وأوضح */
-  #patientDetailsModal .glass-card{ padding:18px !important; border-radius:18px; }
-  #patientDetailsModal h4{ font-size:1.04rem !important; }
-  #patientDetailsModal .pf-editbtn{ font-size:.86rem; padding:9px 15px; border-radius:11px; }
-  #patientDetailsModal .btn-primary{ padding:12px 18px !important; font-size:.92rem !important; border-radius:12px; }
-
-  /* تنبيه الحساسية = شريط محدّد واضح بإطار أحمر و⚠️ بمنتصف البطاقة */
-  #patientDetailsModal .pf-alertline{ justify-content:center; padding:12px 14px; margin:2px 0 12px; background:rgba(239,68,68,.09); border:1.5px solid rgba(239,68,68,.4); border-radius:12px; }
-  #patientDetailsModal .pf-alertline::before{ content:"⚠️"; font-size:1rem; order:-1; }
-  #patientDetailsModal .pf-alerttag{ background:none; color:#ef4444; padding:0; font-size:.92rem; font-weight:800; }
-  #patientDetailsModal .pf-alerttext{ color:#ef4444; text-align:center; font-weight:800; font-size:.95rem; }
+  /* تنبيه الحساسية = شريط محدّد بإطار أحمر و⚠️ (مطابق المرجع) */
+  #patientDetailsModal .pf-alertline{ justify-content:center; padding:9px 12px; margin:2px 0 10px; background:rgba(239,68,68,.09); border:1.5px solid rgba(239,68,68,.4); border-radius:11px; }
+  #patientDetailsModal .pf-alertline::before{ content:"⚠️"; font-size:.9rem; order:-1; }
+  #patientDetailsModal .pf-alerttag{ background:none; color:#ef4444; padding:0; font-size:.82rem; font-weight:800; }
+  #patientDetailsModal .pf-alerttext{ color:#ef4444; text-align:center; font-weight:800; font-size:.84rem; }
   #patientDetailsModal .pf-alerttext b{ color:#ef4444; }
 
-  /* صفوف المعلومات أوسع وأوضح */
-  #patientDetailsModal .pf-tile{ padding:13px 2px; }
-  #patientDetailsModal .pf-tile .lab{ font-size:.86rem; }
-  #patientDetailsModal .pf-tile .lab i{ font-size:.82rem; width:15px; }
-  #patientDetailsModal .pf-tile .val{ font-size:.95rem; }
-
-  /* حجز الموعد: التاريخ والساعة عمودان متساويان، وزرّ «احجز» بعرض كامل تحتهما */
-  #patientDetailsModal .pf-book-row{ display:grid !important; grid-template-columns:1fr 1fr; gap:10px; align-items:end; }
+  /* حجز الموعد: التاريخ/الساعة عمودان متساويان، وزرّ «احجز» بعرض كامل تحتهما */
+  #patientDetailsModal .pf-book-row{ display:grid !important; grid-template-columns:1fr 1fr; gap:9px; align-items:end; }
   #patientDetailsModal .pf-book-row > div{ min-width:0; }
   #patientDetailsModal .pf-book-row .btn-primary{ grid-column:1 / -1; width:100%; }
   #patientDetailsModal #chartNextDate,
-  #patientDetailsModal #chartNextSlot{ width:100% !important; min-width:0 !important; box-sizing:border-box; padding:11px 12px !important; font-size:.92rem !important; }
-
-  /* أرشيف الزيارات — تباعد مريح */
-  #patientDetailsModal .pf-tl{ padding-inline-start:16px; }
+  #patientDetailsModal #chartNextSlot{ width:100% !important; min-width:0 !important; box-sizing:border-box; }
 }
 
 /* ═══ الهوية البصرية الموحّدة للأزرار ═══
