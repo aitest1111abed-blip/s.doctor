@@ -3055,6 +3055,20 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
     .ve-head-btn.danger:hover { border-color:#fecaca; background:#fef2f2; }
     body.theme-dark .ve-head-btn.danger { color:#f87171; }
     body.theme-dark .ve-head-btn.danger:hover { border-color:#5b2020; background:#2a1416; }
+
+    /* ══ محرّر الزيارة على الهاتف — هيدر مضغوط منظّم + أبعاد عناصر مريحة (بلا تكبير) ══ */
+    @media (max-width:640px){
+      /* الهيدر: أصغر ومنظّم ليدخل بسطر واحد بلا لفّ */
+      #addNoteModal .ve-head{ padding:10px 12px; gap:7px; flex-wrap:nowrap; }
+      #addNoteModal .ve-head-back{ width:32px; height:32px; font-size:.82rem; }
+      #addNoteModal .ve-head-who{ min-width:0; }
+      #addNoteModal .ve-head-who b{ font-size:.95rem; }
+      #addNoteModal .ve-head-who span{ font-size:.72rem; }
+      #addNoteModal .ve-head-btn{ padding:7px 10px; font-size:.78rem; gap:4px; flex-shrink:0; }
+      /* الجسم: هامش أقلّ ليتّسع المحتوى + تباعد مريح */
+      #addNoteModal .modal-content > div[style*="padding:20px"]{ padding:14px !important; }
+      #addNoteModal .visit-editor-layout{ gap:14px; }
+    }
 /* =====================================================================
    محرّر الزيارة — الطبقة البصرية النهائية
    المشكلة التي كانت: الحقول كتل رمادية (--bg) داخل بطاقات بيضاء داخل صفحة
