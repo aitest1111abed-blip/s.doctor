@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=186">
+  <link rel="stylesheet" href="styles.css?v=190">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -944,6 +944,8 @@
       <!-- Hero: بروفايل المريض (بلا غلاف ملوّن) -->
       <div class="pf-hero">
         <div class="pf-head">
+          <!-- كتلة الهويّة: الأفاتار أولاً بالـDOM ⇒ يظهر في أقصى اليمين (RTL) -->
+          <div class="pf-idrow">
           <div id="chartAvatar" class="pf-avatar">؟</div>
           <div class="pf-id">
             <div class="pf-name-row">
@@ -985,27 +987,45 @@
               </div>
             </div>
             <p id="modalPatientPhone" class="pf-phone" dir="ltr"></p>
+            <!-- تنبيهات المريض (حساسية…) — تحت الهاتف مباشرةً كي يراها الطبيب أول شي -->
+            <div id="chartHeaderPills" class="pf-pills"></div>
           </div>
-          <!-- إجراءات على المريض — كانت داخل بطاقة «حجز الموعد» وهي إجراءات
-               على الموعد لا على المريض. مكانها الطبيعي جوار اسمه. -->
-          <div class="pf-head-actions">
-            <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-actbtn wa" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-            <a id="modalCallBtn" href="#" class="pf-actbtn" title="اتصال"><i class="fas fa-phone"></i></a>
-            <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-actbtn" title="طباعة الإضبارة (PDF)"><i class="fas fa-print"></i></button>
+          </div><!-- /pf-idrow -->
+          <!-- شريط أدوات موحّد (إغلاق · طباعة · اتصال · واتساب) -->
+          <div class="pf-toolbar">
+            <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-tb" title="إغلاق" aria-label="إغلاق">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+            <span class="pf-tb-sep" aria-hidden="true"></span>
+            <button onclick="printPatientChart(currentPatientIdForVisit)" class="pf-tb" title="طباعة الإضبارة (PDF)" aria-label="طباعة الإضبارة">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>
+            </button>
+            <span class="pf-tb-sep" aria-hidden="true"></span>
+            <a id="modalCallBtn" href="#" class="pf-tb" title="اتصال" aria-label="اتصال">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>
+            </a>
+            <span class="pf-tb-sep" aria-hidden="true"></span>
+            <a id="modalWhatsappBtn" href="#" target="_blank" class="pf-tb wa" title="واتساب" aria-label="واتساب">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 20.5l1.7-5.3A8.4 8.4 0 1 1 21 11.5Z"/><path d="M8.9 9.1c.2-.5.4-.5.6-.5h.5c.2 0 .4 0 .6.5l.6 1.4c.1.2 0 .4-.1.6l-.4.4a.3.3 0 0 0 0 .4 6 6 0 0 0 2.4 2.1c.2.1.4.1.5 0l.5-.6c.2-.2.3-.2.5-.1l1.4.7c.2.1.4.2.4.4a1.7 1.7 0 0 1-1.2 1.4 3 3 0 0 1-2-.3 9.4 9.4 0 0 1-4.3-4 3.3 3.3 0 0 1-.6-1.8c0-.3.1-.5.2-.6Z"/></svg>
+            </a>
           </div>
-          <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-close" title="إغلاق"><i class="fas fa-times"></i></button>
         </div>
-        <div id="chartHeaderPills" class="pf-pills"></div>
       </div>
       <!-- Body -->
       <div style="flex:1; overflow-y:auto; padding:20px; background:var(--bg);">
         <div class="chart-layout">
 
         <!-- معلومات المريض -->
-        <div class="glass-card chart-info-card" style="padding:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-id-card" style="margin-left:6px;"></i>معلومات المريض</h4>
-            <button onclick="openPatientInfoEditor(currentPatientIdForVisit)" class="pf-editbtn"><i class="fas fa-pen"></i> تعديل</button>
+        <div class="glass-card chart-info-card pf-card">
+          <div class="pf-cardhead">
+            <h4 class="pf-cardtitle">
+              <span class="pf-cardic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span>
+              معلومات المريض
+            </h4>
+            <button onclick="openPatientInfoEditor(currentPatientIdForVisit)" class="pf-editbtn">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              تعديل
+            </button>
           </div>
           <div id="chartInfoGrid" class="pf-tiles"></div>
         </div>
@@ -1013,35 +1033,42 @@
         <!-- العمود الثاني: حجز الموعد القادم ثم أرشيف الزيارات أسفله -->
         <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
 
-        <!-- حجز الموعد القادم (مع أزرار الاتصال/الطباعة/واتساب) -->
-        <div class="glass-card" style="padding:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;flex-wrap:wrap;">
-            <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="far fa-calendar-plus" style="margin-left:6px;"></i>حجز الموعد القادم</h4>
+        <!-- حجز الموعد القادم -->
+        <div class="glass-card pf-card">
+          <div class="pf-cardhead">
+            <h4 class="pf-cardtitle">
+              <span class="pf-cardic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></svg></span>
+              حجز الموعد القادم
+            </h4>
           </div>
-          <div class="pf-book-row" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label style="font-size:.72rem;font-weight:700;color:var(--text-secondary);">التاريخ</label>
-              <input type="date" id="chartNextDate" onchange="chartNextDateChanged()" style="padding:8px 10px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text-primary);font-family:inherit;font-size:.84rem;">
+          <div class="pf-book-row">
+            <div class="pf-field">
+              <label for="chartNextDate">التاريخ</label>
+              <input type="date" id="chartNextDate" onchange="chartNextDateChanged()">
             </div>
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label style="font-size:.72rem;font-weight:700;color:var(--text-secondary);">الساعة</label>
-              <select id="chartNextSlot" style="padding:8px 10px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text-primary);font-family:inherit;font-size:.84rem;min-width:130px;"><option value="">اختر التاريخ أولاً</option></select>
+            <div class="pf-field">
+              <label for="chartNextSlot">الوقت</label>
+              <select id="chartNextSlot"><option value="">اختر التاريخ أولاً</option></select>
             </div>
-            <button onclick="chartBookNext()" class="btn-primary" style="padding:9px 16px;font-size:.82rem;"><i class="far fa-calendar-check"></i> احجز الموعد</button>
           </div>
-          <div id="chartNextHint" style="font-size:.74rem;color:var(--text-muted);margin-top:9px;"></div>
+          <button onclick="chartBookNext()" class="btn-primary pf-bookbtn">احجز الموعد</button>
+          <div id="chartNextHint" class="pf-bookhint"></div>
         </div>
 
         <!-- أرشيف الزيارات -->
-        <div class="glass-card" style="padding:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
-            <h4 style="font-weight:800;font-size:.9rem;color:var(--primary);margin:0;"><i class="fas fa-folder-open" style="margin-left:6px;"></i>أرشيف الزيارات <span id="chartVisitsCount" style="font-size:.72rem;color:var(--text-muted);font-weight:600;"></span></h4>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <!-- أقسام المريض (الأداة/مخطط/تقويم/عمليات) انتقلت لقائمة السهم المنسدلة جنب اسم المريض -->
-              <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
-            </div>
+        <div class="glass-card pf-card">
+          <div class="pf-cardhead">
+            <h4 class="pf-cardtitle">
+              <span class="pf-cardic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5Z"/><path d="M14 2.5v5h5M8.5 13h7M8.5 17h4.5"/></svg></span>
+              أرشيف الزيارات <span id="chartVisitsCount" class="pf-count"></span>
+            </h4>
+            <!-- أقسام المريض (الأداة/مخطط/تقويم/عمليات) انتقلت لقائمة السهم المنسدلة جنب اسم المريض -->
+            <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary pf-newvisit">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              زيارة جديدة
+            </button>
           </div>
-          <div id="chartVisitsList" class="pf-tl" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <div id="chartVisitsList" class="pf-tl"></div>
           <div id="modalVisitsTableBody" style="display:none;"></div>
         </div>
 
@@ -2039,9 +2066,9 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=186"></script>
+  <script src="script.js?v=190"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
-  <script src="dev-seed.js?v=186"></script>
+  <script src="dev-seed.js?v=190"></script>
   <!-- 🌊 خلفية متحرّكة (WebGL) — معطّلة حالياً؛ الخلفية النعناعية الثابتة مرسومة بـCSS في styles.css.
        لإرجاع المتحرّكة: أزل التعليق عن السطر التالي. -->
   <!-- <script src="bg-gradient.js?v=1"></script> -->

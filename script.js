@@ -4123,7 +4123,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.getElementById('modalCallBtn').href = 'tel:' + normalizePhone(p.phone || '');
       document.getElementById('chartAvatar').textContent = ((p.name || '؟').trim().charAt(0)) || '؟';
       // شارات الحساسية/المزمن أُزيلت من الهيدر — تبقى في معلومات المريض الثابتة أسفله
-      var _pills = document.getElementById('chartHeaderPills'); if (_pills) { _pills.innerHTML = ''; _pills.style.display = 'none'; }
+      // تنبيهات المريض (حساسية…) — بالهيدر تحت الهاتف، لا داخل شبكة المعلومات
+      var _pills = document.getElementById('chartHeaderPills');
+      if (_pills) { var _al = _pfAllergy(p.custom); _pills.innerHTML = _al; _pills.style.display = _al ? 'flex' : 'none'; }
       document.getElementById('chartInfoGrid').innerHTML = renderChartInfoTiles(p);
       renderChartVisits(pid);
       // ★ زر الأداة السريرية في رأس الأرشيف: يظهر فقط إن وُجد حقل بزيارتين فأكثر فيهما قيم (يفتح مودال openSpecialtyTool)
@@ -4202,6 +4204,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return escapeHtml(t);
     }
 
+    /* اسم الطبيب المعروض على بطاقة الزيارة — يُقرأ من إعدادات العيادة،
+       ويُسبَق بـ«د.» إن لم يكن مسبوقاً بها أصلاً. فارغ ⇒ يرجع نوع الزيارة. */
+    function _chartDoctorName() {
+      var t = ((typeof settings !== 'undefined' && settings && settings.title) || '').trim();
+      if (!t || t === 'لوحة الطبيب') return '';
+      return /^(د\.?\s|دكتور)/.test(t) ? t : 'د. ' + t;
+    }
+
     function renderChartVisits(pid) {
       var p = allPatients[pid]; var box = document.getElementById('chartVisitsList');
       var visits = (p.appointments || []).map(function(v, i) { return { v: v, i: i }; });
@@ -4212,12 +4222,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         var v = o.v, i = o.i, c = schedStatusColor(v);
         var hasLab = !!(v.labTest && v.labTest.trim());
         var hasImg = !!(v.imagingTest && v.imagingTest.trim());
-        return '<div class="chart-visit" style="border:1.5px solid var(--border);border-right:4px solid ' + c.bd + ';border-radius:12px;overflow:hidden;background:var(--surface);">'
-          + '<div onclick="var b=this.parentNode.querySelector(\'.chart-visit-body\');var o=b.style.display===\'none\';b.style.display=o?\'block\':\'none\';this.querySelector(\'.chart-visit-caret\').style.transform=o?\'rotate(180deg)\':\'\';" oncontextmenu="event.preventDefault();openAddNoteModal(\'' + pid + '\',' + i + ');return false;" title="كليك يمين: فتح التعديل" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;cursor:pointer;">'
-            + '<div style="min-width:0;"><div style="font-weight:800;font-size:.88rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _visitHeadline(v) + '</div>'
-            + '<div style="font-size:.74rem;color:var(--text-muted);margin-top:2px;">' + formatDateAr(v.date) + ' · ' + slotTimeOf(v) + ' · ' + escapeHtml(v.visitType || 'زيارة') + '</div></div>'
-            + '<i class="fas fa-chevron-down chart-visit-caret" style="color:var(--text-muted);transition:transform .2s;flex-shrink:0;"></i>'
-          + '</div>'
+        // نقطة الخطّ الزمني: مصمتة للزيارة المنتهية، مفرّغة للقادمة
+        var _done = (v.date || '') <= toLocalISODate(new Date());
+        // بلا overflow:hidden — كان يقصّ نقطة الخطّ الزمني (::before) الواقعة خارج البطاقة
+        return '<div class="chart-visit' + (_done ? ' pf-v-done' : '') + '" style="border:1.5px solid var(--border);border-radius:16px;background:var(--surface);">'
+          + '<div onclick="var b=this.parentNode.querySelector(\'.chart-visit-body\');var o=b.style.display===\'none\';b.style.display=o?\'block\':\'none\';this.querySelector(\'.pf-vcaret\').style.transform=o?\'rotate(180deg)\':\'\';" oncontextmenu="event.preventDefault();openAddNoteModal(\'' + pid + '\',' + i + ');return false;" title="كليك يمين: فتح التعديل" style="padding:14px 16px;cursor:pointer;">'
+            + '<div class="pf-vtop"><div class="pf-vtitle">' + _visitHeadline(v) + '</div>'
+              + '<span class="pf-vstatus" style="background:' + c.bg + ';color:' + c.tx + ';">' + (_done ? 'مكتمل' : 'قادم') + '</span>'
+              + '<svg class="pf-vcaret" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'
+            + '</div>'
+            + '<div class="pf-vmeta"><div class="pf-vmlines">'
+              + '<span class="pf-vmline"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></svg>' + formatDateAr(v.date) + '</span>'
+              + '<span class="pf-vmline"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + slotTimeOf(v) + '</span>'
+            + '</div>'
+            + '<span class="pf-vtype"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>' + escapeHtml(_chartDoctorName() || v.visitType || 'زيارة') + '</span>'
+          + '</div></div>'
           + '<div class="chart-visit-body" style="display:none;padding:0 13px 13px;border-top:1px dashed var(--border);">'
             + ((v.complaint && v.complaint.trim()) ? _visitSection('الشكوى', 'fa-comment-medical', v.complaint) : '')
             + renderVisitCustomHtml(v.custom)   // حقول الزيارة المخصّصة (قياسات حسب التخصص)
@@ -5358,15 +5377,18 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var icon = opts.icon ? '<i class="fas ' + opts.icon + '"' + (opts.iconColor ? ' style="color:' + opts.iconColor + '"' : '') + '></i>' : '';
       var empty = (valHtml == null || valHtml === '');
       var vc = (!empty && opts.valColor) ? ' style="color:' + opts.valColor + '"' : '';
-      return '<div class="pf-tile' + (opts.full ? ' full' : '') + '"><span class="lab">' + icon + escapeHtml(label) + '</span>'
-        + '<span class="val' + (empty ? ' empty' : '') + '"' + vc + '>' + (empty ? 'غير مسجّل' : valHtml) + '</span></div>';
+      return '<div class="pf-tile' + (opts.full ? ' full' : '') + '">'
+        + '<span class="pf-tic">' + icon + '</span>'
+        + '<span class="pf-tbody"><span class="lab">' + escapeHtml(label) + '</span>'
+        + '<span class="val' + (empty ? ' empty' : '') + '"' + vc + '>' + (empty ? 'غير مسجّل' : valHtml) + '</span></span></div>';
     }
     function _pfAllergy(custom) {
       custom = custom || {};
       return getChartTemplate().patient.filter(_cfIsAllergy).map(function(f) {
         var d = _cfDisplayVal(f, custom[f.id]);
-        return d === '' ? '' : '<div class="pf-alertline"><span class="pf-alerttag">تنبيه</span>'
-          + '<span class="pf-alerttext"><b>' + escapeHtml(f.label) + ':</b> ' + escapeHtml(d) + '</span></div>';
+        return d === '' ? '' : '<div class="pf-alertline"><span class="pf-alerttag" aria-hidden="true">'
+          + '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></span>'
+          + '<span class="pf-alerttext">تنبيه: <b>' + escapeHtml(f.label) + ':</b> ' + escapeHtml(d) + '</span></div>';
       }).join('');
     }
     function renderPatientCustomTiles(custom) {
@@ -5396,14 +5418,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function renderChartInfoTiles(p) {
       var age = p.birthDate ? calculateAge(p.birthDate) : null;
       var visits = String(p.totalVisits || (p.appointments ? p.appointments.length : 0));
-      return _pfAllergy(p.custom)
-        + _pfTile('رقم الهاتف', p.phone ? '<span dir="ltr">' + escapeHtml(p.phone) + '</span>' : '', { icon: 'fa-phone' })
-        + _pfTile('تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '', { icon: 'fa-calendar-day' })
+      // التنبيهات (حساسية…) تُعرض بالهيدر لا هنا — انظر openPatientDetailsModal.
+      // الحقول القصيرة أولاً بشبكة عمودين، ثم الطويلة بعرض كامل بالأسفل.
+      return _pfTile('تاريخ الميلاد', p.birthDate ? formatDateAr(p.birthDate) : '', { icon: 'fa-calendar-day' })
         + _pfTile('العمر', age != null ? age + ' سنة' : '', { icon: 'fa-hourglass-half' })
         + _pfTile('زمرة الدم', p.bloodType ? escapeHtml(p.bloodType) : '', { icon: 'fa-droplet', iconColor: '#dc2626', valColor: '#dc2626' })
-        + _pfTile('العنوان', p.address ? escapeHtml(p.address) : '', { icon: 'fa-location-dot' })
+        + _pfTile('رقم الهاتف', p.phone ? '<span dir="ltr">' + escapeHtml(p.phone) + '</span>' : '', { icon: 'fa-phone' })
         + _pfTile('إجمالي الزيارات', visits, { icon: 'fa-clock-rotate-left' })
         + renderPatientCustomTiles(p.custom)
+        + _pfTile('العنوان', p.address ? escapeHtml(p.address) : '', { full: true, icon: 'fa-location-dot' })
         + _pfTile('أمراض مزمنة', escapeHtml(p.chronicDiseases || 'لا يوجد'), { full: true, icon: 'fa-heart-pulse', iconColor: '#d97706', valColor: p.chronicDiseases ? '#d97706' : 'var(--text-muted)' });
     }
     // شبكة حقول الزيارة المخصّصة (داخل بطاقة الزيارة في الأرشيف)

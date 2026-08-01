@@ -215,9 +215,10 @@
     .apptd-btn.danger:hover { background:var(--red); color:#fff; }
 
     /* تخطيط إضبارة المريض (ملء الشاشة) */
-    .chart-layout { display:grid; grid-template-columns:1fr; gap:16px; max-width:1400px; margin:0 auto; align-items:start; }
+    /* العمودان متساويان: «معلومات المريض» صارت بلاطات بعمودين فتحتاج عرضاً كالعمود الآخر */
+    .chart-layout { display:grid; grid-template-columns:1fr; gap:20px; max-width:1500px; margin:0 auto; align-items:start; }
     @media (min-width:900px){
-      .chart-layout { grid-template-columns:360px 1fr; }
+      .chart-layout { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
       .chart-layout .chart-info-card { position:sticky; top:0; }
     }
 
@@ -2233,16 +2234,25 @@
 .pf-cbtn.wa:hover{filter:brightness(1.08);}
 /* ترويسة بسيطة كترويسة «تعديل معلومات المريض»: شريط رفيع، صورة صغيرة مسطّحة،
    اسم بحجم عنوان لا بحجم بطاقة بروفايل. (كانت صورة ٦٢px بظلّ ثقيل تُثقل الشريط.) */
-.pf-head{display:flex;gap:11px;align-items:center;padding:12px 20px;flex-wrap:wrap;}
-.pf-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;background:linear-gradient(140deg,#0d9488,#115e59);}
-/* بلا margin:auto — .pf-id بـ flex:1 يدفع ما بعده للطرف، والهامش التلقائي
-   كان يفتح فجوة بين أزرار الإجراءات وزرّ الإغلاق بعد نقلها إلى الترويسة. */
-.pf-close{width:36px;height:36px;border-radius:9px;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;transition:background .15s,color .15s;}
-.pf-close:hover{background:#fef2f2;color:#dc2626;}
-.pf-id{flex:1;min-width:0;}
-.pf-name{font-weight:800;font-size:1.1rem;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.25;}
+/* الهيدر: كتلة الهويّة يميناً (أفاتار كبير + اسم/هاتف/تنبيه) وشريط أدوات يساراً */
+.pf-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding:20px 24px 16px;flex-wrap:wrap;}
+.pf-idrow{display:flex;align-items:center;gap:16px;min-width:0;flex:1;}
+.pf-avatar{width:104px;height:104px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:2.9rem;font-weight:800;color:#fff;background:#115e59;}
+/* شريط الأدوات الموحّد — حبّة بيضاء واحدة بفواصل رفيعة (إغلاق · طباعة · اتصال · واتساب).
+   direction:ltr لتثبيت الترتيب البصري: الإغلاق أقصى اليسار ثم طباعة فاتصال فواتساب. */
+.pf-toolbar{display:flex;direction:ltr;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:5px;box-shadow:var(--shadow-sm);flex-shrink:0;}
+.pf-tb{width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:background .15s,color .15s,transform .1s;}
+.pf-tb:hover{background:var(--primary-1);}
+.pf-tb:active{transform:scale(.92);}
+.pf-tb.wa{color:#16a34a;}
+.pf-tb.wa:hover{background:rgba(22,163,74,.12);}
+#closePatientDetailsModalBtn:hover{background:#fef2f2;color:#dc2626;}
+.pf-tb-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;}
+.pf-id{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:7px;}
+.pf-name{font-weight:800;font-size:2.3rem;color:var(--text-primary);letter-spacing:-.5px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.15;margin:0;}
 .pf-verline{font-size:.6rem;font-weight:800;color:var(--primary);background:var(--primary-light);border:1px solid var(--border-strong);border-radius:999px;padding:3px 10px;letter-spacing:.3px;white-space:nowrap;}
-.pf-phone{direction:ltr;text-align:right;color:var(--primary);font-weight:700;font-size:.82rem;margin-top:1px;}
+.pf-phone{direction:ltr;text-align:right;color:var(--primary);font-weight:700;font-size:1rem;margin:0;}
+.pf-pills{display:flex;gap:9px;flex-wrap:wrap;padding:0;}
 /* ── رأس الأداة السريرية «مقارنة القياسات» — يعيد استخدام pf-hero بهوية الاضبارة ── */
 .sc-hero{position:sticky;top:0;z-index:12;}
 .sc-id{flex:1;min-width:0;}
@@ -2278,57 +2288,50 @@
 .pf-mi-badge{margin-inline-start:auto;min-width:19px;height:19px;display:flex;align-items:center;justify-content:center;padding:0 6px;border-radius:999px;background:var(--primary);color:#fff;font-size:.66rem;font-weight:800;flex-shrink:0;}
 .pf-edit{align-self:flex-end;margin-bottom:4px;display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--primary);background:var(--primary-light);border:1.5px solid var(--border-strong);border-radius:11px;padding:8px 14px;cursor:pointer;font-family:inherit;}
 .pf-edit:hover{border-color:var(--primary);}
-.pf-pills{display:flex;gap:9px;flex-wrap:wrap;padding:0 22px 16px;}
 .pf-pill{display:inline-flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:7px 12px;font-size:.82rem;font-weight:800;color:var(--text-primary);}
 .pf-pill .k{color:var(--text-muted);font-weight:600;font-size:.72rem;}
 .pf-pill .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 
-/* بطاقات المعلومات */
-/* معلومات المريض: أسطر لا صناديق — نفس مبدأ محرّر الزيارة.
-   كانت سبعة صناديق رمادية تحتلّ ارتفاعاً كبيراً وتفكّك القراءة. */
-.pf-tiles{display:flex;flex-direction:column;gap:0;}
-.pf-tile{background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:9px 2px;display:flex;align-items:baseline;justify-content:space-between;gap:14px;min-width:0;}
-.pf-tile:last-child{border-bottom:none;}
-.pf-tile .lab{font-size:.76rem;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.pf-tile .lab i{font-size:.72rem;opacity:.85;width:13px;text-align:center;}
-.pf-tile .val{font-size:.88rem;font-weight:700;color:var(--text-primary);word-break:break-word;overflow-wrap:anywhere;text-align:end;}
+/* بطاقات المعلومات — بلاطات مبطّنة بشبكة عمودين، أيقونة دائرية تتصدّر كل بلاطة */
+.pf-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.pf-tile{background:var(--bg);border:none;border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:12px;min-width:0;}
+.pf-tile .pf-tic{width:36px;height:36px;border-radius:50%;background:var(--primary-1);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pf-tile .pf-tic i{font-size:.86rem;}
+.pf-tile .pf-tbody{min-width:0;display:flex;flex-direction:column;gap:2px;}
+.pf-tile .lab{font-size:.78rem;color:var(--text-muted);font-weight:600;line-height:1.3;}
+.pf-tile .val{font-size:.92rem;font-weight:700;color:var(--text-primary);line-height:1.35;word-break:break-word;overflow-wrap:anywhere;}
 /* «غير مسجّل» خبرٌ عن غياب القيمة لا قيمة، فيتراجع وزنه ولونه */
 .pf-tile .val.empty{font-weight:500;color:var(--text-muted);}
-/* الحقول الطويلة (أمراض مزمنة، ملاحظات) تنزل لسطر مستقلّ */
-.pf-tile.full{flex-direction:column;align-items:stretch;gap:4px;}
-.pf-tile.full .val{text-align:start;}
-/* تنبيه الحساسية — سطر بلا حاوية: وسم «تنبيه» أحمر مصمت ثم النصّ مباشرةً.
-   (أُزيل الصندوق بالكامل بطلب المستخدم — التنبيه يُقرأ كسطر لا ككتلة.) */
-.pf-alertline{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:3px 0 9px;}
-.pf-alerttag{background:#dc2626;color:#fff;font-size:.64rem;font-weight:800;border-radius:6px;padding:3px 10px;flex-shrink:0;}
-.pf-alerttext{font-size:.88rem;color:var(--text-primary);font-weight:700;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;}
-.pf-alerttext b{color:#dc2626;font-weight:800;}
+/* الحقول الطويلة (العنوان، أمراض مزمنة) تأخذ عرض الشبكة كاملاً */
+.pf-tile.full{grid-column:1/-1;}
+@media (max-width:520px){ .pf-tiles{grid-template-columns:1fr;} }
+
+/* تنبيه الحساسية — حبّة حمراء داخل الهيدر تحت هاتف المريض مباشرةً */
+.pf-alertline{display:inline-flex;align-items:center;gap:8px;background:#fee2e2;border:1.5px solid #fca5a5;border-radius:999px;padding:6px 14px;max-width:100%;}
+.pf-alerttag{color:#dc2626;font-size:.85rem;line-height:1;flex-shrink:0;}
+.pf-alerttext{font-size:.84rem;color:#b91c1c;font-weight:700;line-height:1.4;word-break:break-word;overflow-wrap:anywhere;}
+.pf-alerttext b{color:#b91c1c;font-weight:800;}
+body.theme-dark .pf-alertline{background:rgba(220,38,38,.16);border-color:rgba(248,113,113,.5);}
+body.theme-dark .pf-alerttext,body.theme-dark .pf-alerttext b{color:#fca5a5;}
 
 /* ══ اضبارة المريض على الهاتف — أحجام صغيرة وتباعد واضح بلا تلاصق (مطابقة المرجع) ══ */
 @media (max-width:640px){
-  /* الهيدر: أزرار صغيرة موحّدة بتباعد واضح، بلا التفاف */
-  #patientDetailsModal .pf-head{ padding:12px; gap:8px; flex-wrap:nowrap; }
-  #patientDetailsModal .pf-avatar{ width:42px; height:42px; font-size:1.02rem; }
-  #patientDetailsModal .pf-name{ font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #patientDetailsModal .pf-phone{ font-size:.78rem; }
-  #patientDetailsModal .pf-head-actions{ gap:8px; flex-wrap:nowrap; }
-  #patientDetailsModal .pf-actbtn,
-  #patientDetailsModal .pf-close{ width:36px; height:36px; border-radius:10px; font-size:.86rem; }
+  /* الهيدر: الأفاتار والاسم أصغر، وشريط الأدوات ينزل سطراً كاملاً بعرض الشاشة */
+  #patientDetailsModal .pf-head{ padding:14px 14px 12px; gap:12px; }
+  #patientDetailsModal .pf-idrow{ gap:12px; flex-basis:100%; }
+  #patientDetailsModal .pf-avatar{ width:56px; height:56px; font-size:1.5rem; }
+  #patientDetailsModal .pf-name{ font-size:1.2rem; }
+  #patientDetailsModal .pf-phone{ font-size:.86rem; }
+  #patientDetailsModal .pf-toolbar{ width:100%; justify-content:space-around; }
+  #patientDetailsModal .pf-tb{ width:40px; height:40px; }
   #patientDetailsModal .pf-menu-trigger{ width:24px; height:24px; }
 
-  /* تنبيه الحساسية = شريط محدّد بإطار أحمر و⚠️ (مطابق المرجع) */
-  #patientDetailsModal .pf-alertline{ justify-content:center; padding:9px 12px; margin:2px 0 10px; background:rgba(239,68,68,.09); border:1.5px solid rgba(239,68,68,.4); border-radius:11px; }
-  #patientDetailsModal .pf-alertline::before{ content:"⚠️"; font-size:.9rem; order:-1; }
-  #patientDetailsModal .pf-alerttag{ background:none; color:#ef4444; padding:0; font-size:.82rem; font-weight:800; }
-  #patientDetailsModal .pf-alerttext{ color:#ef4444; text-align:center; font-weight:800; font-size:.84rem; }
-  #patientDetailsModal .pf-alerttext b{ color:#ef4444; }
-
-  /* حجز الموعد: التاريخ/الساعة عمودان متساويان، وزرّ «احجز» بعرض كامل تحتهما */
-  #patientDetailsModal .pf-book-row{ display:grid !important; grid-template-columns:1fr 1fr; gap:9px; align-items:end; }
-  #patientDetailsModal .pf-book-row > div{ min-width:0; }
-  #patientDetailsModal .pf-book-row .btn-primary{ grid-column:1 / -1; width:100%; }
-  #patientDetailsModal #chartNextDate,
-  #patientDetailsModal #chartNextSlot{ width:100% !important; min-width:0 !important; box-sizing:border-box; }
+  /* البطاقات: حشوة أصغر ورأس مضغوط */
+  #patientDetailsModal .pf-card{ padding:14px; }
+  #patientDetailsModal .pf-cardic{ width:34px; height:34px; }
+  #patientDetailsModal .pf-cardtitle{ font-size:.92rem; gap:9px; }
+  #patientDetailsModal .pf-tile{ padding:11px 12px; gap:10px; }
+  #patientDetailsModal .pf-tic{ width:32px; height:32px; }
 }
 
 /* ═══ الهوية البصرية الموحّدة للأزرار ═══
@@ -2353,22 +2356,54 @@
 .btn-primary.btn-solid{color:#fff;border-color:transparent;}
 .btn-primary.btn-solid i{color:#fff;}
 
-/* الخطّ الزمني للزيارات */
-.pf-tl{position:relative;padding-inline-start:20px;}
-.pf-tl::before{content:"";position:absolute;inset-inline-start:5px;top:8px;bottom:8px;width:2px;background:var(--border-strong);}
+/* ═══ بطاقات الاضبارة: رأس بأيقونة دائرية + جسم مبطّن ═══ */
+.pf-card{padding:20px;}
+.pf-cardhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.pf-cardtitle{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1rem;color:var(--text-primary);margin:0;}
+.pf-cardic{width:40px;height:40px;border-radius:50%;background:var(--primary-1);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pf-count{font-size:.85rem;color:var(--text-muted);font-weight:700;}
+.pf-newvisit{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;padding:9px 16px;}
+/* الزرّان الرئيسيان بالاضبارة مصمتان بالأخضر الغامق (مطابقة المرجع) — استثناء
+   مقصود عن هوية الأزرار المفرّغة، لأنهما الفعل الأساسي في كلّ بطاقة. */
+.pf-bookbtn,.pf-newvisit{background:#115e59;border-color:#115e59;color:#fff;}
+.pf-bookbtn:hover,.pf-newvisit:hover{background:#0b4d48;border-color:#0b4d48;color:#fff;}
+.pf-bookbtn svg,.pf-newvisit svg,.pf-bookbtn i,.pf-newvisit i{color:#fff;}
+
+/* حجز الموعد: حقلان بالعرض ثم زرّ ممتدّ */
+.pf-book-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.pf-field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.pf-field label{font-size:.78rem;font-weight:600;color:var(--text-muted);}
+.pf-field input,.pf-field select{padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text-primary);font-family:inherit;font-size:.9rem;font-weight:600;width:100%;min-width:0;}
+.pf-field input:focus,.pf-field select:focus{outline:none;border-color:var(--primary);}
+.pf-bookbtn{width:100%;margin-top:14px;justify-content:center;padding:14px 20px;font-size:.95rem;}
+.pf-bookhint{font-size:.78rem;color:var(--text-muted);margin-top:10px;}
+@media (max-width:520px){ .pf-book-row{grid-template-columns:1fr;} }
+
+/* الخطّ الزمني للزيارات — خطّ متقطّع ونقطة مصمتة للمنتهية ومفرّغة للقادمة */
+.pf-tl{position:relative;padding-inline-start:26px;display:flex;flex-direction:column;gap:12px;}
+.pf-tl::before{content:"";position:absolute;inset-inline-start:6px;top:14px;bottom:14px;width:0;border-inline-start:2px dashed var(--border-strong);}
 .pf-tl .chart-visit{position:relative;overflow:visible;}
-.pf-tl .chart-visit::before{content:"";position:absolute;inset-inline-start:-20px;top:16px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);z-index:1;}
+.pf-tl .chart-visit::before{content:"";position:absolute;inset-inline-start:-26px;top:18px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2.5px solid var(--primary);box-sizing:border-box;z-index:1;}
+/* الزيارة المنتهية: نقطة مصمتة */
+.pf-tl .chart-visit.pf-v-done::before{background:var(--primary);}
+
+/* بطاقة الزيارة */
+.pf-vtop{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.pf-vtitle{font-weight:800;font-size:.95rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.pf-vstatus{font-size:.72rem;font-weight:700;border-radius:999px;padding:5px 12px;background:var(--primary-1);color:var(--primary);white-space:nowrap;flex-shrink:0;}
+.pf-vmeta{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap;}
+.pf-vmlines{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.pf-vmline{display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text-secondary);font-weight:600;}
+.pf-vmline svg{flex-shrink:0;opacity:.75;}
+.pf-vtype{display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text-secondary);font-weight:600;min-width:0;}
+.pf-vtype svg{flex-shrink:0;opacity:.75;}
+/* السهم مخفيّ في الحالة الساكنة (مطابقة المرجع) ويظهر عند المرور/التركيز
+   كي لا تضيع إشارة أنّ البطاقة قابلة للفتح */
+.pf-vcaret{color:var(--text-muted);transition:transform .2s,opacity .15s;flex-shrink:0;opacity:0;}
+.chart-visit:hover .pf-vcaret,.chart-visit:focus-within .pf-vcaret{opacity:1;}
 
 /* أزرار إجراءات الهيرو (طباعة/اتصال/واتساب) — مجموعة مرتّبة */
-.pf-head-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
-/* نفس الهوية الموحّدة: سطح أبيض + حدّ تركوازي غامق + أيقونة تركوازية.
-   واتساب وحده يحتفظ بالأخضر (دلالة العلامة). */
-.pf-actbtn{width:40px;height:40px;border-radius:12px;border:1.5px solid #115e59;background:var(--surface);color:#115e59;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;text-decoration:none;transition:border-color .15s,color .15s,background .15s,transform .1s;}
-.pf-actbtn:hover{background:var(--primary-light);border-color:#0b4d48;color:#0b4d48;}
-.pf-actbtn:active{transform:scale(.94);}
-/* واتساب بنفس الهيئة المُفرَّغة لكن بلون أخضر (دلالته) — فتتناسق الثلاثة */
-.pf-actbtn.wa{background:var(--surface);color:#16a34a;border-color:#16a34a;}
-.pf-actbtn.wa:hover{background:rgba(22,163,74,.12);color:#15803d;border-color:#15803d;}
+/* (أزرار الهيرو القديمة .pf-head-actions/.pf-actbtn استُبدلت بشريط .pf-toolbar الموحّد) */
 
 /* ===== 🦷 قائمة تسجيل حالة السن — Popover مثبّت بجانب السن + أنيميشن ===== */
 .te-pop{opacity:0;transform:scale(.9);transform-origin:var(--teox,50%) var(--teoy,0%);transition:opacity .16s ease,transform .22s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 70px -20px rgba(13,148,136,.45),0 16px 34px -16px rgba(0,0,0,.32);}
