@@ -122,7 +122,7 @@
       display: flex;
       flex-direction: column;
     }
-    /* ===== خلفية زخرفية طبية (موبايل + لابتوب) ===== */
+    /* ===== خلفية زخرفية طبية — نعناعي ناعم مرسوم بالكامل بـCSS (بلا ملف صورة) ===== */
     /* الخلفية شفافة كي تظهر طبقة النقش الثابتة خلفها (وإلّا غطّتها) */
     body:not(.theme-dark) { background: transparent; }
     body:not(.theme-dark)::before {
@@ -131,20 +131,39 @@
       inset: 0;
       z-index: -1;
       pointer-events: none;
-      /* تلطيف أبيض خفيف فوق الصورة كي تبقى البطاقات والنصوص واضحة */
+      background-color: #eef7f5;
+      /* الأنصاف بوحدة vmax كي تبقى الأشكال دوائر حقيقية على أي نسبة شاشة (موبايل عمودي أو شاشة عريضة).
+         الترتيب من الأعلى للأسفل: شعاع قطري ← قوس رفيع ← دوائر ناعمة ← تدرّج القاعدة */
       background-image:
-        linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,.72)),
-        url("bg-pattern.webp");
-      background-size: cover, cover;
-      background-position: center, center top;
-      background-repeat: no-repeat, no-repeat;
+        /* شعاع أبيض قطري من أعلى اليسار */
+        linear-gradient(118deg, rgba(255,255,255,.95) 0 16%, rgba(255,255,255,.55) 34%, rgba(255,255,255,0) 60%),
+        /* قوس أبيض رفيع يمسح أسفل اليسار */
+        radial-gradient(circle 40vmax at -8% 118%, rgba(255,255,255,0) 0 98.8%, rgba(255,255,255,.75) 99% 99.6%, rgba(255,255,255,0) 99.8%),
+        /* دائرة أعلى اليمين */
+        radial-gradient(circle 35vmax at 92% -6%, rgba(180,216,211,.5) 0 86%, rgba(180,216,211,0) 100%),
+        /* دائرة أسفل اليسار */
+        radial-gradient(circle 33vmax at -4% 104%, rgba(182,218,213,.42) 0 88%, rgba(182,218,213,0) 100%),
+        /* دائرة أسفل اليمين */
+        radial-gradient(circle 28vmax at 98% 100%, rgba(170,210,205,.5) 0 85%, rgba(170,210,205,0) 100%),
+        /* تدرّج القاعدة: أفتح بالأعلى وأكثر نعناعية بالأسفل */
+        linear-gradient(160deg, #fcfefe 0%, #f0f8f6 40%, #dbeeea 100%);
+      background-repeat: no-repeat;
+      background-size: cover;
     }
-    /* اللابتوب: الصورة عمودية وعناصرها في الزوايا؛ نعرض شريطها العلوي (شبكة + دوائر) بلا تمديد */
+    /* رقعة نقاط صغيرة (تفصيل زخرفي خفيف) — تُخفى على الموبايل لضيق المساحة */
+    body:not(.theme-dark)::after {
+      content: "";
+      position: fixed;
+      left: 58%; top: 70%;
+      width: 190px; height: 150px;
+      z-index: -1;
+      pointer-events: none;
+      display: none;
+      background-image: radial-gradient(circle, rgba(255,255,255,.85) 1.3px, transparent 1.5px);
+      background-size: 15px 15px;
+    }
     @media (min-width: 768px) {
-      body:not(.theme-dark)::before {
-        background-size: cover, cover;
-        background-position: center, center top;
-      }
+      body:not(.theme-dark)::after { display: block; }
     }
 
     .orb { display: none; }
