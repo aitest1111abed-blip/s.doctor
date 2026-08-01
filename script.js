@@ -466,9 +466,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
       // المرضى — [أقصى توفير] لحظي لأول 40 بالاسم (يقرأ 40 مرّة واحدة ثم التغييرات فقط)، والبحث يجلب من الخادم
       if (_unsubPat) _unsubPat();
-      _unsubPat = window._fb.onSnapshot(window._fb.query(window._fb.col('patients'), window._fb.orderBy('name'), window._fb.limit(40)),
+      _unsubPat = window._fb.onSnapshot(window._fb.query(window._fb.col('patients'), window._fb.orderBy('lastVisit', 'desc'), window._fb.limit(40)),
         function(snap) {
           allPatients = {};
+          _pbAllCache = null;   // أي تغيير على المرضى ⇒ أبطِل كاش البحث ليُعاد جلبه طازجاً
           snap.forEach(function(d) { allPatients[d.id] = Object.assign({ id: d.id }, d.data()); });
           // العدد الحقيقي من الخادم (المحمَّل ٤٠ فقط) — و«+» فقط إن تعذّر
           _refreshServerStats().then(function(s) {
@@ -1915,24 +1916,31 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // ==================== دفتر المرضى ====================
     var _pbTimer = null;
+    var _pbAllCache = null;   // كاش كامل المرضى للبحث الجزئي (يُبطَل عند تغيّرهم)
+    function _pbSortRecent(arr) { return arr.slice().sort(function(a, b){ return (b.lastVisit || '').localeCompare(a.lastVisit || ''); }); }
+    function _pbFilterAndRender(search) {
+      var q = search.toLowerCase(), qp = normalizePhone(search);
+      var res = (_pbAllCache || []).filter(function(p) {
+        return (p.name || '').toLowerCase().indexOf(q) !== -1 || (qp && normalizePhone(p.phone || '').indexOf(qp) !== -1);
+      });
+      _pbRenderRows(_pbSortRecent(res));
+    }
     function renderPatientBook() {
       const grid = document.getElementById('patientsGrid');
       const search = document.getElementById('patientBookSearch').value.trim();
-      if (search) {
-        // [أقصى توفير] بحث من الخادم ببادئة الاسم (بدل البحث المحلي)
-        grid.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--text-muted)"><i class="fas fa-circle-notch fa-spin"></i> جارٍ البحث في الخادم...</div>';
-        clearTimeout(_pbTimer);
-        _pbTimer = setTimeout(function() {
-          window._fb.getDocs(window._fb.query(window._fb.col('patients'), window._fb.orderBy('name'),
-              window._fb.where('name','>=',search), window._fb.where('name','<=', search+''), window._fb.limit(25)))
-            .then(function(snap) {
-              var list = []; snap.forEach(function(d){ var o = Object.assign({id:d.id}, d.data()); allPatients[d.id]=o; list.push(o); });
-              _pbRenderRows(list);
-            }).catch(function(e){ console.error(e); grid.innerHTML = '<div style="text-align:center;padding:32px 0;color:#dc2626">تعذّر البحث</div>'; });
-        }, 350);
-        return;
-      }
-      _pbRenderRows(Object.values(allPatients));
+      if (!search) { _pbRenderRows(_pbSortRecent(Object.values(allPatients))); return; }   // الافتراضي: الأحدث أولاً
+      if (_pbAllCache) { _pbFilterAndRender(search); return; }   // بحث جزئي فوري من الكاش
+      // أوّل بحث بالجلسة: اجلب كل المرضى مرّة (بحث بأي جزء من الاسم أو الهاتف)
+      grid.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--text-muted)"><i class="fas fa-circle-notch fa-spin"></i> جارٍ التحميل...</div>';
+      clearTimeout(_pbTimer);
+      _pbTimer = setTimeout(function() {
+        window._fb.getDocs(window._fb.col('patients'))
+          .then(function(snap) {
+            _pbAllCache = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+            var cur = document.getElementById('patientBookSearch').value.trim();
+            if (cur) _pbFilterAndRender(cur); else renderPatientBook();
+          }).catch(function(e){ console.error(e); grid.innerHTML = '<div style="text-align:center;padding:32px 0;color:#dc2626">تعذّر البحث</div>'; });
+      }, 300);
     }
     // ── دفتر المرضى كفولدرات — «الاضبارة» تعني ملفاً، والزيارات عناصره ──
     // كل لوحة: [bg1, bg2] خلفية باستيل + [accent] للأفاتار، تُشتقّ من اسم المريض.
@@ -4289,8 +4297,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       }
       var taken = (typeof docTakenHoursForDate === 'function') ? docTakenHoursForDate(date) : {};
       var slots = (typeof docSlots === 'function') ? docSlots() : [];
+      // أغلق ساعات اليوم الماضية بحسب التوقيت المحلّي الحالي
+      var isToday = (date === todayStr), nowHM = '';
+      if (isToday) { var _n = new Date(); nowHM = String(_n.getHours()).padStart(2, '0') + ':' + String(_n.getMinutes()).padStart(2, '0'); }
       var avail = 0, frag = '';
-      slots.forEach(function(s){ if (taken[s]) return; frag += '<option value="' + s + '">' + ((typeof docFmtHour12==='function')?docFmtHour12(s):s) + '</option>'; avail++; });
+      slots.forEach(function(s){ if (taken[s]) return; if (isToday && s <= nowHM) return; frag += '<option value="' + s + '">' + ((typeof docFmtHour12==='function')?docFmtHour12(s):s) + '</option>'; avail++; });
       if (!avail) { sel.innerHTML = '<option value="">لا ساعات متاحة</option>'; if (hint) hint.innerHTML = '<span style="color:#d97706;font-weight:700;">كل ساعات هذا اليوم محجوزة</span>'; }
       else { sel.innerHTML = frag; if (hint) hint.textContent = avail + ' ساعة متاحة'; }
     }
