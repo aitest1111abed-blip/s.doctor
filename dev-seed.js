@@ -206,6 +206,7 @@
       if (Math.random() < 0.18) doc.ortho       = orthoFor();
       if (Math.random() < 0.18) doc.surgeries   = surgeriesFor();
     }
+    doc.id = genId('seed');   // معرّف ثابت ليُربط بمواعيده (linkedPatientId)
     return { doc: doc, visits: [] };
   }
   // زيارة واحدة بتاريخ/وقت مُعطَيَين — محتواها حسب التخصّص
@@ -227,6 +228,7 @@
       PatientName: pat.doc.name, Phone: pat.doc.phone, BirthDate: pat.doc.birthDate, Address: '',
       VisitType: v.visitType, Date: v.date, Slot: v.slot,
       Status: isToday ? wStatus() : pastStatus(),   // الماضي: حالة نهائية (لا auto-NoShow)
+      linkedPatientId: pat.doc.id,                  // ربط الموعد بإضبارة المريض (كليك يمين يفتحها)
       source: 'devseed', createdAt: Date.now()
     };
   }
@@ -289,7 +291,7 @@
       if (prog && writes % 50 === 0) prog(writes, totalOps);
     }
     try {
-      for (var pi = 0; pi < patDocs.length && !stopped; pi++) await put('patients', genId('seed'), patDocs[pi]);
+      for (var pi = 0; pi < patDocs.length && !stopped; pi++) await put('patients', patDocs[pi].id, patDocs[pi]);
       for (var ai = 0; ai < apptData.length && !stopped; ai++) await put('appointments', apptData[ai].id, apptData[ai]);
       await flush();
     } catch (e) { err++; log('✕ ' + (e.code || e.message)); }

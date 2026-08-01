@@ -4056,27 +4056,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     window.openChartFromAppt = function(apptId) {
       var r = (allRecords || []).find(function(x) { return x.id === apptId; });
       if (!r) { showToast('الموعد غير موجود', 'error'); return; }
-      // ١) موعد مرتبط بمريض مسجّل (linkedPatientId) → افتح إضبارته مباشرة
+      // الإشارة الموثوقة الوحيدة لهوية المريض: linkedPatientId — يُضبط فقط عند تسجيل حضور
+      // هذا المريض تحديداً (الممرّضة) أو في البذر المربوط. لا نطابق بالهاتف: أرقام مشتركة/عائلية
+      // كانت تفتح إضبارة شخص آخر. فبدون linkedPatientId ⇒ المريض لم يُسجَّل بعد ⇒ رسالة فقط.
       if (r.linkedPatientId) {
         if (allPatients[r.linkedPatientId]) openPatientDetailsModal(r.linkedPatientId);
         else _openServedPatient(r.linkedPatientId, r.PatientName);
-        return;
-      }
-      var ph = normalizePhone(r.Phone || r.phone || '');
-      // ٢) طابق بالهاتف بين المرضى المحمَّلين
-      var pid = Object.keys(allPatients).find(function(k) {
-        return ph && normalizePhone(allPatients[k].phone || '') === ph;
-      });
-      if (pid) { openPatientDetailsModal(pid); return; }
-      // ٣) ابحث في الخادم بالهاتف (قد تكون له إضبارة خارج المحمَّلين الأربعين)
-      if (ph && window._fb.where) {
-        window._fb.getDocs(window._fb.query(window._fb.col('patients'), window._fb.where('phone', '==', r.Phone)))
-          .then(function(snap) {
-            var d = snap.docs && snap.docs[0];
-            if (d) { allPatients[d.id] = Object.assign({ id: d.id }, d.data()); openPatientDetailsModal(d.id); }
-            else _noChartMsg(r);
-          })
-          .catch(function(e) { console.error(e); _noChartMsg(r); });
         return;
       }
       _noChartMsg(r);
