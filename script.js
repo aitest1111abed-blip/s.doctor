@@ -7833,7 +7833,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           };
         });
         Array.prototype.forEach.call(body.querySelectorAll('.ob-cfrow'), function(row) {
-          var sc = row.getAttribute('data-s'), i = +row.getAttribute('data-i'), f = st.fields[sc][i];
+          var sc = row.getAttribute('data-s'), i = +row.getAttribute('data-i');
+          /* صفوف الخانات المدمجة تُعرض كمرجع بلا data-s؛ كان st.fields[null][i]
+             يرمي TypeError فتتوقّف الحلقة من أوّل صفّ ولا يُربَط أي معالِج —
+             فيُكتب اسم الخانة في المربّع دون أن يصل إلى f.label، فتُفلتر
+             كخانة فارغة ولا تظهر في المعاينة ولا تُحفَظ في القالب. */
+          if (!sc || !st.fields[sc] || !st.fields[sc][i]) return;
+          var f = st.fields[sc][i];
           var optIn = row.querySelector('.ob-cfopt'), warn = row.querySelector('.ob-cfwarn');
 
           var nameIn = row.querySelector('.ob-cfin');
