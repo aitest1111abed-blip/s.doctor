@@ -7378,6 +7378,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         surgicalArchive: !!s.surgicalArchive,
         orthoArchive: !!s.orthoArchive,
         preset: '',
+        cfStage: 'patient',   // مرحلة تخصيص الاضبارة: خانات المريض ← خانات الزيارة
+        cfAskPreview: false,  // بعد حفظ خانات الزيارة: اعرض سؤال المعاينة
         fields: {
           patient: Array.isArray(t.patient) ? t.patient.map(_obCloneField) : [],
           visit: Array.isArray(t.visit) ? t.visit.map(_obCloneField) : []
@@ -7739,6 +7741,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           var builtin = (_OB_BUILTIN[scope] || []).map(function(lbl) {
             return '<div class="ob-cfrow ob-builtin"><span class="ob-builtin-lbl">' + _obEsc(lbl) + '</span><span class="ob-cftag">مدمجة</span></div>';
           }).join('');
+          void title;
           var arr = st.fields[scope];
           var rows = arr.length
             ? arr.map(function(f, i) {
@@ -7779,44 +7782,86 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
                 '</div>';
               }).join('')
             : '<div class="ob-cfempty">لا توجد خانات هنا بعد.</div>';
-          return '<div class="ob-cfsec"><p class="ob-cfhead">' + title +
-              (arr.length ? ' <span style="font-weight:400;opacity:.6;">(' + arr.length + ')</span>' : '') + '</p>' +
+          return '<div class="ob-cfsec">' +
             '<p class="ob-cfnote">' + note + '</p>' +
             '<div class="ob-cflist">' +
-              '<div class="ob-builtin-lbltop">خانات مدمجة (تظهر دائماً في الاضبارة)</div>' + builtin + rows +
+              '<div class="ob-builtin-lbltop">خانات مدمجة (تظهر دائماً في الاضبارة)</div>' + builtin +
+              (arr.length ? '<div class="ob-builtin-lbltop">خانات تخصّصك (' + arr.length + ')</div>' : '') + rows +
               '<button class="ob-cfadd" type="button" data-add="' + scope + '">＋ إضافة خانة</button>' +
             '</div></div>';
         }
 
+        var _stage = st.cfStage === 'visit' ? 'visit' : 'patient';
+        var _KIND = {
+          patient: { n: '١', t: 'خانات المريض', d: 'ثابتة — تكتبها مرّة واحدة وتبقى في ملف المريض مهما تكرّرت زياراته، كزمرة الدم والسوابق الجراحية.' },
+          visit:   { n: '٢', t: 'خانات الزيارة', d: 'متغيّرة — تُملأ من جديد في كل زيارة وتُحفظ مع تاريخها، فتبني سجلّاً زمنياً كضغط الدم ونتيجة تحليل.' }
+        };
+        function kindCard(k) {
+          return '<div class="ob-kind"><span class="ob-kind-n">' + _KIND[k].n + '</span>' +
+            '<div><h4>' + _KIND[k].t + '</h4><p>' + _KIND[k].d + '</p></div></div>';
+        }
+        function stageNode(k) {
+          return '<button type="button" class="ob-stnode' + (_stage === k ? ' on' : '') + '" data-stage="' + k + '">' +
+            '<span class="ob-stnode-n">' + _KIND[k].n + '</span>' +
+            '<span class="ob-stnode-l">' + _KIND[k].t + '</span></button>';
+        }
+
         body.innerHTML = '<div class="ob-pane ob-body">' +
-          _obHead(2, 'تخصيص الاضبارة', 'ابدأ من قالب جاهز ثم عدّله كما تشاء — القالب نقطة انطلاق، لا قيد.') +
-          '<div class="ob-cfcols">' +
-            // العمود اليمين (الرئيسي): القالب + الخانات + المعاينة
-            '<div class="ob-cfmain">' +
-              '<div class="ob-f"><label>القالب الجاهز</label>' +
-                '<label class="ob-tplchk"><input type="checkbox" id="obUsePreset"' + (st.preset && st.preset === st.specialty ? ' checked' : '') + '>' +
-                  '<span>أريد قالباً جاهزاً لتخصّص «' + (_obEsc(st.specialty) || 'تخصّصك') + '» — قابل للتعديل</span></label>' +
-                '<span class="help">يملأ خاناتٍ مقترحةً لتخصّصك تلقائياً، ثم عدّلها كما تشاء.</span></div>' +
-              grp('patient', 'خانات المريض', 'تُكتب مرّة واحدة وتبقى ثابتة في أعلى الاضبارة — مثل: السوابق الجراحية، الحساسية من دواء، التاريخ العائلي.') +
-              grp('visit', 'خانات الزيارة', 'تتكرّر مع كل زيارة ويُحفظ لكلٍّ تاريخها في أرشيف الزيارات — مثل: الوزن اليوم، نتيجة فحص، الدواء الموصوف.') +
-              '<div class="ob-prevbar">' +
-                '<button class="ob-prevbtn" type="button" id="obPrevBtn"><i class="fas fa-eye"></i> معاينة الاضبارة</button>' +
-                '<span class="ob-prevhint">شاهد كيف ستظهر هذه الخانات في ملف المريض قبل أن تنهي.</span>' +
-              '</div>' +
+          _obHead(2, 'تخصيص الاضبارة', 'في هذا القسم نوعان من الخانات — اقرأهما ثم جهّز كلّ نوع على حدة.') +
+          // ① شرح النوعين — بطاقتان قصيرتان بدل فقرات طويلة
+          '<div class="ob-kinds">' + kindCard('patient') + kindCard('visit') + '</div>' +
+          // ② سؤال القالب الجاهز
+          '<div class="ob-ask">' +
+            '<p class="ob-ask-q">هل تريد قالباً جاهزاً قابلاً للتعديل؟</p>' +
+            '<label class="ob-tplchk"><input type="checkbox" id="obUsePreset"' + (st.preset && st.preset === st.specialty ? ' checked' : '') + '>' +
+              '<span>نعم — ابدأ بخانات تخصّص «' + (_obEsc(st.specialty) || 'تخصّصك') + '» وعدّلها كما تشاء</span></label>' +
+          '</div>' +
+          // ③ مرحلتان موصولتان بخطّ متدفّق بلون النافبار
+          '<div class="ob-stage">' + stageNode('patient') +
+            '<span class="ob-stline' + (_stage === 'visit' ? ' done' : '') + '"><i></i></span>' +
+            stageNode('visit') + '</div>' +
+          // ④ لوح المرحلة النشطة — مُنصَّف وبعرض مريح
+          '<div class="ob-stpanel">' +
+            (_stage === 'patient'
+              ? grp('patient', '', 'الخانات الثابتة في أعلى الاضبارة — مثل السوابق الجراحية أو الحساسية من دواء.')
+              : grp('visit', '', 'الخانات التي تتكرّر مع كل زيارة — مثل الوزن أو نتيجة فحص.')) +
+            '<div class="ob-stfoot">' +
+              '<button type="button" class="ob-savebtn" id="obStageSave">' +
+                (_stage === 'patient' ? 'حفظ ومتابعة إلى خانات الزيارة ←' : 'حفظ خانات الزيارة') + '</button>' +
             '</div>' +
-            // العمود اليسار (الجانبي): شرح الفرق بين النوعين
-            '<aside class="ob-cfaside">' +
-              _obTip('ما الفرق بين النوعين؟ ',
-                '<b style="display:inline;color:var(--primary)">خانات المريض</b> ثابتة: تكتبها مرّة واحدة وتبقى في ملفه مهما تكرّرت زياراته — كزمرة الدم والسوابق الجراحية. ' +
-                'و<b style="display:inline;color:var(--primary)">خانات الزيارة</b> متغيّرة: تُملأ من جديد في كل زيارة وتُحفظ مع تاريخها، فتبني سجلاً زمنياً تتابع فيه تطوّر الحالة — كضغط الدم ونتيجة تحليل.<br>' +
-                '<b style="display:inline">القاعدة:</b> اسأل نفسك «هل تتغيّر هذه المعلومة بين زيارة وأخرى؟» — إن كان الجواب نعم فهي خانة زيارة، وإلا فهي خانة مريض.') +
-              _obTip('ملاحظة: ', 'الخانات <b style="display:inline">المدمجة</b> موجودة أصلاً في كل اضبارة (تُعرض هنا كمرجع بلا تعديل) — أضف تحتها ما يخصّ تخصّصك فقط.') +
-            '</aside>' +
+            (st.cfAskPreview
+              ? '<div class="ob-askprev"><p>هل تريد معاينة الاضبارة؟</p><div>' +
+                  '<button type="button" class="ob-savebtn" id="obPrevBtn">نعم، اعرض المعاينة</button>' +
+                  '<button type="button" class="ob-laterbtn" id="obPrevLater">لاحقاً</button>' +
+                '</div></div>'
+              : '') +
           '</div>' +
         '</div>';
 
         var prevBtn = document.getElementById('obPrevBtn');
         if (prevBtn) prevBtn.onclick = _obOpenChartPreview;
+        var prevLater = document.getElementById('obPrevLater');
+        if (prevLater) prevLater.onclick = function() { st.cfAskPreview = false; _obRender(); };
+
+        // التنقّل بين المرحلتين بالضغط على العقدة
+        Array.prototype.forEach.call(body.querySelectorAll('.ob-stnode'), function(n) {
+          n.onclick = function() {
+            st.cfStage = this.getAttribute('data-stage');
+            st.cfAskPreview = false;
+            _obRender();
+          };
+        });
+        // «حفظ»: من خانات المريض ← خانات الزيارة، ومن خانات الزيارة ← سؤال المعاينة
+        var stSave = document.getElementById('obStageSave');
+        if (stSave) stSave.onclick = function() {
+          if (st.cfStage === 'visit') { st.cfAskPreview = true; }
+          else { st.cfStage = 'visit'; st.cfAskPreview = false; }
+          _obRender();
+          // بعد الحفظ ينزل التمرير للمحتوى الجديد، وإلا بقي أسفل الشاشة بلا أن يُرى
+          var _t = document.querySelector('#onboardOverlay .ob-askprev') ||
+                   document.querySelector('#onboardOverlay .ob-stage');
+          if (_t && _t.scrollIntoView) _t.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
 
         var _up = document.getElementById('obUsePreset');
         if (_up) _up.onchange = function() {
