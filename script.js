@@ -5570,16 +5570,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // منحنى بهوية «توزيع الأيام» نفسها: لا محور شبكي ولا أرقام جانبية (مصدر تصادم التسميات) —
     // القيمة تُكتب فوق نقطتها مباشرة والتاريخ تحتها. RTL: الزيارة الأقدم يميناً، الأحدث يساراً.
-    /* ألوان السلاسل على لوح داكن: نمزجها نحو الأبيض فتبقى مميّزة ومقروءة.
-       ‏#0d9488 التركوازي مثلاً يغرق في الخلفية الداكنة بلا تفتيح. */
-    function _scLift(hex, amt) {
-      var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || ''));
-      if (!m) return hex;
-      var t = amt == null ? 0.42 : amt;
-      var mix = function(c) { var v = parseInt(c, 16); return Math.round(v + (255 - v) * t); };
-      return 'rgb(' + mix(m[1]) + ',' + mix(m[2]) + ',' + mix(m[3]) + ')';
-    }
-
     function _scLineChart(cfg) {
       var W = 300, H = 150, padX = 16, padTop = 30, padBot = 26;
       var innerW = W - padX * 2, innerH = H - padTop - padBot;
@@ -5604,29 +5594,32 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (cfg.band) {
         var by1 = Y(cfg.band.to), by2 = Y(cfg.band.from);
         paths += '<rect x="0" y="' + by1.toFixed(1) + '" width="' + W + '" height="' + Math.abs(by2 - by1).toFixed(1) +
-          '" fill="var(--primary)" opacity=".08"></rect>' +
+          '" fill="var(--primary)" opacity=".07"></rect>' +
           '<line x1="0" y1="' + by1.toFixed(1) + '" x2="' + W + '" y2="' + by1.toFixed(1) +
-            '" stroke="var(--primary)" stroke-width=".8" stroke-dasharray="3 3" opacity=".45"></line>' +
+            '" stroke="var(--primary)" stroke-width="1" stroke-dasharray="4 3" opacity=".55"></line>' +
           '<line x1="0" y1="' + by2.toFixed(1) + '" x2="' + W + '" y2="' + by2.toFixed(1) +
-            '" stroke="var(--primary)" stroke-width=".8" stroke-dasharray="3 3" opacity=".45"></line>';
+            '" stroke="var(--primary)" stroke-width="1" stroke-dasharray="4 3" opacity=".55"></line>';
+        // تسمية حدّي النطاق على الحافّة — بدونها الشريط لون بلا معنى
+        overlay += '<span style="position:absolute;right:2px;top:' + ((by1 / H) * 100).toFixed(1) +
+            '%;transform:translateY(-115%);font-size:.6rem;font-weight:800;color:var(--primary);">' + cfg.band.to + '</span>' +
+          '<span style="position:absolute;right:2px;top:' + ((by2 / H) * 100).toFixed(1) +
+            '%;transform:translateY(15%);font-size:.6rem;font-weight:800;color:var(--primary);">' + cfg.band.from + '</span>';
       }
-      var lifted = cfg.series.map(function(s) { return _scLift(s.color); });
+      var lifted = cfg.series.map(function(s) { return s.color; });   // لوح فاتح ⇒ الألوان كما هي
       cfg.series.forEach(function(s, si) {
-        var col = lifted[si];
+        var col = s.color;
         var pts = s.v.map(function(v, i) { return { x: X(i), y: Y(v) }; });
         var line = _scSmoothPath(pts);
         if (single) {
           var area = line + ' L ' + pts[pts.length - 1].x.toFixed(1) + ' ' + H + ' L ' + pts[0].x.toFixed(1) + ' ' + H + ' Z';
           paths += '<path d="' + area + '" fill="url(#' + uid + 'f)"></path>';
         }
-        // توهّج خلف المنحنى فقط (نسخة مطموسة تحته) — الخطّ نفسه يبقى حادّاً
-        // كي لا تضيع الحافّة عند قراءة قيمة قريبة من حدّ النطاق المرجعي.
-        paths += '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".38" filter="url(#' + uid + 'g)"></path>' +
-          '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>';
+        // خطّ واحد حادّ بلا توهّج: القيمة قرب حدّ النطاق المرجعي يجب أن تُقرأ بدقّة
+        paths += '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>';
         pts.forEach(function(pt, i) {
           var leftPct = (pt.x / W) * 100, topPct = (pt.y / H) * 100;
           overlay += '<span class="scc-dot" data-s="' + si + '" data-i="' + i + '" style="left:' + leftPct + '%;top:' + topPct +
-            '%;background:' + col + ';color:' + col + ';"></span>';
+            '%;background:' + col + ';"></span>';
         });
       });
 
@@ -5720,14 +5713,19 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function _scTable(cols, rows) {
       // الجدول يُغلَّف دوماً بصندوق var(--bg) (_scBuildBody) — فترويسته تستعمل var(--surface) لتتباين عنه.
       // عمود «الزيارة» لاصق (sticky) أثناء التمرير الأفقي كي يبقى التاريخ مرجعاً مرئياً.
-      var thB = 'padding:9px 11px;text-align:start;font-size:.72rem;font-weight:800;color:var(--text-secondary);background:var(--surface);white-space:nowrap;border-bottom:1.5px solid var(--border);';
+      // حشوة أوسع وخطّ أكبر ورأس أثقل — الجدول يُقرأ بالمسح السريع لا بالتدقيق
+      var thB = 'padding:11px 13px;text-align:start;font-size:.76rem;font-weight:800;color:var(--text-primary);background:var(--bg);white-space:nowrap;border-bottom:2px solid var(--border-strong);';
       var head = '<tr><th style="' + thB + 'position:sticky;inset-inline-start:0;z-index:3;">الزيارة</th>' +
         cols.map(function(c) { return '<th style="' + thB + '">' + escapeHtml(c) + '</th>'; }).join('') + '</tr>';
       var body = rows.map(function(r) {
-        return '<tr class="sc-row"><td style="padding:9px 11px;font-size:.8rem;font-weight:800;color:var(--primary);white-space:nowrap;border-top:1px solid var(--border);background:var(--surface);position:sticky;inset-inline-start:0;z-index:1;">' + escapeHtml(r.date) + '</td>' +
-          r.vals.map(function(v) { return '<td style="padding:9px 11px;font-size:.8rem;color:var(--text-primary);border-top:1px solid var(--border);background:var(--surface);max-width:220px;">' + escapeHtml(v || '—') + '</td>'; }).join('') + '</tr>';
+        return '<tr class="sc-row"><td style="padding:11px 13px;font-size:.83rem;font-weight:800;color:var(--primary);white-space:nowrap;border-top:1px solid var(--border);background:var(--surface);position:sticky;inset-inline-start:0;z-index:1;">' + escapeHtml(r.date) + '</td>' +
+          r.vals.map(function(v) {
+            var empty = !v;
+            return '<td style="padding:11px 13px;font-size:.83rem;line-height:1.6;color:' + (empty ? 'var(--text-muted)' : 'var(--text-primary)') +
+              ';border-top:1px solid var(--border);background:var(--surface);max-width:220px;">' + escapeHtml(v || '—') + '</td>';
+          }).join('') + '</tr>';
       }).join('');
-      return '<div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;">' +
+      return '<div style="overflow-x:auto;border:1.5px solid var(--border);border-radius:12px;">' +
         '<table style="width:100%;border-collapse:collapse;min-width:420px;"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
