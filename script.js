@@ -1536,7 +1536,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + '<h3 style="font-weight:800;font-size:.85rem;color:var(--text-primary);margin:0;">' + daysAr[parseLocalISODate(dateStr).getDay()] + ' — ' + formatDateAr(dateStr) + '</h3>'
         + '<span style="font-size:.7rem;color:var(--text-muted);font-weight:600;">' + recs.length + ' موعد</span></div>';
       var body = recs.length
-        ? '<div style="display:flex;flex-direction:column;gap:8px;">' + recs.map(homeApptCard).join('') + '</div>'
+        ? '<div class="ac-scroll" style="display:flex;flex-direction:column;gap:8px;">' + recs.map(homeApptCard).join('') + '</div>'
         : '<div style="text-align:center;padding:18px 0;color:var(--text-muted);font-size:.85rem;"><i class="far fa-calendar-check" style="font-size:1.4rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا مواعيد في هذا اليوم</div>';
       box.innerHTML = head + body;
     }
@@ -3824,19 +3824,30 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (panel) panel.style.display = 'block';
     }
 
+    /* كرت موعد اليوم — أعيد بناؤه بأصناف CSS بدل ستايلات inline متناثرة.
+       الحالة تُقرأ من شريط جانبي رفيع + شارة، لا من خلفية ملوّنة للكرت كلّه. */
     function homeApptCard(r) {
-      const c = schedStatusColor(r);
-      const t = slotTimeOf(r);
-      let right;
-      if (r.Status === 'Visited') right = '<span style="font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:700;background:#dcfce7;color:#16a34a;white-space:nowrap;flex-shrink:0;"><i class="fas fa-check-circle"></i> تمت</span>';
-      else if (r.Status === 'NoShow') right = '<span style="font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:700;background:#fee2e2;color:#dc2626;white-space:nowrap;flex-shrink:0;"><i class="fas fa-user-times"></i> لم يحضر</span>';
-      else if (['Cancelled','Rejected'].includes(r.Status)) right = '<span style="font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:700;background:#fef3c7;color:#d97706;white-space:nowrap;flex-shrink:0;"><i class="fas fa-ban"></i> ملغاة</span>';
-      else right = '<div style="display:flex;gap:4px;flex-shrink:0;"><a href="tel:' + normalizePhone(r.Phone) + '" onclick="event.stopPropagation();" style="width:32px;height:32px;border-radius:8px;background:#2563eb;color:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;"><i class="fas fa-phone"></i></a><button onclick="event.stopPropagation();openAppointmentDetailsModal(\'' + r.id + '\')" style="width:32px;height:32px;border-radius:8px;background:var(--primary-light);color:var(--primary);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;"><i class="fas fa-eye"></i></button></div>';
-      return '<div data-appt-id="' + r.id + '" onclick="openAppointmentDetailsModal(\'' + r.id + '\')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--primary-faint);border:1.5px solid var(--border);border-right:4px solid ' + c.bd + ';border-radius:12px;padding:9px 11px;cursor:pointer;">'
-        + '<div style="display:flex;align-items:center;gap:10px;min-width:0;">'
-          + '<div style="display:flex;align-items:center;justify-content:center;background:var(--primary-light);color:var(--primary);border-radius:9px;padding:5px 9px;min-width:56px;flex-shrink:0;font-family:\'DM Mono\',monospace;font-weight:800;font-size:.82rem;"><i class="far fa-clock" style="font-size:.62rem;margin-left:4px;"></i>' + t + '</div>'
-          + '<div style="min-width:0;"><p style="font-weight:700;font-size:.88rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(r.PatientName || '') + '</p><p style="font-size:.7rem;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (r.VisitType || '') + '</p></div>'
-        + '</div>'
+      var t = slotTimeOf(r);
+      var S = {
+        Visited:   { cls: 'done',   label: 'تمت' },
+        NoShow:    { cls: 'noshow', label: 'لم يحضر' },
+        Cancelled: { cls: 'cancel', label: 'ملغاة' },
+        Rejected:  { cls: 'cancel', label: 'ملغاة' }
+      }[r.Status];
+
+      var right = S
+        ? '<span class="ac-badge ac-' + S.cls + '">' + S.label + '</span>'
+        : '<div class="ac-acts">'
+            + '<a href="tel:' + normalizePhone(r.Phone) + '" onclick="event.stopPropagation();" class="ac-btn" title="اتصال" aria-label="اتصال">'
+              + '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg></a>'
+            + '<button onclick="event.stopPropagation();openAppointmentDetailsModal(\'' + r.id + '\')" class="ac-btn" title="التفاصيل" aria-label="التفاصيل">'
+              + '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>'
+          + '</div>';
+
+      return '<div data-appt-id="' + r.id + '" class="ac' + (S ? ' ac-s-' + S.cls : '') + '" onclick="openAppointmentDetailsModal(\'' + r.id + '\')">'
+        + '<span class="ac-time">' + t + '</span>'
+        + '<div class="ac-who"><p class="ac-name">' + escapeHtml(r.PatientName || '') + '</p>'
+          + '<p class="ac-type">' + escapeHtml(r.VisitType || '') + '</p></div>'
         + right + '</div>';
     }
 
