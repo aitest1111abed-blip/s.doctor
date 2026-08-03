@@ -2334,6 +2334,56 @@ body.theme-dark .ac-badge.ac-cancel{background:rgba(217,119,6,.18); color:#fcd34
 .pf-verline{font-size:.6rem;font-weight:800;color:var(--primary);background:var(--primary-light);border:1px solid var(--border-strong);border-radius:999px;padding:3px 10px;letter-spacing:.3px;white-space:nowrap;}
 .pf-phone{direction:ltr;text-align:right;color:var(--primary);font-weight:700;font-size:.82rem;margin-top:1px;}
 /* ── رأس الأداة السريرية «مقارنة القياسات» — يعيد استخدام pf-hero بهوية الاضبارة ── */
+/* ═══ بطاقة القياس السريري — لوح داكن بتوهّج بهويّة التطبيق التركوازية ═══
+   البطاقة داكنة دائماً (لا تتبع الثيم): اللوح الداكن يجعل المنحنى والتوهّج
+   يقرآن بوضوح، وهو نمط شائع لبطاقات البيانات داخل واجهات فاتحة. */
+.scc{
+  position:relative; overflow:hidden; height:100%; box-sizing:border-box;
+  background:linear-gradient(158deg,#0d2f2c 0%,#07201e 55%,#051614 100%);
+  border:1px solid rgba(45,212,191,.16); border-radius:22px; padding:16px 16px 10px;
+  box-shadow:0 10px 30px rgba(5,22,20,.28);
+}
+/* هالة محيطة خافتة — بلا bloom على المنحنى نفسه كي تبقى القيم دقيقة */
+.scc::before{
+  content:""; position:absolute; inset:auto -20% -55% -20%; height:78%;
+  background:radial-gradient(ellipse at 50% 100%, rgba(45,212,191,.30), rgba(45,212,191,0) 68%);
+  pointer-events:none;
+}
+.scc-head{position:relative; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:2px;}
+.scc-t{font-size:.78rem; font-weight:600; color:rgba(203,247,241,.62); margin:0;}
+.scc-v{font-size:1.75rem; font-weight:800; color:#f0fdfa; line-height:1.15; margin:2px 0 0; letter-spacing:-.5px; font-variant-numeric:tabular-nums;}
+.scc-u{font-size:.7rem; font-weight:600; color:rgba(203,247,241,.5); margin:3px 0 0;}
+.scc-pill{
+  flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  background:rgba(45,212,191,.16); border:1px solid rgba(45,212,191,.3); color:#5eead4;
+  border-radius:999px; padding:6px 12px; font-size:.72rem; font-weight:700; white-space:nowrap;
+}
+.scc-pill i{width:6px; height:6px; border-radius:50%; background:#2dd4bf; display:inline-block;}
+.scc-legend{position:relative; display:flex; gap:12px; flex-wrap:wrap; margin:8px 0 0;}
+.scc-legend span{display:inline-flex; align-items:center; gap:6px; font-size:.7rem; font-weight:700; color:rgba(203,247,241,.75);}
+.scc-legend i{width:9px; height:9px; border-radius:3px; display:inline-block;}
+.scc-plot{position:relative; width:100%; height:158px; direction:ltr; margin-top:6px;}
+.scc-x{position:absolute; bottom:0; transform:translateX(-50%); font-size:.63rem; font-weight:600; color:rgba(203,247,241,.45); white-space:nowrap; transition:color .15s;}
+.scc-x.on{color:#5eead4; font-weight:800;}
+/* نقاط تفاعلية: مساحة لمس مريحة فوق كل قياس */
+.scc-hit{position:absolute; top:0; bottom:16px; transform:translateX(-50%); width:34px; cursor:pointer; background:transparent; border:none; padding:0;}
+.scc-dot{position:absolute; width:8px; height:8px; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; transition:width .12s,height .12s;}
+.scc-dot.on{width:13px; height:13px; box-shadow:0 0 0 3px rgba(5,22,20,.9), 0 0 14px currentColor;}
+.scc-guide{position:absolute; top:8px; bottom:16px; width:1px; background:linear-gradient(180deg,rgba(94,234,212,.7),rgba(94,234,212,0)); transform:translateX(-50%); pointer-events:none; display:none;}
+/* تلميح القيمة — نفس فكرة البطاقة المرجعية: تاريخ + قيمة + أقصى */
+.scc-tip{
+  position:absolute; z-index:3; transform:translate(-50%,-116%); pointer-events:none; display:none;
+  background:rgba(6,26,24,.94); border:1px solid rgba(45,212,191,.28); border-radius:12px;
+  padding:8px 11px; min-width:104px; box-shadow:0 10px 26px rgba(0,0,0,.4); backdrop-filter:blur(6px);
+}
+.scc-tip b{display:block; font-size:.7rem; font-weight:700; color:#f0fdfa; margin-bottom:4px; white-space:nowrap;}
+.scc-tip .r{display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:.68rem; color:rgba(203,247,241,.62); white-space:nowrap;}
+.scc-tip .r em{font-style:normal; font-weight:800; color:#5eead4; font-variant-numeric:tabular-nums;}
+@media (max-width:520px){
+  .scc-v{font-size:1.5rem;}
+  .scc-plot{height:140px;}
+}
+
 .sc-hero{position:sticky;top:0;z-index:12;}
 .sc-id{flex:1;min-width:0;}
 .pf-sub{font-size:.75rem;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}

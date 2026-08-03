@@ -5570,6 +5570,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // منحنى بهوية «توزيع الأيام» نفسها: لا محور شبكي ولا أرقام جانبية (مصدر تصادم التسميات) —
     // القيمة تُكتب فوق نقطتها مباشرة والتاريخ تحتها. RTL: الزيارة الأقدم يميناً، الأحدث يساراً.
+    /* ألوان السلاسل على لوح داكن: نمزجها نحو الأبيض فتبقى مميّزة ومقروءة.
+       ‏#0d9488 التركوازي مثلاً يغرق في الخلفية الداكنة بلا تفتيح. */
+    function _scLift(hex, amt) {
+      var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || ''));
+      if (!m) return hex;
+      var t = amt == null ? 0.42 : amt;
+      var mix = function(c) { var v = parseInt(c, 16); return Math.round(v + (255 - v) * t); };
+      return 'rgb(' + mix(m[1]) + ',' + mix(m[2]) + ',' + mix(m[3]) + ')';
+    }
+
     function _scLineChart(cfg) {
       var W = 300, H = 150, padX = 16, padTop = 30, padBot = 26;
       var innerW = W - padX * 2, innerH = H - padTop - padBot;
@@ -5600,46 +5610,111 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           '<line x1="0" y1="' + by2.toFixed(1) + '" x2="' + W + '" y2="' + by2.toFixed(1) +
             '" stroke="var(--primary)" stroke-width=".8" stroke-dasharray="3 3" opacity=".45"></line>';
       }
-      cfg.series.forEach(function(s) {
+      var lifted = cfg.series.map(function(s) { return _scLift(s.color); });
+      cfg.series.forEach(function(s, si) {
+        var col = lifted[si];
         var pts = s.v.map(function(v, i) { return { x: X(i), y: Y(v) }; });
         var line = _scSmoothPath(pts);
         if (single) {
           var area = line + ' L ' + pts[pts.length - 1].x.toFixed(1) + ' ' + H + ' L ' + pts[0].x.toFixed(1) + ' ' + H + ' Z';
           paths += '<path d="' + area + '" fill="url(#' + uid + 'f)"></path>';
         }
-        paths += '<path d="' + line + '" fill="none" stroke="' + s.color + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + uid + 'g)"></path>' +
-          '<path d="' + line + '" fill="none" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity=".85"></path>';
+        // توهّج خلف المنحنى فقط (نسخة مطموسة تحته) — الخطّ نفسه يبقى حادّاً
+        // كي لا تضيع الحافّة عند قراءة قيمة قريبة من حدّ النطاق المرجعي.
+        paths += '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".38" filter="url(#' + uid + 'g)"></path>' +
+          '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>';
         pts.forEach(function(pt, i) {
           var leftPct = (pt.x / W) * 100, topPct = (pt.y / H) * 100;
-          overlay += '<div style="position:absolute;left:' + leftPct + '%;top:' + topPct + '%;transform:translate(-50%,-175%);font-size:.68rem;font-weight:800;color:' + s.color + ';white-space:nowrap;">' + escapeHtml(String(s.v[i])) + '</div>' +
-            '<div style="position:absolute;left:' + leftPct + '%;top:' + topPct + '%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:' + s.color + ';box-shadow:0 0 0 2px var(--surface),0 0 7px ' + s.color + ';"></div>';
+          overlay += '<span class="scc-dot" data-s="' + si + '" data-i="' + i + '" style="left:' + leftPct + '%;top:' + topPct +
+            '%;background:' + col + ';color:' + col + ';"></span>';
         });
       });
-      var dateLabels = '';
+
+      // بيانات التلميح: لكل نقطة تاريخها وقيمها في كل السلاسل
+      var tipData = cfg.labels.map(function(l, i) {
+        return { d: l, v: cfg.series.map(function(s) { return { n: s.n || cfg.title, x: s.v[i] }; }) };
+      });
+
+      var dateLabels = '', hits = '';
       cfg.labels.forEach(function(l, i) {
         var leftPct = (X(i) / W) * 100;
-        dateLabels += '<div style="position:absolute;left:' + leftPct + '%;bottom:2px;transform:translateX(-50%);font-size:.64rem;font-weight:600;color:var(--text-muted);white-space:nowrap;">' + escapeHtml(l) + '</div>';
+        dateLabels += '<span class="scc-x" data-i="' + i + '" style="left:' + leftPct + '%;">' + escapeHtml(l) + '</span>';
+        hits += '<button type="button" class="scc-hit" data-i="' + i + '" style="left:' + leftPct + '%;" aria-label="' + escapeHtml(l) + '"></button>';
       });
 
       var leg = '';
       if (cfg.series.length > 1) {
-        leg = '<div style="display:flex;gap:14px;margin-bottom:8px;">' + cfg.series.map(function(s) {
-          return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;color:var(--text-secondary);">' +
-            '<i style="width:10px;height:10px;border-radius:3px;background:' + s.color + ';display:inline-block;"></i>' + escapeHtml(s.n) + '</span>';
+        leg = '<div class="scc-legend">' + cfg.series.map(function(s, si) {
+          return '<span><i style="background:' + lifted[si] + '"></i>' + escapeHtml(s.n) + '</span>';
         }).join('') + '</div>';
       }
 
-      // خلية في شبكة الرسوم: بلا هامش سفلي (الفراغ من gap) وبارتفاع كامل لتتساوى الخلايا
-      return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;height:100%;box-sizing:border-box;">' +
-        '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap;">' +
-          '<b style="font-size:.85rem;font-weight:700;color:var(--text-primary);">' + escapeHtml(cfg.title) + '</b>' +
-          '<span style="font-size:.72rem;color:var(--text-muted);">' + escapeHtml(cfg.unit || '') + '</span>' +
+      // القيمة المعروضة في الترويسة = آخر قياس (أحدث زيارة)
+      var lastIdx = 0;   // ترتيب المحور: يمين = الأقدم ⇒ الفهرس ٠ هو الأحدث
+      var headVal = cfg.series.map(function(s) { return s.v[lastIdx]; }).join(' / ');
+      var count = cfg.labels.length;
+
+      return '<div class="scc" data-tip=\'' + escapeHtml(JSON.stringify(tipData)) + '\'>' +
+        '<div class="scc-head">' +
+          '<div><p class="scc-t">' + escapeHtml(cfg.title) + '</p>' +
+            '<p class="scc-v">' + escapeHtml(String(headVal)) + '</p>' +
+            '<p class="scc-u">' + escapeHtml(cfg.unit || '') + '</p></div>' +
+          '<span class="scc-pill"><i></i>' + count + ' قياس</span>' +
         '</div>' + leg +
-        '<div style="position:relative;width:100%;height:150px;direction:ltr;">' +
+        '<div class="scc-plot">' +
           '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="100%" preserveAspectRatio="none" style="position:absolute;inset:0;overflow:visible;">' + defs + paths + '</svg>' +
-          overlay + dateLabels +
+          '<span class="scc-guide"></span>' + overlay + dateLabels + hits +
+          '<div class="scc-tip"></div>' +
         '</div></div>';
     }
+
+    /* تفاعل بطاقات القياس: لمس/مرور على نقطة ⇒ خطّ دليل + تلميح بالتاريخ والقيمة.
+       مفوَّض على المستند مرّة واحدة، فيعمل مع أي بطاقة تُرسَم لاحقاً. */
+    (function _scTipInit() {
+      function show(card, i) {
+        var tip = card.querySelector('.scc-tip'), guide = card.querySelector('.scc-guide');
+        var hit = card.querySelector('.scc-hit[data-i="' + i + '"]');
+        if (!tip || !hit) return;
+        var data;
+        try { data = JSON.parse(card.getAttribute('data-tip') || '[]'); } catch (e) { return; }
+        var d = data[i]; if (!d) return;
+        tip.innerHTML = '<b>' + escapeHtml(d.d) + '</b>' + d.v.map(function(o) {
+          return '<div class="r"><span>' + escapeHtml(o.n) + '</span><em>' + escapeHtml(String(o.x)) + '</em></div>';
+        }).join('');
+        var left = hit.style.left;
+        tip.style.left = left; guide.style.left = left;
+        // أعلى نقطة في هذا الفهرس ⇒ التلميح فوقها
+        var dots = card.querySelectorAll('.scc-dot[data-i="' + i + '"]');
+        var top = 100;
+        dots.forEach(function(dt) { var t = parseFloat(dt.style.top); if (t < top) top = t; });
+        tip.style.top = top + '%';
+        tip.style.display = 'block'; guide.style.display = 'block';
+        card.querySelectorAll('.scc-dot').forEach(function(dt) { dt.classList.toggle('on', dt.getAttribute('data-i') === String(i)); });
+        card.querySelectorAll('.scc-x').forEach(function(x) { x.classList.toggle('on', x.getAttribute('data-i') === String(i)); });
+      }
+      function hide(card) {
+        var tip = card.querySelector('.scc-tip'), guide = card.querySelector('.scc-guide');
+        if (tip) tip.style.display = 'none';
+        if (guide) guide.style.display = 'none';
+        card.querySelectorAll('.scc-dot.on').forEach(function(d) { d.classList.remove('on'); });
+        card.querySelectorAll('.scc-x.on').forEach(function(x) { x.classList.remove('on'); });
+      }
+      document.addEventListener('pointerover', function(e) {
+        var hit = e.target.closest && e.target.closest('.scc-hit');
+        if (!hit) return;
+        show(hit.closest('.scc'), hit.getAttribute('data-i'));
+      });
+      document.addEventListener('pointerout', function(e) {
+        var card = e.target.closest && e.target.closest('.scc');
+        if (card && !(e.relatedTarget && card.contains(e.relatedTarget))) hide(card);
+      });
+      // اللمس: ضغطة تُظهر، وضغطة خارج البطاقة تُخفي
+      document.addEventListener('click', function(e) {
+        var hit = e.target.closest && e.target.closest('.scc-hit');
+        if (hit) { show(hit.closest('.scc'), hit.getAttribute('data-i')); return; }
+        document.querySelectorAll('.scc').forEach(function(c) { if (!c.contains(e.target)) hide(c); });
+      });
+    })();
 
     // جدول مقارنة عام: يجمع كل الحقول غير القابلة للرسم (نصّ/نصّ طويل/نعم-لا) عموداً فعموداً عبر الزيارات
     function _scTable(cols, rows) {
