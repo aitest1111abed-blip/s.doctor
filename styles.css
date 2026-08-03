@@ -2626,82 +2626,9 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
 /* التمرير على الحاوية المرنة #obBody (ابنة .ob-main) — لا على .ob-body الداخلي */
 #onboardOverlay #obBody{flex:1; min-height:0; overflow-y:auto;}
 #onboardOverlay .ob-body{padding:34px 40px 40px; max-width:860px; width:100%;}
-/* ═══ خطوة تخصيص الاضبارة — شرح النوعين ثم سؤال القالب ثم مرحلتان ═══ */
-#onboardOverlay .ob-body:has(.ob-stage){max-width:980px;}
-
-/* ① بطاقتا شرح النوعين — سطران لكلٍّ بدل فقرات طويلة */
-#onboardOverlay .ob-kinds{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:4px 0 18px;}
-#onboardOverlay .ob-kind{
-  display:flex; align-items:flex-start; gap:11px;
-  background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:14px 16px;
-}
-#onboardOverlay .ob-kind-n{
-  width:28px; height:28px; flex-shrink:0; border-radius:50%;
-  background:var(--primary); color:#fff; font-size:.82rem; font-weight:800;
-  display:flex; align-items:center; justify-content:center;
-}
-#onboardOverlay .ob-kind h4{margin:0 0 3px; font-size:.95rem; font-weight:800; color:var(--text-primary);}
-#onboardOverlay .ob-kind p{margin:0; font-size:.82rem; color:var(--text-muted); line-height:1.65;}
-
-/* ② سؤال القالب الجاهز */
-#onboardOverlay .ob-ask{margin:0 0 22px;}
-#onboardOverlay .ob-ask-q{margin:0 0 9px; font-size:1rem; font-weight:800; color:var(--text-primary);}
-
-/* ③ مرحلتان موصولتان بخطّ متدفّق بلون النافبار */
-#onboardOverlay .ob-stage{display:flex; align-items:center; gap:0; margin:0 0 20px;}
-#onboardOverlay .ob-stnode{
-  display:flex; align-items:center; gap:9px; flex-shrink:0; cursor:pointer;
-  font-family:inherit; font-size:.9rem; font-weight:700; color:var(--text-muted);
-  background:var(--surface); border:1.5px solid var(--border); border-radius:999px; padding:8px 16px 8px 10px;
-  transition:color .18s, border-color .18s, background .18s;
-}
-#onboardOverlay .ob-stnode-n{
-  width:24px; height:24px; flex-shrink:0; border-radius:50%;
-  background:var(--border); color:var(--text-muted); font-size:.76rem; font-weight:800;
-  display:flex; align-items:center; justify-content:center; transition:background .18s, color .18s;
-}
-#onboardOverlay .ob-stnode.on{color:var(--primary); border-color:var(--primary); background:var(--primary-1);}
-#onboardOverlay .ob-stnode.on .ob-stnode-n{background:var(--primary); color:#fff;}
-#onboardOverlay .ob-stnode:hover{border-color:var(--primary);}
-/* الخطّ الواصل — تدفّق مستمرّ بلون النافبار */
-#onboardOverlay .ob-stline{flex:1; height:3px; min-width:26px; border-radius:2px; background:var(--border); overflow:hidden; position:relative;}
-#onboardOverlay .ob-stline i{
-  position:absolute; inset:0; border-radius:2px;
-  background:linear-gradient(90deg, transparent, #158078 35%, #0b4d48 65%, transparent);
-  background-size:200% 100%; animation:obFlow 1.9s linear infinite;
-}
-#onboardOverlay .ob-stline.done{background:#0b4d48;}
-#onboardOverlay .ob-stline.done i{animation:none; background:linear-gradient(90deg,#158078,#0b4d48);}
-@keyframes obFlow{ from{background-position:200% 0;} to{background-position:-200% 0;} }
-@media (prefers-reduced-motion: reduce){ #onboardOverlay .ob-stline i{animation:none;} }
-
-/* ④ لوح المرحلة النشطة — مُنصَّف بعرض مريح */
-#onboardOverlay .ob-stpanel{max-width:720px; margin-inline:auto;}
-#onboardOverlay .ob-stfoot{display:flex; justify-content:center; margin-top:18px;}
-#onboardOverlay .ob-savebtn{
-  font-family:inherit; font-size:.92rem; font-weight:700; cursor:pointer;
-  background:var(--primary); color:#fff; border:1.5px solid var(--primary);
-  border-radius:12px; padding:12px 26px; transition:background .15s, transform .1s;
-}
-#onboardOverlay .ob-savebtn:hover{background:var(--primary-hover, #0b7c72); border-color:var(--primary-hover, #0b7c72);}
-#onboardOverlay .ob-savebtn:active{transform:scale(.98);}
-#onboardOverlay .ob-laterbtn{
-  font-family:inherit; font-size:.92rem; font-weight:700; cursor:pointer;
-  background:var(--surface); color:var(--text-secondary); border:1.5px solid var(--border);
-  border-radius:12px; padding:12px 22px;
-}
-#onboardOverlay .ob-laterbtn:hover{border-color:var(--primary); color:var(--primary);}
-/* سؤال المعاينة بعد حفظ خانات الزيارة */
-#onboardOverlay .ob-askprev{
-  margin-top:18px; padding:18px; text-align:center;
-  background:var(--primary-1); border:1.5px solid var(--primary); border-radius:14px;
-}
-#onboardOverlay .ob-askprev p{margin:0 0 12px; font-size:1rem; font-weight:800; color:var(--text-primary);}
-#onboardOverlay .ob-askprev>div{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
-@media (max-width:640px){
-  #onboardOverlay .ob-kinds{grid-template-columns:1fr;}
-  #onboardOverlay .ob-stnode{padding:7px 12px 7px 8px; font-size:.82rem;}
-}
+/* خطوة تخصيص الاضبارة وحدها تحتاج عرضاً أكبر: بطاقتان بكل صفّ + عمود الشرح،
+   وبعرض ٨٦٠ كانت أسماء الخانات الطويلة تُقصّ داخل المربّع. */
+#onboardOverlay .ob-body:has(.ob-cfcols){max-width:1180px;}
 #onboardOverlay .ob-stepno{font-size:.79rem; font-weight:700; color:var(--primary); margin:0 0 6px;}
 #onboardOverlay .ob-h{font-size:1.62rem; font-weight:800; margin:0 0 26px; letter-spacing:-.4px; color:var(--text-primary);}
 #onboardOverlay .ob-h.tight{margin-bottom:8px;}
