@@ -2797,7 +2797,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (!col || window.innerWidth < 768) { if (col) col.style.height = ''; return; }
       if (col.offsetParent === null) return;             // مخفي — لا قياس
       var top = col.getBoundingClientRect().top + (window.scrollY || 0);
-      var h = window.innerHeight - top - 16;             // ١٦ هامش سفلي
+      /* حتى أسفل الشاشة تماماً: الشريط الجانبي fixed من ٠ إلى bottom:0، فالمحاذاة
+         معه تعني bottom = ارتفاع الشاشة. وحشوتا <body>/<main> السفليتان مُصفّرتان
+         على اللابتوب، وإلا زادتا ارتفاع المستند فظهر شريط تمرير للصفحة. */
+      var h = window.innerHeight - top;
       col.style.height = (h > 320 ? h : 320) + 'px';     // حدّ أدنى معقول
     }
     window.addEventListener('resize', syncHomeColHeight);

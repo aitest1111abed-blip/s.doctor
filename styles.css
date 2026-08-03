@@ -398,6 +398,12 @@
     }
     @media (min-width: 768px) {
       .bottom-nav { display: none; }
+      /* الحشوة السفلية محجوزة لشريط التنقّل السفلي، وهو مخفيّ هنا — إبقاؤها
+         كان يترك ٧٠px فراغاً ميتاً يجعل الصفحة كلّها تمرّر بلا داعٍ.
+         وحشوة <main> السفلية تفعل الشيء نفسه بعد أن صار العمود يملأ الشاشة. */
+      body { padding-bottom: 0; }
+      /* ‏!important لازمة: حشوة <main> مكتوبة inline في app.html فلا تغلبها قاعدة عادية */
+      main { padding-bottom: 0 !important; }
     }
     .bottom-nav-item {
       flex: 1;
@@ -2261,17 +2267,21 @@ body.theme-dark .ac-badge.ac-cancel{background:rgba(217,119,6,.18); color:#fcd34
    مهما كثرت المواعيد — على اللابتوب والموبايل معاً. */
 #homeDayAgenda, #calMobileAgenda .ac-scroll{
   overflow-y:auto; overscroll-behavior:contain;
-  /* بلا شريط ظاهر — القائمة تملأ الارتفاع المتاح فنادراً ما تحتاج تمريراً،
-     والعجلة/اللمس يعملان كالمعتاد. */
-  scrollbar-width:none;                                   /* فايرفوكس */
+  padding-inline-end:6px;
+  scrollbar-width:thin;                                   /* فايرفوكس */
+  scrollbar-color:var(--border-strong) transparent;
 }
-#homeDayAgenda::-webkit-scrollbar, #calMobileAgenda .ac-scroll::-webkit-scrollbar{width:0; height:0;}
+#homeDayAgenda::-webkit-scrollbar, #calMobileAgenda .ac-scroll::-webkit-scrollbar{width:3px;}
+#homeDayAgenda::-webkit-scrollbar-thumb, #calMobileAgenda .ac-scroll::-webkit-scrollbar-thumb{
+  background:var(--border-strong); border-radius:999px;
+}
+#homeDayAgenda::-webkit-scrollbar-track, #calMobileAgenda .ac-scroll::-webkit-scrollbar-track{background:transparent;}
 
 /* ── اللابتوب: العمود يمتدّ حتى أسفل الشاشة فتنتهي لوحة اليوم بمحاذاة
    الشريط الجانبي (الذي هو fixed من top:0 إلى bottom:0) بدل أن تُقصّ في المنتصف ── */
 @media (min-width:768px){
   /* الارتفاع يضبطه syncHomeColHeight من الموقع الفعلي؛ هذه شبكة أمان فقط */
-  #homeRightCol{max-height:calc(100vh - 16px);}
+  #homeRightCol{max-height:100vh;}
   #homeCalendarSection{flex:1 1 auto; min-height:0;}
   #homeDayPanel{flex:1 1 auto; min-height:0; flex-direction:column;}
   #homeDayAgenda{flex:1 1 auto; min-height:0;}
