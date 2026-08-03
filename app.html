@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <link rel="stylesheet" href="styles.css?v=210">
+  <link rel="stylesheet" href="styles.css?v=212">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -1099,6 +1099,11 @@
 
       <!-- Footer -->
       <div class="apptd-footer">
+        <!-- فتح الإضبارة — بديل الكليك اليمين على الهاتف؛ يُظهر رسالة إن لم يكن للمريض إضبارة بعد -->
+        <button onclick="openChartFromApptModal()" class="apptd-btn chart">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5Z"/><path d="M14 2.5v5h5M8.5 13h7M8.5 17h4.5"/></svg>
+          فتح الإضبارة
+        </button>
         <a id="appDetailsWhatsappBtn" href="#" target="_blank" class="apptd-btn wa"><i class="fab fa-whatsapp" style="font-size:1.05rem;"></i> واتساب</a>
         <button onclick="closeAppointmentDetailsModal()" class="apptd-btn primary">حسناً</button>
       </div>
@@ -2045,9 +2050,9 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=210"></script>
+  <script src="script.js?v=212"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
-  <script src="dev-seed.js?v=210"></script>
+  <script src="dev-seed.js?v=212"></script>
   <!-- 🌊 خلفية متحرّكة (WebGL) — معطّلة حالياً؛ الخلفية النعناعية الثابتة مرسومة بـCSS في styles.css.
        لإرجاع المتحرّكة: أزل التعليق عن السطر التالي. -->
   <!-- <script src="bg-gradient.js?v=1"></script> -->

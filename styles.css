@@ -201,6 +201,14 @@
     .apptd-btn.primary:hover { background:var(--primary-hover); }
     .apptd-btn.wa { background:#25D366; color:#fff; }
     .apptd-btn.wa:hover { filter:brightness(1.06); }
+    /* «فتح الإضبارة» — مفرّغ بحدّ تركوازي كي لا ينافس زرّ الإجراء الأساسي بصرياً */
+    .apptd-btn.chart { background:var(--surface); color:var(--primary); border-color:var(--primary); }
+    .apptd-btn.chart:hover { background:var(--primary-1); }
+    /* ثلاثة أزرار في سطر واحد تخنق النصّ على الشاشات الضيّقة — يلتفّ لسطرين */
+    @media (max-width:420px){
+      .apptd-footer { flex-wrap:wrap; }
+      .apptd-footer .apptd-btn.chart { flex:1 0 100%; }
+    }
     .apptd-btn.danger { background:var(--red-light); color:var(--red); }
     .apptd-btn.danger:hover { background:var(--red); color:#fff; }
 

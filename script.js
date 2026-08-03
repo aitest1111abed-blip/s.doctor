@@ -1907,6 +1907,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     window.openAppointmentDetailsModal = function(id) {
       const record = allRecords.find(r => r.id === id);
       if (!record) return;
+      /* نحفظ هوية الموعد المفتوح ليعرف زرّ «فتح الإضبارة» أيّ مريض يفتح —
+         بديل الكليك اليمين على الهاتف حيث لا وجود له. */
+      _apptdCurrentId = id;
 
       const phone = record.Phone || record.phone || '-';
       const slotAr = slotTimeOf(record);
@@ -3891,7 +3894,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
               + '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>'
           + '</div>';
 
-      return '<div data-appt-id="' + r.id + '" class="ac' + (S ? ' ac-s-' + S.cls : '') + '" onclick="openAppointmentDetailsModal(\'' + r.id + '\')">'
+      /* كليك يمين → إضبارة المريض — نفس سلوك بطاقات الروزنامة تماماً:
+         openChartFromAppt تفتح الإضبارة إن كان مربوطاً، وإلا تُظهر رسالة
+         «لا يمتلك إضبارة بعد» بدل فتح إضبارة شخص آخر. */
+      return '<div data-appt-id="' + r.id + '" class="ac' + (S ? ' ac-s-' + S.cls : '') + '"'
+        + ' onclick="openAppointmentDetailsModal(\'' + r.id + '\')"'
+        + ' oncontextmenu="event.preventDefault();openChartFromAppt(\'' + r.id + '\');return false;"'
+        + ' title="كليك يمين: فتح إضبارة المريض">'
         + '<span class="ac-time">' + t + '</span>'
         + '<div class="ac-who"><p class="ac-name">' + escapeHtml(r.PatientName || '') + '</p>'
           + '<p class="ac-type">' + escapeHtml(r.VisitType || '') + '</p></div>'
@@ -4120,6 +4129,17 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     // فتح إضبارة المريض من بطاقة الموعد (كليك يمين على الجدول)
     // لا تُنشَأ إضبارة جديدة هنا: إن لم توجد إضبارة (أوّل موعد للمريض) تظهر رسالة فقط —
     // الإضبارة تُنشأ عند تسجيل حضوره من الممرّضة.
+    var _apptdCurrentId = null;   // الموعد المعروض في مودال التفاصيل
+
+    /* زرّ «فتح الإضبارة» داخل مودال التفاصيل — بديل الكليك اليمين على الهاتف.
+       يُغلق المودال أولاً كي لا تُفتح الإضبارة خلفه. */
+    window.openChartFromApptModal = function() {
+      var id = _apptdCurrentId;
+      if (!id) return;
+      if (typeof closeAppointmentDetailsModal === 'function') closeAppointmentDetailsModal();
+      openChartFromAppt(id);
+    };
+
     window.openChartFromAppt = function(apptId) {
       var r = (allRecords || []).find(function(x) { return x.id === apptId; });
       if (!r) { showToast('الموعد غير موجود', 'error'); return; }
