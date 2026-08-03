@@ -341,6 +341,46 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     // ── مستمعو Firestore ──
     var _unsubAppt = null, _unsubPat = null, _unsubClosed = null, _unsubAlerts = null, _unsubNowServing = null;
+
+    /* ── تعليم المواعيد المؤكّدة الماضية «لم يحضر» ──
+       يُستدعى من مستمع المواعيد، فلا بدّ من حمايته من إعادة الدخول:
+       كل كتابة تُطلق سنابشوتاً جديداً يستدعيه من جديد. */
+    var _nsBusy = false;          // دفعة قيد الإرسال الآن
+    var _nsTried = Object.create(null);   // ما جرّبناه في هذه الجلسة (نجح أو فشل)
+    var NS_CHUNK = 400;           // دون حدّ Firestore (٥٠٠) بهامش أمان
+
+    function autoMarkNoShow() {
+      if (_nsBusy) return;
+      var todayStr = toLocalISODate(new Date());   // محلّي لا UTC — يتّسق مع الممرضة
+      var toMark = allRecords.filter(function(r) {
+        return r.Status === 'Accepted' && r.Date && r.Date < todayStr && !_nsTried[r.id];
+      });
+      if (!toMark.length) return;
+
+      _nsBusy = true;
+      toMark.forEach(function(r) { _nsTried[r.id] = true; });   // لا نعيد المحاولة بلا نهاية
+
+      var chunks = [];
+      for (var i = 0; i < toMark.length; i += NS_CHUNK) chunks.push(toMark.slice(i, i + NS_CHUNK));
+
+      // دفعة تلو الأخرى بالتسلسل — لا نُغرق الشبكة ولا نتجاوز حدّ العمليات
+      var idx = 0;
+      (function nextChunk() {
+        if (idx >= chunks.length) { _nsBusy = false; return; }
+        var part = chunks[idx++];
+        var done = function() { nextChunk(); };
+        try {
+          var batch = window._fb.batch();
+          part.forEach(function(r) { batch.update(window._fb.docRef('appointments', r.id), { Status: 'NoShow' }); });
+          batch.commit().then(done).catch(function(e) { console.error('[autoNoShow] دفعة', e); done(); });
+        } catch (e) {
+          Promise.all(part.map(function(r) {
+            return window._fb.updateDoc(window._fb.docRef('appointments', r.id), { Status: 'NoShow' })
+              .catch(function(err) { console.error('[autoNoShow]', err); });
+          })).then(done);
+        }
+      })();
+    }
     var _alertSeenAt = 0;
     var _shownAlertIds = new Set(); // منع التكرار بدلاً من _lastAcceptedAlertId
 
@@ -426,26 +466,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           window._allRecords = allRecords;
 
           // ====== تحويل المواعيد المؤكدة الماضية تلقائياً إلى "لم يحضر" ======
-          (function autoMarkNoShow() {
-            var todayStr = toLocalISODate(new Date());   // محلّي لا UTC — يطابق باقي المنطق ويتّسق مع الممرضة
-            var toMark = allRecords.filter(function(r) {
-              return r.Status === 'Accepted' && r.Date && r.Date < todayStr;
-            });
-            if (!toMark.length) return;
-            try {
-              var batch = window._fb.batch();
-              toMark.forEach(function(r) {
-                batch.update(window._fb.docRef('appointments', r.id), { Status: 'NoShow' });
-              });
-              batch.commit().catch(function(e) { console.error('[autoNoShow]', e); });
-            } catch(e) {
-              // fallback واحد واحد
-              toMark.forEach(function(r) {
-                window._fb.updateDoc(window._fb.docRef('appointments', r.id), { Status: 'NoShow' })
-                  .catch(function(err) { console.error('[autoNoShow]', err); });
-              });
-            }
-          })();
+          /* كانت تعمل عند **كل** سنابشوت بلا حارس، وكل كتابة تولّد سنابشوتاً جديداً
+             فتنطلق دفعة أخرى قبل أن تهبط السابقة ⇒ عاصفة كتابات وارتعاش في الواجهة
+             (تظهر الحالة وتختفي كل ثانية). وفوق ذلك حدّ الدفعة في Firestore ٥٠٠
+             عملية، وبيانات ثلاثة أشهر تتجاوزه فتفشل الدفعة ويتحوّل إلى مئات
+             الكتابات المنفردة. الحلّ: حارس تنفيذ + تقسيم إلى دفعات + عدم إعادة
+             محاولة ما سبق إرساله في هذه الجلسة. */
+          autoMarkNoShow();
           // ================================================================
 
           renderCalendar();
