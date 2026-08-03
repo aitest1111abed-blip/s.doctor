@@ -2787,6 +2787,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
 
     function updateHomeSummaryStats() { renderHomeSection(); }
+    /* ارتفاع عمود الروزنامة — يُحسب من موقعه الفعلي لا بـcalc ثابتة.
+       العمود sticky بـtop:16px، لكن عند أعلى الصفحة يبدأ تحت شريط التحية
+       (~١٠٠px)، فـ`height:calc(100vh - 16px)` كانت تتجاوز الشاشة بنفس المقدار
+       وتُقصّ لوحة اليوم. هنا نقيس المسافة الفعلية فتنتهي اللوحة بمحاذاة
+       الشريط الجانبي تماماً. */
+    function syncHomeColHeight() {
+      var col = document.getElementById('homeRightCol');
+      if (!col || window.innerWidth < 768) { if (col) col.style.height = ''; return; }
+      if (col.offsetParent === null) return;             // مخفي — لا قياس
+      var top = col.getBoundingClientRect().top + (window.scrollY || 0);
+      var h = window.innerHeight - top - 16;             // ١٦ هامش سفلي
+      col.style.height = (h > 320 ? h : 320) + 'px';     // حدّ أدنى معقول
+    }
+    window.addEventListener('resize', syncHomeColHeight);
+
     function renderHomeSection() {
       var now = new Date();
       var h = now.getHours();
@@ -3838,7 +3853,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       const panel = document.getElementById('homeDayPanel');
       if (panel) {
         renderHomeDayPanel(selectedDayStr || todayStr);
-        panel.style.display = 'block';
+        panel.style.display = 'flex';   // flex لا block: اللوحة عمود مرن كي تملأ الارتفاع المتبقّي
+        syncHomeColHeight();
       }
     }
 
@@ -3848,7 +3864,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       renderCalendar(); // sync with calendar section
       renderHomeDayPanel(dateStr);
       const panel = document.getElementById('homeDayPanel');
-      if (panel) panel.style.display = 'block';
+      if (panel) panel.style.display = 'flex';   // flex لا block: اللوحة عمود مرن كي تملأ الارتفاع المتبقّي
+      syncHomeColHeight();
     }
 
     /* كرت موعد اليوم — أعيد بناؤه بأصناف CSS بدل ستايلات inline متناثرة.
@@ -3956,7 +3973,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         renderHomeCalendar();
         renderHomeDayPanel(todayStr);
         var panel = document.getElementById('homeDayPanel');
-        if (panel) panel.style.display = 'block';
+        if (panel) panel.style.display = 'flex';   // flex لا block: اللوحة عمود مرن كي تملأ الارتفاع المتبقّي
+      syncHomeColHeight();
       }
     };
 
