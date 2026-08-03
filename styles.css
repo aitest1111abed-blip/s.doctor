@@ -2285,13 +2285,18 @@ body.theme-dark .ac-badge.ac-cancel{background:rgba(217,119,6,.18); color:#fcd34
 }
 #homeDayAgenda::-webkit-scrollbar-track, #calMobileAgenda .ac-scroll::-webkit-scrollbar-track{background:transparent;}
 
+/* اللوحة تُفتح بـdisplay:flex من الجافاسكربت (لتملأ الارتفاع على اللابتوب)،
+   فلا بدّ من تثبيت اتجاه العمود في **كل** المقاسات — بدونه يصير الهيدر
+   والقائمة جنب بعضهما على الهاتف فتُقصّ أسماء المرضى. */
+#homeDayPanel{flex-direction:column;}
+
 /* ── اللابتوب: العمود يمتدّ حتى أسفل الشاشة فتنتهي لوحة اليوم بمحاذاة
    الشريط الجانبي (الذي هو fixed من top:0 إلى bottom:0) بدل أن تُقصّ في المنتصف ── */
 @media (min-width:768px){
   /* الارتفاع يضبطه syncHomeColHeight من الموقع الفعلي؛ هذه شبكة أمان فقط */
   #homeRightCol{max-height:100vh;}
   #homeCalendarSection{flex:1 1 auto; min-height:0;}
-  #homeDayPanel{flex:1 1 auto; min-height:0; flex-direction:column;}
+  #homeDayPanel{flex:1 1 auto; min-height:0;}
   #homeDayAgenda{flex:1 1 auto; min-height:0;}
 }
 @media (max-width:767px){
