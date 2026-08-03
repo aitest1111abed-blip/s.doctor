@@ -2699,13 +2699,34 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
 #onboardOverlay .ob-cfnote{margin:0 0 14px; font-size:.85rem; color:var(--text-muted); line-height:1.7;}
 #onboardOverlay .ob-cfsec{margin-top:30px;}
 #onboardOverlay .ob-cflist{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start;}
+/* الخانات المدمجة مطويّة — مرجع لا عمل مطلوب، فلا تستهلك نصف الشاشة */
+#onboardOverlay .ob-bi{margin:0 0 20px;}
+#onboardOverlay .ob-bi summary{
+  cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px;
+  font-size:.83rem; font-weight:600; color:var(--text-muted);
+  background:var(--bg); border:1.5px solid var(--border); border-radius:12px; padding:11px 14px;
+  transition:border-color .15s, color .15s;
+}
+#onboardOverlay .ob-bi summary:hover{border-color:var(--primary); color:var(--primary);}
+#onboardOverlay .ob-bi summary::-webkit-details-marker{display:none;}
+#onboardOverlay .ob-bi summary::before{content:"›"; font-size:1.1rem; line-height:1; transition:transform .2s; display:inline-block;}
+#onboardOverlay .ob-bi[open] summary::before{transform:rotate(90deg);}
+#onboardOverlay .ob-bi-list{margin-top:10px;}
 /* زرّ «إضافة خانة» يمتدّ بعرض العمودين فيُقرأ كإجراء مستقلّ لا كبطاقة خانة */
 #onboardOverlay .ob-cfadd{grid-column:1/-1;}
 /* مربّع «قالب جاهز» — نصّ بجانب مربّع بلا حاوية، بخطّ واضح */
+/* بطاقة القالب الجاهز — بارزة كي يراها الطبيب قبل أن يبدأ الكتابة يدوياً.
+   لا بدّ من `.ob-f > label.ob-tplchk`: القاعدة `.ob-f>label{display:block}` أعلى أولويةً
+   من `.ob-tplchk` وحدها، فكانت تُلغي الـflex وتُنزل النصّ سطراً تحت المربّع. */
+#onboardOverlay .ob-f > label.ob-tplchk,
 #onboardOverlay .ob-tplchk{
-  display:flex; align-items:center; gap:12px; cursor:pointer; margin-top:6px;
+  display:flex; align-items:center; gap:10px; cursor:pointer; margin:6px 0 0;
   font-size:.95rem; font-weight:700; color:var(--text-primary); line-height:1.5;
+  background:var(--primary-1); border:1.5px solid var(--border-strong);
+  border-radius:12px; padding:13px 15px; transition:border-color .15s;
 }
+#onboardOverlay .ob-tplchk:hover{border-color:var(--primary);}
+#onboardOverlay .ob-tplchk:has(input:checked){border-color:var(--primary);}
 /* مربّع اختيار مفرّغ بحدّ واضح — الممتلئ الداكن كان يبتلع النصّ بصرياً */
 #onboardOverlay .ob-tplchk input{
   width:20px; height:20px; accent-color:var(--primary); cursor:pointer; flex-shrink:0;

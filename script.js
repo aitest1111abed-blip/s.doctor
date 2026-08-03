@@ -7262,7 +7262,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     var _OB_PREVIEW_KEY = 'obPreviewAfterLogout';
 
     var _obState = null;
-    var _obAR = ['١', '٢', '٣', '٤'];
+    var _obAR = ['١', '٢', '٣', '٤', '٥'];
     var _obICONS = { text: 'أ', textarea: '¶', number: '#', date: '📅', select: '▾', checkbox: '☑' };
 
     // تسميات الأنواع وترتيبها — مشتقّة من CF_TYPES نفسها فلا تفترقان أبداً
@@ -7378,6 +7378,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         surgicalArchive: !!s.surgicalArchive,
         orthoArchive: !!s.orthoArchive,
         preset: '',
+        presetTouched: false,   // هل بتّ الطبيب في مسألة القالب بنفسه؟
         fields: {
           patient: Array.isArray(t.patient) ? t.patient.map(_obCloneField) : [],
           visit: Array.isArray(t.visit) ? t.visit.map(_obCloneField) : []
@@ -7402,13 +7403,41 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       document.documentElement.classList.remove('ob-pending');   // كشف التطبيق بعد الإعداد
     }
 
+    /* تطبيق القالب = **دمج** لا استبدال.
+       كان يستبدل st.fields كاملةً، فمن أضاف خاناته بيده ثم انتبه للقالب ووضع
+       علامة الصح فقد كل ما كتبه بلا إنذار. الآن: خانات الطبيب تبقى، وتُضاف
+       خانات القالب غير المكرّرة فقط، وتُوسَم `fromPreset` كي يُمكن نزعها وحدها
+       عند إلغاء الصح. */
     function _obApplyPreset(name) {
       var p = (typeof CHART_PRESETS !== 'undefined' && CHART_PRESETS[name]) || { patient: [], visit: [] };
       _obState.preset = name;
-      _obState.fields = {
-        patient: (p.patient || []).map(_obCloneField),
-        visit: (p.visit || []).map(_obCloneField)
-      };
+      ['patient', 'visit'].forEach(function (scope) {
+        var cur = _obState.fields[scope] || [];
+        var seen = {};
+        cur.forEach(function (f) { seen[_obNormLabel(f.label)] = true; });
+        (p[scope] || []).forEach(function (pf) {
+          var key = _obNormLabel(pf.label);
+          if (seen[key]) return;                 // الطبيب كتبها بنفسه — لا نكرّرها
+          seen[key] = true;
+          var clone = _obCloneField(pf);
+          clone.fromPreset = true;
+          cur.push(clone);
+        });
+        _obState.fields[scope] = cur;
+      });
+    }
+
+    /* نزع خانات القالب وحدها — ما كتبه الطبيب أو عدّله يبقى */
+    function _obRemovePreset() {
+      ['patient', 'visit'].forEach(function (scope) {
+        _obState.fields[scope] = (_obState.fields[scope] || []).filter(function (f) { return !f.fromPreset; });
+      });
+      _obState.preset = '';
+    }
+
+    // مقارنة أسماء الخانات بتجاهل المسافات والتشكيل الطفيف
+    function _obNormLabel(s) {
+      return String(s == null ? '' : s).trim().replace(/\s+/g, ' ').toLowerCase();
     }
 
     // إلغاء تمييز القالب بعد تعديل يدوي — بلا إعادة رسم حتى لا يُفقد التركيز
@@ -7420,6 +7449,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       });
     }
 
+    /* أرقام خطوات المعالج في مكان واحد — كانت مبعثرة (4 و2 و3) في خمسة مواضع،
+       فأي تقسيم للخطوات كان يتطلّب تتبّعها يدوياً.
+       ٠ معلومات الطبيب · ١ بيانات العيادة · ٢ خانات المريض · ٣ خانات الزيارة · ٤ المراجعة */
+    var OB_STEPS = 5;          // العدد الكلي
+    var OB_LAST_EDIT = 3;      // آخر خطوة تحرير — بعدها يُنفَّذ الحفظ
+    var OB_DONE = 4;           // شاشة المراجعة (بلا شريط أزرار)
+
     function _obSyncChrome() {
       Array.prototype.forEach.call(document.querySelectorAll('#onboardOverlay .ob-step'), function(li) {
         var i = +li.getAttribute('data-step');
@@ -7427,21 +7463,21 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         li.classList.toggle('done', i < _obState.step);
       });
       var prog = document.getElementById('obProg');
-      if (prog) prog.style.width = ((_obState.step + 1) / 4 * 100) + '%';
+      if (prog) prog.style.width = ((_obState.step + 1) / OB_STEPS * 100) + '%';
 
       var back = document.getElementById('obBack'), next = document.getElementById('obNext'),
           foot = document.getElementById('obFoot');
       if (back) back.style.visibility = _obState.step === 0 ? 'hidden' : 'visible';
       if (next) {
-        next.innerHTML = (_obState.step === 2 ? 'إنهاء الإعداد' : 'التالي') + ' <span aria-hidden="true">←</span>';
+        next.innerHTML = (_obState.step === OB_LAST_EDIT ? 'إنهاء الإعداد' : 'التالي') + ' <span aria-hidden="true">←</span>';
         // لا يمكن تجاوز الخطوة الأولى بلا اسم وتخصّص
         next.disabled = (_obState.step === 0 && !(_obState.title.trim() && _obState.specialty));
       }
-      if (foot) foot.style.display = _obState.step === 3 ? 'none' : 'flex';
+      if (foot) foot.style.display = _obState.step === OB_DONE ? 'none' : 'flex';
     }
 
     function _obHead(n, title, lede) {
-      return '<p class="ob-stepno">الخطوة ' + _obAR[n] + ' من ٤</p>' +
+      return '<p class="ob-stepno">الخطوة ' + _obAR[n] + ' من ' + _obAR[OB_STEPS - 1] + '</p>' +
         '<h2 class="ob-h' + (lede ? ' tight' : '') + '">' + title + '</h2>' +
         (lede ? '<p class="ob-lede">' + lede + '</p>' : '');
     }
@@ -7728,13 +7764,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         };
       }
 
-      else if (st.step === 2) {
+      else if (st.step === 2 || st.step === 3) {
         // الخانات المدمجة (ثابتة دائماً في الاضبارة) — تُعرض كمرجع غير قابل للتعديل
         // فتُطابق قائمةُ الإعداد الاضبارةَ ومعلومات المريض تماماً بلا نقص.
         var _OB_BUILTIN = {
           patient: ['الاسم', 'رقم الهاتف', 'تاريخ الميلاد', 'زمرة الدم', 'العنوان', 'الأمراض المزمنة'],
           visit: ['الشكوى', 'الفحص السريري', 'التشخيص', 'الوصفة الطبية']
         };
+        /* القالب يُطبَّق تلقائياً أوّل دخول لهذه الخطوة بدل انتظار أن ينتبه الطبيب
+           لمربّع صغير: التخصّص مُختار أصلاً في الخطوة الأولى، فعرض خاناته
+           المقترحة جاهزةً هو التوقّع الطبيعي — ويبقى بإمكانه إلغاء الصح.
+           الشرطان يمنعان الإزعاج: لم يبتّ بالأمر بعد، ولا خانات لديه أصلاً. */
+        if (!st.presetTouched && !st.preset && st.specialty &&
+            !st.fields.patient.length && !st.fields.visit.length) {
+          _obApplyPreset(st.specialty);
+        }
+
         function grp(scope, title, note) {
           var builtin = (_OB_BUILTIN[scope] || []).map(function(lbl) {
             return '<div class="ob-cfrow ob-builtin"><span class="ob-builtin-lbl">' + _obEsc(lbl) + '</span><span class="ob-cftag">مدمجة</span></div>';
@@ -7779,39 +7824,41 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
                 '</div>';
               }).join('')
             : '<div class="ob-cfempty">لا توجد خانات هنا بعد.</div>';
-          return '<div class="ob-cfsec"><p class="ob-cfhead">' + title +
-              (arr.length ? ' <span style="font-weight:400;opacity:.6;">(' + arr.length + ')</span>' : '') + '</p>' +
+          /* الخانات المدمجة مطويّة: عشر بطاقات لا يملك الطبيب تغييرها كانت تشغل
+             نصف الشاشة وتبدو كعمل مطلوب منه. صارت سطراً واحداً يُفتح عند الحاجة. */
+          var nB = (_OB_BUILTIN[scope] || []).length;
+          return '<div class="ob-cfsec">' +
             '<p class="ob-cfnote">' + note + '</p>' +
-            '<div class="ob-cflist">' +
-              '<div class="ob-builtin-lbltop">خانات مدمجة (تظهر دائماً في الاضبارة)</div>' + builtin + rows +
+            '<details class="ob-bi"><summary>' + nB + ' خانات مدمجة تظهر دائماً — لا يمكن حذفها</summary>' +
+              '<div class="ob-cflist ob-bi-list">' + builtin + '</div></details>' +
+            '<p class="ob-cfhead">خانات تخصّصك' +
+              (arr.length ? ' <span style="font-weight:400;opacity:.6;">(' + arr.length + ')</span>' : '') + '</p>' +
+            '<div class="ob-cflist">' + rows +
               '<button class="ob-cfadd" type="button" data-add="' + scope + '">＋ إضافة خانة</button>' +
             '</div></div>';
         }
 
+        /* خطوة واحدة لكل نوع خانات (٢ = المريض · ٣ = الزيارة).
+           كل شاشة تشرح نوعها فقط، فسقط العمود الجانبي بفقرتيه الطويلتين. */
+        var isPat = (st.step === 2);
+        var SC = isPat
+          ? { scope: 'patient', title: 'خانات المريض',
+              lede: 'معلومات ثابتة تكتبها مرّة واحدة وتبقى في ملف المريض مهما تكرّرت زياراته.',
+              note: 'مثل: السوابق الجراحية · الحساسية من دواء · التاريخ العائلي.' }
+          : { scope: 'visit', title: 'خانات الزيارة',
+              lede: 'معلومات تتغيّر، تُملأ في كل زيارة ويُحفظ لكلٍّ تاريخها فتبني سجلّاً زمنياً.',
+              note: 'مثل: الوزن اليوم · ضغط الدم · نتيجة فحص.' };
+
         body.innerHTML = '<div class="ob-pane ob-body">' +
-          _obHead(2, 'تخصيص الاضبارة', 'ابدأ من قالب جاهز ثم عدّله كما تشاء — القالب نقطة انطلاق، لا قيد.') +
-          '<div class="ob-cfcols">' +
-            // العمود اليمين (الرئيسي): القالب + الخانات + المعاينة
-            '<div class="ob-cfmain">' +
-              '<div class="ob-f"><label>القالب الجاهز</label>' +
-                '<label class="ob-tplchk"><input type="checkbox" id="obUsePreset"' + (st.preset && st.preset === st.specialty ? ' checked' : '') + '>' +
-                  '<span>أريد قالباً جاهزاً لتخصّص «' + (_obEsc(st.specialty) || 'تخصّصك') + '» — قابل للتعديل</span></label>' +
-                '<span class="help">يملأ خاناتٍ مقترحةً لتخصّصك تلقائياً، ثم عدّلها كما تشاء.</span></div>' +
-              grp('patient', 'خانات المريض', 'تُكتب مرّة واحدة وتبقى ثابتة في أعلى الاضبارة — مثل: السوابق الجراحية، الحساسية من دواء، التاريخ العائلي.') +
-              grp('visit', 'خانات الزيارة', 'تتكرّر مع كل زيارة ويُحفظ لكلٍّ تاريخها في أرشيف الزيارات — مثل: الوزن اليوم، نتيجة فحص، الدواء الموصوف.') +
-              '<div class="ob-prevbar">' +
-                '<button class="ob-prevbtn" type="button" id="obPrevBtn"><i class="fas fa-eye"></i> معاينة الاضبارة</button>' +
-                '<span class="ob-prevhint">شاهد كيف ستظهر هذه الخانات في ملف المريض قبل أن تنهي.</span>' +
-              '</div>' +
-            '</div>' +
-            // العمود اليسار (الجانبي): شرح الفرق بين النوعين
-            '<aside class="ob-cfaside">' +
-              _obTip('ما الفرق بين النوعين؟ ',
-                '<b style="display:inline;color:var(--primary)">خانات المريض</b> ثابتة: تكتبها مرّة واحدة وتبقى في ملفه مهما تكرّرت زياراته — كزمرة الدم والسوابق الجراحية. ' +
-                'و<b style="display:inline;color:var(--primary)">خانات الزيارة</b> متغيّرة: تُملأ من جديد في كل زيارة وتُحفظ مع تاريخها، فتبني سجلاً زمنياً تتابع فيه تطوّر الحالة — كضغط الدم ونتيجة تحليل.<br>' +
-                '<b style="display:inline">القاعدة:</b> اسأل نفسك «هل تتغيّر هذه المعلومة بين زيارة وأخرى؟» — إن كان الجواب نعم فهي خانة زيارة، وإلا فهي خانة مريض.') +
-              _obTip('ملاحظة: ', 'الخانات <b style="display:inline">المدمجة</b> موجودة أصلاً في كل اضبارة (تُعرض هنا كمرجع بلا تعديل) — أضف تحتها ما يخصّ تخصّصك فقط.') +
-            '</aside>' +
+          _obHead(st.step, SC.title, SC.lede) +
+          // القالب الجاهز — يظهر في الخطوتين لأنّه يملأ النوعين معاً
+          '<div class="ob-f"><label>القالب الجاهز</label>' +
+            '<label class="ob-tplchk"><input type="checkbox" id="obUsePreset"' + (st.preset && st.preset === st.specialty ? ' checked' : '') + '>' +
+              '<span>استعمل خانات تخصّص «' + (_obEsc(st.specialty) || 'تخصّصك') + '» — قابلة للتعديل والحذف</span></label></div>' +
+          grp(SC.scope, SC.title, SC.note) +
+          '<div class="ob-prevbar">' +
+            '<button class="ob-prevbtn" type="button" id="obPrevBtn"><i class="fas fa-eye"></i> معاينة الاضبارة</button>' +
+            '<span class="ob-prevhint">شاهد كيف ستظهر هذه الخانات في ملف المريض.</span>' +
           '</div>' +
         '</div>';
 
@@ -7820,8 +7867,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
         var _up = document.getElementById('obUsePreset');
         if (_up) _up.onchange = function() {
+          st.presetTouched = true;   // قرار صريح من الطبيب — لا نطبّق القالب تلقائياً بعده
           if (this.checked && st.specialty) _obApplyPreset(st.specialty);
-          else { st.fields = { patient: [], visit: [] }; st.preset = ''; }
+          else _obRemovePreset();    // ينزع خانات القالب فقط — خانات الطبيب تبقى
           _obRender();
         };
         Array.prototype.forEach.call(body.querySelectorAll('.ob-cfadd'), function(b) {
@@ -7862,7 +7910,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
             }
           }
 
-          nameIn.oninput = function() { f.label = this.value; syncUnit(); _obUnmarkPreset(); };
+          // تعديل اسم خانة قادمة من القالب يجعلها ملك الطبيب، فلا تُنزَع عند إلغاء الصح
+          nameIn.oninput = function() { f.label = this.value; f.fromPreset = false; syncUnit(); _obUnmarkPreset(); };
           unitBtn.onclick = function() {
             var u = this.getAttribute('data-u');
             if (!u) return;
@@ -8009,7 +8058,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       saveSettingsToLocal(settings);
       if (typeof applySettings === 'function') applySettings();
 
-      st.step = 3;
+      st.step = OB_DONE;
       _obRender();
     }
 
@@ -8024,8 +8073,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var next = document.getElementById('obNext'), back = document.getElementById('obBack');
       if (next) next.onclick = function() {
         if (!_obState) return;
-        if (_obState.step === 2) { _obFinish(); return; }
-        if (_obState.step < 3) { _obState.step++; _obRender(); }
+        if (_obState.step === OB_LAST_EDIT) { _obFinish(); return; }
+        if (_obState.step < OB_DONE) { _obState.step++; _obRender(); }
       };
       if (back) back.onclick = function() {
         if (_obState && _obState.step > 0) { _obState.step--; _obRender(); }
