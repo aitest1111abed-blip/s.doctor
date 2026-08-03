@@ -709,11 +709,39 @@
 
     /* ===== SETTINGS REDESIGN ===== */
     @keyframes settingsIn { from { opacity:0; transform:scale(.96) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    /* درج جانبي ينزلق من جهة الشريط الجانبي (بدل الصندوق الطافي في المنتصف) */
+    /* موجب = يمين: الدرج مثبَّت على اليمين فينزلق من جهة الشريط الجانبي.
+       (transform لا يتبع اتجاه الصفحة، فالقيمة فيزيائية لا منطقية.) */
+    @keyframes settingsSlide { from { opacity:0; transform:translateX(28px); } to { opacity:1; transform:translateX(0); } }
     .settings-page { position:fixed; inset:0; z-index:270; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.44); backdrop-filter:blur(5px); }
     .settings-page.hidden { display:none; }
     @media (max-width:639px) { .settings-page { padding:0; align-items:flex-end; } }
     .settings-sheet { width:100%; max-width:700px; max-height:88vh; background:var(--surface); border-radius:20px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.24); animation:settingsIn .22s ease both; }
     @media (max-width:639px) { .settings-sheet { border-radius:20px 20px 0 0; max-height:92vh; } }
+
+    /* ══ اللابتوب: نفس مبدأ ورقة الموبايل لكن من جهة الناف بار لا من الأسفل ══
+       يبقى الشريط الجانبي ظاهراً وقابلاً للاستعمال (الدرج يتوقّف عند حافّته)،
+       والزوايا مدوّرة من الجهة الداخلية فقط تماماً كورقة الهاتف. */
+    @media (min-width:640px) {
+      .settings-page {
+        padding:0;
+        align-items:stretch;                 /* بارتفاع الشاشة كاملاً */
+        justify-content:flex-start;          /* RTL: البداية = اليمين، جهة الناف بار */
+        padding-inline-start:62px;           /* RTL: البداية = اليمين حيث الشريط الجانبي، فلا يُغطّى */
+      }
+      .settings-sheet {
+        max-width:620px;
+        max-height:none; height:100%;
+        border-radius:22px 0 0 22px;         /* مدوّرة من الداخل فقط */
+        box-shadow:-18px 0 60px rgba(15,23,42,.22);
+        animation:settingsSlide .24s cubic-bezier(.32,.72,.35,1) both;
+      }
+    }
+    /* الشريط مطويّ فقط على الشاشات المتوسطة؛ عند التوسيع يزيد عرضه فيتبعه الدرج */
+    @media (min-width:640px) {
+      body.rail-expanded .settings-page { padding-inline-start:224px; }
+      body.sidebar-collapsed .settings-page { padding-inline-start:0; }
+    }
     .settings-hdr { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0; }
     .settings-hdr-back { width:34px; height:34px; border-radius:10px; border:none; background:var(--bg); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.9rem; transition:background .13s; }
     .settings-hdr-back:hover { background:var(--border); }
