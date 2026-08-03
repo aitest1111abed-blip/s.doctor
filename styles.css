@@ -2626,9 +2626,9 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
 /* التمرير على الحاوية المرنة #obBody (ابنة .ob-main) — لا على .ob-body الداخلي */
 #onboardOverlay #obBody{flex:1; min-height:0; overflow-y:auto;}
 #onboardOverlay .ob-body{padding:34px 40px 40px; max-width:860px; width:100%;}
-/* خطوة تخصيص الاضبارة وحدها تحتاج عرضاً أكبر: بطاقتان بكل صفّ + عمود الشرح،
-   وبعرض ٨٦٠ كانت أسماء الخانات الطويلة تُقصّ داخل المربّع. */
-#onboardOverlay .ob-body:has(.ob-cfcols){max-width:1180px;}
+/* خطوتا الخانات تحتاجان عرضاً أكبر: بعرض ٨٦٠ (منه ٨٠ حشوة) لا يتّسع السطر
+   إلا لعمودين فيبقى نصفه فارغاً. بـ١٢٤٠ يتّسع لثلاثة أو أربعة حسب الشاشة. */
+#onboardOverlay .ob-body:has(.ob-cflist){max-width:1240px;}
 #onboardOverlay .ob-stepno{font-size:.79rem; font-weight:700; color:var(--primary); margin:0 0 6px;}
 #onboardOverlay .ob-h{font-size:1.62rem; font-weight:800; margin:0 0 26px; letter-spacing:-.4px; color:var(--text-primary);}
 #onboardOverlay .ob-h.tight{margin-bottom:8px;}
@@ -2698,7 +2698,12 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
 #onboardOverlay .ob-cfhead{font-size:1.05rem; font-weight:800; margin:0 0 6px; color:var(--text-primary);}
 #onboardOverlay .ob-cfnote{margin:0 0 14px; font-size:.85rem; color:var(--text-muted); line-height:1.7;}
 #onboardOverlay .ob-cfsec{margin-top:30px;}
-#onboardOverlay .ob-cflist{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start;}
+/* auto-fit لا عمودان ثابتان: يملأ السطر بأكبر عدد يتّسع (٣ أو ٤ على الشاشة العريضة)
+   بدل ترك نصف السطر فارغاً. نفس شبكة الاضبارة الحقيقية: minmax(250px,1fr). */
+#onboardOverlay .ob-cflist{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:6px 22px; align-items:start;
+}
 /* الخانات المدمجة مطويّة — مرجع لا عمل مطلوب، فلا تستهلك نصف الشاشة */
 #onboardOverlay .ob-bi{margin:0 0 20px;}
 #onboardOverlay .ob-bi summary{
@@ -2720,13 +2725,10 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
    من `.ob-tplchk` وحدها، فكانت تُلغي الـflex وتُنزل النصّ سطراً تحت المربّع. */
 #onboardOverlay .ob-f > label.ob-tplchk,
 #onboardOverlay .ob-tplchk{
-  display:flex; align-items:center; gap:10px; cursor:pointer; margin:6px 0 0;
-  font-size:.95rem; font-weight:700; color:var(--text-primary); line-height:1.5;
-  background:var(--primary-1); border:1.5px solid var(--border-strong);
-  border-radius:12px; padding:13px 15px; transition:border-color .15s;
+  display:flex; align-items:center; gap:10px; cursor:pointer; margin:2px 0 0;
+  font-size:.9rem; font-weight:700; color:var(--text-primary); line-height:1.5;
+  background:transparent; border:none; border-radius:0; padding:6px 2px;
 }
-#onboardOverlay .ob-tplchk:hover{border-color:var(--primary);}
-#onboardOverlay .ob-tplchk:has(input:checked){border-color:var(--primary);}
 /* مربّع اختيار مفرّغ بحدّ واضح — الممتلئ الداكن كان يبتلع النصّ بصرياً */
 #onboardOverlay .ob-tplchk input{
   width:20px; height:20px; accent-color:var(--primary); cursor:pointer; flex-shrink:0;
@@ -2741,49 +2743,52 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
   transform:rotate(-45deg) translateY(-1px);
 }
 #onboardOverlay .ob-tplchk input:focus-visible{outline:none; box-shadow:0 0 0 3px rgba(13,148,136,.22);}
+/* ══ خانات المعالج = نفس لغة الخانات داخل الاضبارة الحقيقية ══
+   المرجع: buildCustomFieldInputs في doctor/script.js — «الحقل سطر على ورق لا صندوق
+   رمادي: الحدّ السفلي وحده ويتلوّن عند التركيز». الصناديق الرمادية الغائرة تسحب
+   العين عن المحتوى، والبطاقات ذات الحدود تضاعف الضجيج البصري. */
 #onboardOverlay .ob-cfrow{
-  display:grid; grid-template-columns:minmax(0,1fr) 30px; gap:10px; align-items:center;
-  background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:13px 15px;
-  transition:border-color .16s, box-shadow .16s;
+  display:grid; grid-template-columns:minmax(0,1fr) 26px; gap:0 8px; align-items:center;
+  background:transparent; border:none; border-radius:0; padding:6px 0 12px;
 }
-#onboardOverlay .ob-cfrow:focus-within{border-color:var(--primary); box-shadow:0 0 0 3px rgba(13,148,136,.16);}
 #onboardOverlay .ob-cfin{
-  grid-column:1; width:100%; min-width:0; font-family:inherit; font-size:.95rem; font-weight:700;
+  grid-column:1; width:100%; min-width:0; font-family:inherit; font-size:.92rem; font-weight:700;
   color:var(--text-primary); background:transparent; border:none;
-  border-bottom:1.5px solid transparent; padding:2px 0; border-radius:0;
+  border-bottom:1px solid var(--border); padding:7px 2px; border-radius:0; line-height:1.85;
   transition:border-color .16s;
 }
 #onboardOverlay .ob-cfin:focus{outline:none; box-shadow:none; border-bottom-color:var(--primary);}
-/* نوع الخانة — صفّ غائر بعرض البطاقة كاملاً تحت الاسم */
+/* نوع الخانة — سطر ثانٍ خفيف تحت الاسم بنفس أسلوب الحدّ السفلي */
 #onboardOverlay .ob-cfsel{
-  grid-column:1 / 3; width:100%; font-family:inherit; font-size:.85rem; font-weight:600; color:var(--text-secondary);
-  background:var(--bg); border:1.5px solid var(--border); border-radius:10px;
-  padding:10px 13px; cursor:pointer; max-width:100%;
+  grid-column:1 / 3; width:100%; font-family:inherit; font-size:.78rem; font-weight:600; color:var(--text-secondary);
+  background:transparent; border:none; border-bottom:1px solid var(--border); border-radius:0;
+  padding:5px 2px; margin-top:3px; cursor:pointer; max-width:100%;
+  transition:border-color .16s, color .16s;
 }
-#onboardOverlay .ob-cfsel:focus{outline:none; border-color:var(--primary); color:var(--primary);}
+#onboardOverlay .ob-cfsel:focus{outline:none; border-bottom-color:var(--primary); color:var(--primary);}
 #onboardOverlay .ob-cfopt{
   grid-column:1 / 3; width:100%; min-width:0; font-family:inherit; font-size:.78rem;
-  color:var(--text-primary); background:var(--bg);
-  border:1px solid var(--border); border-radius:6px; padding:6px 9px; margin-top:-2px;
+  color:var(--text-primary); background:transparent;
+  border:none; border-bottom:1px solid var(--border); border-radius:0; padding:5px 2px; margin-top:3px;
   transition:border-color .16s;
 }
-#onboardOverlay .ob-cfopt:focus{outline:none; border-color:var(--primary); box-shadow:none;}
+#onboardOverlay .ob-cfopt:focus{outline:none; border-bottom-color:var(--primary); box-shadow:none;}
 #onboardOverlay .ob-cfopt::placeholder{color:var(--text-muted); opacity:.75;}
 #onboardOverlay .ob-cfwarn{
-  grid-column:1 / 3; font-size:.71rem; color:#b45309; line-height:1.5; margin-top:-2px;
+  grid-column:1 / 3; font-size:.71rem; color:#b45309; line-height:1.5; margin-top:3px;
 }
 /* الدور السريري — يُعرّف النظام بمعنى الحقل فتُبنى عليه الأداة */
 #onboardOverlay .ob-cfrole{
-  grid-column:1 / 3; width:100%; min-width:0; font-family:inherit; font-size:.75rem;
-  font-weight:600; color:var(--text-muted); background:var(--bg);
-  border:1px solid var(--border); border-radius:6px; padding:5px 8px;
-  cursor:pointer; max-width:100%; margin-top:-2px;
+  grid-column:1 / 3; width:100%; min-width:0; font-family:inherit; font-size:.74rem;
+  font-weight:600; color:var(--text-muted); background:transparent;
+  border:none; border-bottom:1px solid var(--border); border-radius:0; padding:5px 2px; margin-top:3px;
+  cursor:pointer; max-width:100%; transition:border-color .16s, color .16s;
 }
-#onboardOverlay .ob-cfrole:focus{outline:none; border-color:var(--primary); color:var(--primary);}
+#onboardOverlay .ob-cfrole:focus{outline:none; border-bottom-color:var(--primary); color:var(--primary);}
 
 /* اقتراح وحدة القياس */
 #onboardOverlay .ob-cfunit{
-  grid-column:1 / 3; display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:-2px;
+  grid-column:1 / 3; display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:5px;
 }
 #onboardOverlay .ob-cfunit>span{font-size:.71rem; color:var(--text-muted);}
 #onboardOverlay .ob-unitbtn{
@@ -2802,9 +2807,11 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
 /* الخانات المدمجة — مرجع غير قابل للتعديل، فتُطابق قائمةُ الإعداد الاضبارةَ تماماً.
    بنفس هيئة بطاقة الخانة (سطح أبيض وحدّ مصمت) وتتميّز بشارة «مدمجة» فقط. */
 #onboardOverlay .ob-builtin-lbltop{grid-column:1/-1; font-size:.78rem; font-weight:700; color:var(--text-muted); margin:6px 0 0;}
-#onboardOverlay .ob-builtin{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface); cursor:default;}
-#onboardOverlay .ob-builtin-lbl{font-size:.95rem; font-weight:700; color:var(--text-primary);}
-#onboardOverlay .ob-cftag{font-size:.72rem; font-weight:600; color:var(--text-muted); background:var(--surface); border:1.5px solid var(--border); border-radius:8px; padding:5px 12px; flex-shrink:0;}
+#onboardOverlay .ob-builtin{display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:transparent; border:none; border-bottom:1px solid var(--border); border-radius:0;
+  padding:9px 2px; cursor:default;}
+#onboardOverlay .ob-builtin-lbl{font-size:.9rem; font-weight:700; color:var(--text-secondary);}
+#onboardOverlay .ob-cftag{font-size:.68rem; font-weight:600; color:var(--text-muted); background:transparent; border:none; padding:0; flex-shrink:0;}
 /* تخطيط عمودين: الخانات (يمين) + شرح الفرق بين النوعين (يسار) على الشاشات الواسعة */
 #onboardOverlay .ob-cfcols{display:grid; grid-template-columns:1fr; gap:22px;}
 #onboardOverlay .ob-cfmain{min-width:0;}
@@ -2820,9 +2827,9 @@ html.ob-pending body > *:not(#onboardOverlay){visibility:hidden !important;}
 }
 #onboardOverlay .ob-cfadd{
   grid-column:1 / -1; display:flex; align-items:center; justify-content:center; gap:7px; width:100%;
-  background:none; border:1.5px dashed var(--border); border-radius:10px; padding:12px;
+  background:none; border:1.5px dashed var(--border); border-radius:10px; padding:11px;
   font-family:inherit; font-size:.85rem; font-weight:700; color:var(--text-muted);
-  cursor:pointer; margin-top:2px; transition:border-color .16s, color .16s;
+  cursor:pointer; margin-top:10px; transition:border-color .16s, color .16s;
 }
 #onboardOverlay .ob-cfadd:hover{border-color:var(--primary); color:var(--primary);}
 
