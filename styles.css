@@ -50,6 +50,13 @@
       --shadow:    0 4px 14px rgba(15,23,42,.06), 0 2px 5px rgba(15,23,42,.04);
       --shadow-md: 0 8px 26px rgba(15,23,42,.09), 0 3px 8px rgba(15,23,42,.05);
       --shadow-lg: 0 20px 56px rgba(15,23,42,.13), 0 8px 20px rgba(15,23,42,.07);
+
+      /* طبقة شفافيات حبرية — تنقلب تلقائياً بالوضع الداكن (حدود/فواصل/hover متّسقة) */
+      --o04: rgba(15,23,42,.04); --o06: rgba(15,23,42,.06); --o08: rgba(15,23,42,.08);
+      --o10: rgba(15,23,42,.10); --o14: rgba(15,23,42,.14); --o20: rgba(15,23,42,.20);
+      /* زوايا دلالية موحّدة + حلقة تركيز */
+      --radius-card: 18px; --radius-btn: 12px; --radius-chip: 8px; --radius-pill: 999px;
+      --ring: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
     }
 
     /* ===== الوضع الليلي ===== */
@@ -66,6 +73,8 @@
       --today-wash:linear-gradient(180deg, rgba(45,212,191,.06), rgba(45,212,191,.02));
       --shadow-sm:0 1px 2px rgba(0,0,0,.5); --shadow:0 4px 14px rgba(0,0,0,.5);
       --shadow-md:0 8px 26px rgba(0,0,0,.55); --shadow-lg:0 20px 56px rgba(0,0,0,.6);
+      --o04:rgba(255,255,255,.04); --o06:rgba(255,255,255,.06); --o08:rgba(255,255,255,.08);
+      --o10:rgba(255,255,255,.10); --o14:rgba(255,255,255,.14); --o20:rgba(255,255,255,.20);
     }
     body.theme-dark .form-input,
     body.theme-dark input[type="text"], body.theme-dark input[type="tel"],
@@ -160,14 +169,14 @@
 
     .glass-card {
       background: var(--surface) !important;
-      border: 1.5px solid var(--border) !important;
-      border-radius: var(--border-radius);
+      border: 1px solid var(--o08) !important;
+      border-radius: var(--radius-card);
       padding: var(--card-padding);
       transition: border-color .2s, box-shadow .2s;
       position: relative;
       box-shadow: var(--shadow-sm);
     }
-    .glass-card:hover { box-shadow: var(--shadow) !important; border-color: var(--border-strong) !important; }
+    .glass-card:hover { box-shadow: var(--shadow) !important; border-color: var(--o14) !important; }
 
     /* ===== نافذة تفاصيل الموعد — تصميم احترافي ===== */
     .apptd-card { border-radius:22px !important; overflow:hidden; padding:0 !important; max-height:90vh; display:flex; flex-direction:column; }
@@ -1539,7 +1548,7 @@
     /* بطاقات ملخّص اليوم الموحّدة (نفس شكل الممرضة) */
     #homeStatsMobile { display: none; }
     #homeStatsMobile.show { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .msum { display:flex; align-items:center; gap:9px; background:var(--surface); border:1.5px solid var(--border); border-radius:15px; padding:12px; transition:transform .15s, box-shadow .15s; }
+    .msum { display:flex; align-items:center; gap:9px; background:var(--surface); border:1px solid var(--o08); border-radius:14px; padding:12px; box-shadow:var(--shadow-sm); transition:transform .15s, box-shadow .15s; }
     .msum:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
     .msum-ic { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .msum-n { font-size:1.65rem; font-weight:300; line-height:1; letter-spacing:-1px; font-family:var(--font-num); font-variant-numeric:tabular-nums; }
@@ -3455,22 +3464,24 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
      (المحاولة الأولى أحمر+كهرماني رُفضت عند 14.4).
    ===================================================================== */
     .kpi{
-      position:relative; background:var(--surface); border:1.5px solid var(--border);
-      border-radius:14px; padding:15px 16px 14px; overflow:hidden;
+      position:relative; background:var(--surface); border:1px solid var(--o08);
+      border-radius:16px; padding:16px 16px 15px; overflow:hidden;
       display:flex; flex-direction:column; gap:8px;
-      transition:border-color .2s;
+      box-shadow:var(--shadow-sm);
+      transition:transform .18s cubic-bezier(.4,0,.2,1), border-color .2s, box-shadow .2s;
     }
+    .kpi:hover{ transform:translateY(-2px); box-shadow:var(--shadow); border-color:var(--o14); }
     .kpi-h{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
     .kpi-n{
-      font-size:1.95rem; font-weight:800; line-height:1;
-      font-variant-numeric:tabular-nums; letter-spacing:-1px; color:var(--text-primary);
+      font-size:2.1rem; font-weight:600; line-height:1;
+      font-family:var(--font-num); font-variant-numeric:tabular-nums; letter-spacing:-1px; color:var(--text-primary);
     }
     .kpi-p{font-size:.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; margin-top:6px;}
     .kpi-t{font-size:.79rem; color:var(--text-secondary); font-weight:600;}
     .kpi-tag{
-      font-size:.67rem; font-weight:800; border-radius:5px; padding:3px 8px;
+      font-size:.67rem; font-weight:800; border-radius:7px; padding:3px 8px;
       white-space:nowrap; flex-shrink:0;
-      background:var(--bg); color:var(--text-muted);
+      background:var(--o06); color:var(--text-muted);
     }
     .kpi-share{position:absolute; inset-inline:0; bottom:0; height:3px; background:var(--border);}
     .kpi-share i{display:block; height:100%; width:0; background:var(--border-strong); transition:width .55s cubic-bezier(.4,0,.2,1);}
