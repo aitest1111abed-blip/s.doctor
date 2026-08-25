@@ -3499,3 +3499,42 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
     body.theme-dark .kpi.miss.on .kpi-n{color:#e04343;}
     body.theme-dark .kpi.miss.on .kpi-tag{background:#2a1618; color:#e04343;}
     body.theme-dark .kpi.miss.on .kpi-share i{background:#e04343;}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ★ طبقة الترقية الجذرية (تجربة) — مُلحقة آخر الملف فتغلب ما قبلها.
+     لحذفها والرجوع للأصل: احذف من هنا حتى نهاية الملف.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* كروت الودجت — زوايا أنعم وظلّ أعمق (طبقتان) */
+.glass-card{ border-radius:20px !important; box-shadow:0 2px 8px rgba(15,23,42,.05), 0 14px 34px rgba(15,23,42,.07) !important; }
+.glass-card:hover{ box-shadow:0 4px 12px rgba(15,23,42,.07), 0 20px 48px rgba(15,23,42,.11) !important; }
+
+/* ─── كروت الإحصاء KPI: تدرّج ملوّن حسب الحالة + شريط جانبي + رقم أكبر ─── */
+.kpi{
+  border-radius:18px !important;
+  padding:18px 18px 16px !important;
+  border-inline-start:4px solid var(--border) !important;
+  box-shadow:0 2px 10px rgba(15,23,42,.05) !important;
+}
+.kpi:hover{ transform:translateY(-3px) !important; box-shadow:0 12px 28px rgba(15,23,42,.12) !important; }
+.kpi-n{ font-size:2.3rem !important; font-weight:600 !important; }
+.kpi-tag{ border-radius:999px !important; padding:4px 11px !important; }
+
+.kpi.total{ background:linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--text-muted) 7%, var(--surface))) !important; border-inline-start-color:var(--text-muted) !important; }
+.kpi.left{ background:linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--blue) 9%, var(--surface))) !important; border-inline-start-color:var(--blue) !important; }
+.kpi.left .kpi-n{ color:var(--blue) !important; }
+.kpi.left .kpi-tag{ background:color-mix(in srgb, var(--blue) 15%, transparent) !important; color:var(--blue) !important; }
+.kpi.done{ background:linear-gradient(135deg, var(--primary-faint), var(--surface)) !important; border-inline-start-color:var(--primary) !important; }
+.kpi.done .kpi-n{ color:var(--primary) !important; }
+.kpi.done .kpi-tag{ background:var(--primary-light) !important; color:var(--primary) !important; }
+.kpi.miss.on{ background:linear-gradient(135deg, color-mix(in srgb, var(--red) 9%, var(--surface)), var(--surface)) !important; border-inline-start-color:var(--red) !important; }
+.kpi.miss.on .kpi-n{ color:var(--red) !important; }
+
+/* بطاقات الموبايل */
+.msum{ border-radius:16px !important; }
+
+/* زرّ رئيسي أجرأ (الأخضر الصلب) */
+.btn-primary.btn-solid{ background:linear-gradient(135deg, var(--primary), var(--primary-hover)) !important; box-shadow:0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent) !important; }
+
+/* الرِيل: إبراز العنصر الفعّال بشريط أبيض */
+.rail-nav-btn.active{ background:rgba(255,255,255,.24) !important; box-shadow:inset 3px 0 0 rgba(255,255,255,.9) !important; }
