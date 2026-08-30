@@ -122,38 +122,11 @@
       flex-direction: column;
     }
     /* ===== خلفية زخرفية طبية (موبايل + لابتوب) ===== */
-    /* الخلفية شفافة كي تظهر طبقة النقش الثابتة خلفها (وإلّا غطّتها) */
-    body:not(.theme-dark) { background: transparent; }
-    body:not(.theme-dark)::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      /* تلطيف أبيض خفيف فوق الصورة كي تبقى البطاقات والنصوص واضحة */
-      background-image:
-        linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,.72)),
-        url("bg-pattern.webp");
-      background-size: cover, cover;
-      background-position: center, center top;
-      background-repeat: no-repeat, no-repeat;
-    }
-    /* اللابتوب: الصورة عمودية وعناصرها في الزوايا؛ نعرض شريطها العلوي (شبكة + دوائر) بلا تمديد */
-    @media (min-width: 768px) {
-      body:not(.theme-dark)::before {
-        background-size: cover, cover;
-        background-position: center, center top;
-      }
-    }
-    /* خلفية متحرّكة تجريبية (bg-gradient.js) — تحجب الصورة الثابتة فقط لو نجح تشغيل WebGL */
-    body.bg-animated-active:not(.theme-dark)::before { display: none; }
-    #bgGradientCanvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
-    /* طبقة تلطيف بيضاء فوق الكانفاس (نفس دورها فوق الصورة سابقاً) — لازم تُرسَم بعد الكانفاس فوقه */
-    body.bg-animated-active:not(.theme-dark)::after {
-      content: "";
-      position: fixed; inset: 0; z-index: -1; pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,.42), rgba(255,255,255,.62));
-    }
+    /* أُزيلت الخلفية الزخرفية (نقش + كرات + كانفاس متحرّك) — سطح --page مسطّح
+       بدل الطابع الزخرفي (إزالة «حسّ الـ AI»). */
+    body:not(.theme-dark)::before { content: none; display: none; }
+    body.bg-animated-active:not(.theme-dark)::after { content: none; display: none; }
+    #bgGradientCanvas { display: none !important; }
 
     .orb { display: none; }
 
@@ -236,11 +209,13 @@
     .sidebar { display:none; }
     .rail { display:none; }
     @media (min-width: 768px) {
-      /* الشريط جانبي (.dbside) على طراز TailAdmin — يُزاح الجسم بعرضه */
-      body { padding-inline-end: 264px; padding-right: 0; }
-      body.rail-expanded, body.sidebar-collapsed { padding-inline-end: 264px !important; padding-right: 0 !important; }
+      /* الشريط جانبي (.dbside) على طراز TailAdmin، مثبّت يمين الشاشة (RTL) —
+         الجسم يُزاح بحشوة يمنى بمقدار عرضه. padding-right صريح (لا -inline-):
+         في RTL يكون -inline-end هو اليسار، وقد كان ذلك يُدخل المحتوى تحت الشريط. */
+      body { padding-right: 264px; padding-left: 0; }
+      body.rail-expanded, body.sidebar-collapsed { padding-right: 264px !important; }
       main { flex-direction: column !important; margin-right: 0 !important; }
-      body.editor-open { padding-inline-end: 0 !important; }
+      body.editor-open { padding-right: 0 !important; }
       body.editor-open .dbside { display: none !important; }
       .rail {
         display: flex; flex-direction: column;
@@ -358,6 +333,7 @@
     .dbside { display: none; }
     @media (min-width: 768px) {
       .dbside {
+        box-sizing: border-box;
         display: flex; flex-direction: column;
         position: fixed; top: 0; inset-inline-start: 0; bottom: 0;
         width: 264px; padding: 0 20px;
