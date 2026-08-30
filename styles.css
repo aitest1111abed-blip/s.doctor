@@ -209,10 +209,10 @@
     .sidebar { display:none; }
     .rail { display:none; }
     @media (min-width: 768px) {
-      /* شريط أيقونات عائم يمين الشاشة (RTL) — الجسم يُزاح بحشوة يمنى:
-         عرض الشريط 64 + هامش 12 + فجوة 14 ≈ 90px. */
-      body { padding-right: 90px; padding-left: 0; }
-      body.rail-expanded, body.sidebar-collapsed { padding-right: 90px !important; }
+      /* حاوية عائمة يمين الشاشة (RTL) — الجسم يُزاح بحشوة يمنى:
+         عرض 68 + هامش 16 + فجوة ≈ 100px. */
+      body { padding-right: 100px; padding-left: 0; }
+      body.rail-expanded, body.sidebar-collapsed { padding-right: 100px !important; }
       main { flex-direction: column !important; margin-right: 0 !important; }
       body.editor-open { padding-right: 0 !important; }
       body.editor-open .dbside { display: none !important; }
@@ -332,44 +332,45 @@
     .dbside { display: none; }
     @media (min-width: 768px) {
       .dbside {
-        /* الحاوية تُحيط بالأيقونات فقط، وتتوسّط عمودياً (فراغ متساوٍ أعلى وأسفل) */
+        /* حاوية بيضوية عائمة تحيط بالأيقونات، متوسّطة عمودياً.
+           غير المفعّل = شريحة دائرية خفيفة · المفعّل = مربّع تركوازي مدوّر. */
         box-sizing: border-box;
-        display: flex; flex-direction: column; align-items: center; gap: 6px;
-        position: fixed; top: 50%; inset-inline-start: 14px;
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        position: fixed; top: 50%; inset-inline-start: 16px;
         transform: translateY(-50%);
-        width: 64px; max-height: calc(100vh - 40px);
-        padding: 12px 0;
+        width: 68px; max-height: calc(100vh - 40px);
+        padding: 14px 0;
         background: var(--surface);
-        border: 1px solid var(--border); border-radius: 32px;
-        box-shadow: var(--shadow);
+        border: 1px solid var(--o06);
+        border-radius: 34px;
+        box-shadow: 0 10px 34px -10px rgba(15,23,42,.14), 0 3px 10px -3px rgba(15,23,42,.07);
         z-index: var(--z-rail);
         overflow: visible;
       }
 
-      .dbside-head { display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 6px; }
+      .dbside-head { display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 4px; }
       .dbside-mark {
-        width: 40px; height: 40px; border-radius: 13px; flex-shrink: 0;
+        width: 42px; height: 42px; border-radius: 15px; flex-shrink: 0;
         background: var(--primary); color: #fff;
         display: flex; align-items: center; justify-content: center;
       }
-      .dbside-brand { display: none; }
-      .dbside-sec { display: none; }
-      .dbside-scroll { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 auto; }
-      .dbside-list { list-style: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; margin: 0; }
+      .dbside-brand, .dbside-sec { display: none; }
+      .dbside-scroll { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 0 0 auto; }
+      .dbside-list { list-style: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; margin: 0; }
 
       .menu-item {
         position: relative; display: flex; align-items: center; justify-content: center;
-        width: 44px; height: 44px; padding: 0; border-radius: 15px;
-        color: var(--text-muted); background: none; border: none; cursor: pointer;
-        transition: background .13s, color .13s;
+        width: 42px; height: 42px; padding: 0;
+        border-radius: 50%;
+        color: var(--text-muted); background: var(--o05); border: none; cursor: pointer;
+        transition: background .14s, color .14s, border-radius .18s;
       }
       .menu-item span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-      .menu-item i { font-size: 1.05rem; color: currentColor; }
-      .menu-item:hover:not(.active) { background: var(--bg); color: var(--text-primary); }
-      .menu-item.active { background: var(--primary); color: #fff; }
+      .menu-item i { font-size: .98rem; color: currentColor; }
+      .menu-item:hover:not(.active) { background: var(--o10); color: var(--text-secondary); }
+      .menu-item.active { border-radius: 15px; background: var(--primary); color: #fff; }
       .menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
-      /* tooltip بجانب الأيقونة (جهة المحتوى = اليسار في RTL) —
-         inset-inline-start في RTL = يمين العنصر ⇒ يخرج التلميح لليسار. */
+      /* tooltip بجانب الأيقونة (جهة المحتوى = اليسار في RTL) */
       .menu-item[aria-label]::after {
         content: attr(aria-label);
         position: absolute; inset-inline-start: calc(100% + 12px); top: 50%;
@@ -383,19 +384,19 @@
       }
       .menu-item:hover::after, .menu-item:focus-visible::after { opacity: 1; transform: translateY(-50%) translateX(0); }
 
-      .dbside-div { width: 26px; height: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
+      .dbside-div { height: 6px; flex-shrink: 0; }   /* فاصل فراغ بين المجموعتين */
 
-      .dbside-foot { flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+      .dbside-foot { flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 6px; }
       .topbar-chip {
         display: flex; align-items: center; justify-content: center;
-        width: 44px; height: 44px; padding: 0; border-radius: 15px;
+        width: 42px; height: 42px; padding: 0; border-radius: 50%;
         border: none; background: none; cursor: pointer; font-family: inherit;
-        transition: background .13s;
+        transition: filter .14s;
       }
-      .topbar-chip:hover { background: var(--bg); }
+      .topbar-chip:hover { filter: brightness(.95); }
       .topbar-chip:focus-visible { outline: none; box-shadow: var(--ring-focus); }
       .topbar-avatar {
-        width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0; overflow: hidden;
+        width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
         background: var(--primary-light); color: var(--primary);
         display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .82rem;
       }
