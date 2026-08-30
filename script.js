@@ -3357,14 +3357,19 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     }
     // ── Draggable Desktop FAB (Doctor) ──
     (function() {
-      var FAB_KEY = 'docFabPos';
+      var FAB_KEY = 'docFabPos2';   // v2: الموضع الافتراضي صار تحت حاوية الشريط الجانبي
       var fabEl, pillsEl, _docWasDragged = false;
       window._docWasDragged = function() { return _docWasDragged; };
       window._docResetDragged = function() { _docWasDragged = false; };
 
+      function defaultFabPos() {
+        // تحت الكبسولة الجانبية (المتوسّطة عمودياً): نصف ارتفاعها ≈ 169، + فجوة + حجم الزرّ
+        var vh = window.innerHeight || 800;
+        return { right: 22, bottom: Math.max(80, Math.round(vh / 2 - 231)) };
+      }
       function getFabPos() {
         try { var s = localStorage.getItem(FAB_KEY); if (s) { var p = JSON.parse(s); return clampPos(p); } } catch(e) {}
-        return { right: 36, bottom: 36 };
+        return defaultFabPos();
       }
       function saveFabPos(pos) {
         try { localStorage.setItem(FAB_KEY, JSON.stringify(pos)); } catch(e) {}
@@ -3373,7 +3378,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       function clampPos(pos) {
         var vw = window.innerWidth;
         var vh = window.innerHeight;
-        var size = 56;
+        var size = 48;
         var margin = 8;
         return {
           right:  Math.max(margin, Math.min(vw  - size - margin, pos.right)),
@@ -3393,9 +3398,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         if (!pillsEl || !fabEl) return;
         var vw = window.innerWidth;
         var vh = window.innerHeight;
-        var fr = parseFloat(fabEl.style.right)  || 36;
+        var fr = parseFloat(fabEl.style.right)  || 22;
         var fb = parseFloat(fabEl.style.bottom) || 36;
-        var fabSize = 56;
+        var fabSize = 48;
         var gap = 8;
 
         var pillH  = 52;

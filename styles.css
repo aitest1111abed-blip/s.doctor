@@ -332,10 +332,11 @@
     .dbside { display: none; }
     @media (min-width: 768px) {
       .dbside {
-        /* الحاوية تُحيط بالأيقونات فقط — لا تمتدّ على كامل الطول */
+        /* الحاوية تُحيط بالأيقونات فقط، وتتوسّط عمودياً (فراغ متساوٍ أعلى وأسفل) */
         box-sizing: border-box;
         display: flex; flex-direction: column; align-items: center; gap: 6px;
-        position: fixed; top: 20px; inset-inline-start: 14px;
+        position: fixed; top: 50%; inset-inline-start: 14px;
+        transform: translateY(-50%);
         width: 64px; max-height: calc(100vh - 40px);
         padding: 12px 0;
         background: var(--surface);
@@ -1870,6 +1871,15 @@
     }
     @media (min-width: 768px) {
       #docDesktopSpeedDial { display: block; }
+      /* الزرّ العائم تحت حاوية الشريط الجانبي — بحجم الأيقونات، مسطّح */
+      #docDesktopSpeedDial .doc-fab-trigger {
+        width: 48px; height: 48px;
+        background: var(--primary);
+        box-shadow: 0 6px 18px -4px rgba(13,148,136,.45);
+      }
+      #docDesktopSpeedDial .doc-fab-plus-icon { width: 17px; height: 17px; }
+      #docDesktopSpeedDial .doc-fab-plus-icon::before { width: 17px; top: 7.25px; }
+      #docDesktopSpeedDial .doc-fab-plus-icon::after  { height: 17px; left: 7.25px; }
     }
     #docDesktopSpeedDial.dragging { cursor: grabbing; }
     #docDesktopSpeedDial .doc-fab-trigger { cursor: inherit; }
