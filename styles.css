@@ -2398,6 +2398,8 @@
 }
 
 .pf-hero{background:var(--surface);flex-shrink:0;overflow:visible;border-bottom:1px solid var(--border);}
+/* إضبارة المريض: بلا خطّ فاصل رمادي (بقايا الهيدر القديم) — الجزيرة تفصل بذاتها */
+#patientDetailsModal .pf-hero{border-bottom:none;}
 :root{ --pf-notch:#14b8a6; }          /* جزيرة تركوازية */
 body.theme-dark{ --pf-notch:#0d9488; }
 .pf-cover{height:96px;position:relative;overflow:hidden;background:
@@ -2436,22 +2438,23 @@ body.theme-dark{ --pf-notch:#0d9488; }
   border-radius:0 0 22px 22px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 16px 32px -12px rgba(13,148,136,.5);
 }
-/* جناحان مقعّران: يملآن الركن بين حافة الجزيرة العليا وحافة اللوحة (تقوّس داخليّ) */
+/* جناحان مقعّران كبيران وناعمان: تقوّس طويل ضحل يذوب بين كتف الجزيرة وحافة اللوحة.
+   المنحنى مماسٌّ أفقيّاً عند اللوحة ومماسٌّ شاقوليّاً عند الجزيرة → بلا زوايا ولا نتوءات. */
 #patientDetailsModal .pf-head::before, #patientDetailsModal .pf-head::after{
-  content:""; position:absolute; top:0; width:24px; height:24px;
+  content:""; position:absolute; top:0; width:56px; height:20px;
   background:var(--pf-notch);
   -webkit-mask-size:100% 100%; mask-size:100% 100%;
   -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
 }
 #patientDetailsModal .pf-head::before{  /* جناح على يمين الجزيرة فيزيائياً */
   right:calc(100% - 1px);
-  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M0 0 H24 V24 C10.75 24 0 13.25 0 0 Z'/%3E%3C/svg%3E");
-  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M0 0 H24 V24 C10.75 24 0 13.25 0 0 Z'/%3E%3C/svg%3E");
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 20'%3E%3Cpath d='M0 0 H56 V20 C56 8.95 30.93 0 0 0 Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 20'%3E%3Cpath d='M0 0 H56 V20 C56 8.95 30.93 0 0 0 Z'/%3E%3C/svg%3E");
 }
 #patientDetailsModal .pf-head::after{  /* جناح على يسار الجزيرة فيزيائياً */
   left:calc(100% - 1px);
-  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M24 0 H0 V24 C13.25 24 24 13.25 24 0 Z'/%3E%3C/svg%3E");
-  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M24 0 H0 V24 C13.25 24 24 13.25 24 0 Z'/%3E%3C/svg%3E");
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 20'%3E%3Cpath d='M56 0 H0 V20 C0 8.95 25.07 0 56 0 Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 20'%3E%3Cpath d='M56 0 H0 V20 C0 8.95 25.07 0 56 0 Z'/%3E%3C/svg%3E");
 }
 /* الهويّة على سطر واحد: الاسم والهاتف جنب بعض */
 #patientDetailsModal .pf-id{display:flex;align-items:center;gap:12px;flex:0 1 auto;min-width:0;}
@@ -2598,8 +2601,9 @@ body.theme-dark{ --pf-notch:#0d9488; }
 @media (max-width:640px){
   /* الهيدر: أزرار صغيرة موحّدة بتباعد واضح، بلا التفاف */
   #patientDetailsModal .pf-head{ margin:0 8px; width:auto; max-width:calc(100% - 16px); padding:10px 12px; gap:8px; flex-wrap:nowrap; border-radius:0 0 16px 16px; }
-  #patientDetailsModal .pf-head::before{ right:calc(100% - 1px); }
-  #patientDetailsModal .pf-head::after{ left:calc(100% - 1px); }
+  /* الجزيرة شبه بعرض اللوحة على الهاتف → لا مساحة للأجنحة */
+  #patientDetailsModal .pf-head::before,
+  #patientDetailsModal .pf-head::after{ display:none; }
   /* الاسم أهمّ عنصر — يأخذ المساحة الفاضية، والهاتف/الوسم يختفيان (زرّ الاتصال موجود) */
   #patientDetailsModal .pf-id{ flex:1 1 auto; }
   #patientDetailsModal .pf-name-row{ min-width:0; flex:1 1 auto; }
