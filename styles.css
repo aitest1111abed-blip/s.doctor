@@ -2169,6 +2169,18 @@
 .dc-page-body{display:grid;grid-template-columns:1fr minmax(300px,360px);gap:14px;margin:0 auto;padding:16px;width:100%;align-items:start;}
 .dc-page-main{display:flex;flex-direction:column;gap:14px;min-width:0;}
 .dc-page-side{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:14px;align-items:start;grid-column:1;min-width:0;}
+/* مخطّط الأسنان على اللابتوب: ثلث الشاشة لوحة الأدوات (يمين) + ثلثان للمخطّط (يسار).
+   المخطّط يمتدّ على صفّين، ومحرِّر السن ثم الأرشيف مكدّسان في عمود الأدوات. */
+@media (min-width:1025px){
+  #dentalChartModal .dc-page-body{
+    grid-template-columns:minmax(340px, 34%) 1fr;
+    grid-template-areas:"tools chart" "arch chart";
+    max-width:1600px;
+  }
+  #dentalChartModal .dc-page-main{grid-area:chart;}
+  #dentalChartModal .dc-tooth-panel{grid-area:tools;}
+  #dentalChartModal .dc-page-side{grid-area:arch;display:block;grid-column:auto;}
+}
 .dc-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;}
 .dc-card-title{display:flex;align-items:center;gap:7px;font-weight:800;font-size:.86rem;color:var(--primary);margin:0 0 10px;}
 .dc-count{font-size:.72rem;color:var(--text-muted);font-weight:600;}
