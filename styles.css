@@ -184,7 +184,13 @@
     .chart-layout { display:grid; grid-template-columns:1fr; gap:16px; max-width:1400px; margin:0 auto; align-items:start; }
     @media (min-width:900px){
       .chart-layout { grid-template-columns:360px 1fr; }
-      .chart-layout .chart-info-card { position:sticky; top:0; }
+      /* معلومات المريض وأرشيف الزيارات: ارتفاع محدود + سكرول داخلي، فلا تمتدّ الصفحة */
+      #patientDetailsModal .chart-body { overflow:hidden !important; display:flex; }
+      #patientDetailsModal .chart-layout { flex:1; min-height:0; height:100%; align-items:stretch; }
+      #patientDetailsModal .chart-info-card { position:static; min-height:0; overflow-y:auto; }
+      #patientDetailsModal .chart-col2 { min-height:0; overflow:hidden; }
+      #patientDetailsModal .chart-archive { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+      #patientDetailsModal .chart-archive > #chartVisitsList { flex:1 1 auto; min-height:0; overflow-y:auto; padding-inline-end:4px; }
     }
 
     /* تأثير Fade In للبطاقات في قسم الإحصائيات */
