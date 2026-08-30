@@ -2397,7 +2397,9 @@
   .ac-name{font-size:.86rem;}
 }
 
-.pf-hero{background:var(--surface);flex-shrink:0;border-bottom:1px solid var(--border);}
+.pf-hero{background:var(--surface);flex-shrink:0;overflow:visible;border-bottom:1px solid var(--border);}
+:root{ --pf-notch:#16211f; }
+body.theme-dark{ --pf-notch:#1f5750; }
 .pf-cover{height:96px;position:relative;overflow:hidden;background:
   radial-gradient(120% 140% at 85% -20%,#14b8a6 0%,transparent 55%),
   radial-gradient(120% 160% at 10% 0%,#0f766e 0%,transparent 60%),
@@ -2411,16 +2413,64 @@
 .pf-cbtn.wa:hover{filter:brightness(1.08);}
 /* ترويسة بسيطة كترويسة «تعديل معلومات المريض»: شريط رفيع، صورة صغيرة مسطّحة،
    اسم بحجم عنوان لا بحجم بطاقة بروفايل. (كانت صورة ٦٢px بظلّ ثقيل تُثقل الشريط.) */
+/* ترويسة عامة بسيطة (تُستعمل أيضاً في رأس الأداة السريرية sc-hero) — تبقى فاتحة */
 .pf-head{display:flex;gap:11px;align-items:center;padding:12px 20px;flex-wrap:wrap;}
 .pf-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;background:linear-gradient(140deg,#0d9488,#115e59);}
-/* بلا margin:auto — .pf-id بـ flex:1 يدفع ما بعده للطرف، والهامش التلقائي
-   كان يفتح فجوة بين أزرار الإجراءات وزرّ الإغلاق بعد نقلها إلى الترويسة. */
 .pf-close{width:36px;height:36px;border-radius:9px;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;transition:background .15s,color .15s;}
-.pf-close:hover{background:#fef2f2;color:#dc2626;}
+.pf-close:hover{background:var(--red-light);color:#dc2626;}
 .pf-id{flex:1;min-width:0;}
 .pf-name{font-weight:800;font-size:1.1rem;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.25;}
 .pf-verline{font-size:.6rem;font-weight:800;color:var(--primary);background:var(--primary-light);border:1px solid var(--border-strong);border-radius:999px;padding:3px 10px;letter-spacing:.3px;white-space:nowrap;}
 .pf-phone{direction:ltr;text-align:right;color:var(--primary);font-weight:700;font-size:.82rem;margin-top:1px;}
+
+/* ═══ ترويسة إضبارة المريض = «نوتش» داكن: جزيرة معلّقة من حافة اللوحة العليا ═══
+   جزيرة تلتفّ حول محتواها بزوايا سفلية مدوّرة + جناحان مقعّران عند التقائها باللوحة.
+   محصورة بـ #patientDetailsModal كي لا تمسّ رأس الأداة السريرية. */
+/* الجزيرة: صفّ واحد، تلتفّ حول محتواها، متمركزة، معلّقة من الحافة العليا */
+#patientDetailsModal .pf-head{
+  position:relative; margin-inline:auto; width:-moz-fit-content; width:fit-content;
+  max-width:calc(100% - 120px);
+  display:flex; gap:13px; align-items:center; flex-wrap:nowrap;
+  padding:9px 18px;
+  background:var(--pf-notch); color:#fff;
+  border-radius:0 0 24px 24px;
+  box-shadow:0 12px 26px -10px rgba(0,0,0,.4);
+}
+/* جناحان مقعّران: يملآن الركن بين حافة الجزيرة العليا وحافة اللوحة (تقوّس داخليّ) */
+#patientDetailsModal .pf-head::before, #patientDetailsModal .pf-head::after{
+  content:""; position:absolute; top:0; width:24px; height:24px;
+  background:var(--pf-notch);
+  -webkit-mask-size:100% 100%; mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+}
+#patientDetailsModal .pf-head::before{  /* جناح على يمين الجزيرة فيزيائياً */
+  right:calc(100% - 1px);
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M0 0 H24 V24 C10.75 24 0 13.25 0 0 Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M0 0 H24 V24 C10.75 24 0 13.25 0 0 Z'/%3E%3C/svg%3E");
+}
+#patientDetailsModal .pf-head::after{  /* جناح على يسار الجزيرة فيزيائياً */
+  left:calc(100% - 1px);
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M24 0 H0 V24 C13.25 24 24 13.25 24 0 Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M24 0 H0 V24 C13.25 24 24 13.25 24 0 Z'/%3E%3C/svg%3E");
+}
+/* الهويّة على سطر واحد: الاسم والهاتف جنب بعض */
+#patientDetailsModal .pf-id{display:flex;align-items:center;gap:11px;flex:0 1 auto;min-width:0;}
+#patientDetailsModal .pf-name-row{display:flex;align-items:center;gap:8px;min-width:0;}
+#patientDetailsModal .pf-avatar{width:34px;height:34px;background:linear-gradient(140deg,#2dd4bf,#0d9488);box-shadow:0 0 0 2px rgba(255,255,255,.16);}
+#patientDetailsModal .pf-name{display:block;color:#fff;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+#patientDetailsModal .pf-verline{color:#fff;background:rgba(255,255,255,.18);border-color:transparent;flex-shrink:0;}
+#patientDetailsModal .pf-phone{color:rgba(255,255,255,.6);margin-top:0;font-size:.75rem;white-space:nowrap;flex-shrink:0;padding-inline-start:11px;border-inline-start:1px solid rgba(255,255,255,.18);}
+#patientDetailsModal .pf-head-actions{gap:6px;flex-wrap:nowrap;flex-shrink:0;}
+#patientDetailsModal .pf-actbtn{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.12);border-color:transparent;color:#fff;font-size:.85rem;}
+#patientDetailsModal .pf-actbtn:hover{background:rgba(255,255,255,.22);border-color:transparent;color:#fff;}
+#patientDetailsModal .pf-actbtn.wa{background:#16a34a;color:#fff;border-color:transparent;}
+#patientDetailsModal .pf-actbtn.wa:hover{background:#15803d;color:#fff;}
+#patientDetailsModal .pf-close{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);flex-shrink:0;}
+#patientDetailsModal .pf-close:hover{background:rgba(239,68,68,.92);color:#fff;}
+#patientDetailsModal .pf-menu-trigger{color:rgba(255,255,255,.72);flex-shrink:0;}
+#patientDetailsModal .pf-menu-trigger:hover{background:rgba(255,255,255,.14);color:#fff;}
+#patientDetailsModal .pf-menu-trigger[aria-expanded="true"]{background:rgba(255,255,255,.16);color:#fff;}
+#patientDetailsModal .pf-pills{justify-content:center;padding-top:14px;}
 /* ── رأس الأداة السريرية «مقارنة القياسات» — يعيد استخدام pf-hero بهوية الاضبارة ── */
 /* ═══ بطاقة القياس السريري — فاتحة بهويّة التطبيق، الأولوية للوضوح ═══
    بلا توهّج ولا خلفيات داكنة: القيمة والنطاق المرجعي يجب أن يُقرآ بلا جهد. */
@@ -2546,14 +2596,20 @@
 /* ══ اضبارة المريض على الهاتف — أحجام صغيرة وتباعد واضح بلا تلاصق (مطابقة المرجع) ══ */
 @media (max-width:640px){
   /* الهيدر: أزرار صغيرة موحّدة بتباعد واضح، بلا التفاف */
-  #patientDetailsModal .pf-head{ padding:12px; gap:8px; flex-wrap:nowrap; }
-  #patientDetailsModal .pf-avatar{ width:42px; height:42px; font-size:1.02rem; }
-  #patientDetailsModal .pf-name{ font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #patientDetailsModal .pf-phone{ font-size:.78rem; }
-  #patientDetailsModal .pf-head-actions{ gap:8px; flex-wrap:nowrap; }
+  #patientDetailsModal .pf-head{ margin:0 8px; width:auto; max-width:calc(100% - 16px); padding:10px 12px; gap:8px; flex-wrap:nowrap; border-radius:0 0 16px 16px; }
+  #patientDetailsModal .pf-head::before{ right:calc(100% - 1px); }
+  #patientDetailsModal .pf-head::after{ left:calc(100% - 1px); }
+  /* الاسم أهمّ عنصر — يأخذ المساحة الفاضية، والهاتف/الوسم يختفيان (زرّ الاتصال موجود) */
+  #patientDetailsModal .pf-id{ flex:1 1 auto; }
+  #patientDetailsModal .pf-name-row{ min-width:0; flex:1 1 auto; }
+  #patientDetailsModal .pf-name{ flex:1 1 auto; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #patientDetailsModal .pf-avatar{ width:38px; height:38px; font-size:.98rem; }
+  #patientDetailsModal .pf-phone,
+  #patientDetailsModal .pf-verline{ display:none; }
+  #patientDetailsModal .pf-head-actions{ gap:6px; flex-wrap:nowrap; }
   #patientDetailsModal .pf-actbtn,
-  #patientDetailsModal .pf-close{ width:36px; height:36px; border-radius:10px; font-size:.86rem; }
-  #patientDetailsModal .pf-menu-trigger{ width:24px; height:24px; }
+  #patientDetailsModal .pf-close{ width:34px; height:34px; border-radius:9px; font-size:.84rem; }
+  #patientDetailsModal .pf-menu-trigger{ width:22px; height:22px; }
 
   /* تنبيه الحساسية = شريط محدّد بإطار أحمر و⚠️ (مطابق المرجع) */
   #patientDetailsModal .pf-alertline{ justify-content:center; padding:9px 12px; margin:2px 0 10px; background:rgba(239,68,68,.09); border:1px solid rgba(239,68,68,.4); border-radius:11px; }
