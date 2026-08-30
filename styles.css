@@ -42,11 +42,12 @@
       --grid-line-soft: #f4f6fa;
       --today-wash:     linear-gradient(180deg, rgba(13,148,136,.045), rgba(13,148,136,.02));
 
-      /* ظلال أهدأ وأنظف (P1-2) — طبقة واحدة، عتامة أقل، انتشار أضيق */
-      --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
-      --shadow:    0 2px 8px rgba(15,23,42,.05);
-      --shadow-md: 0 6px 20px rgba(15,23,42,.07);
-      --shadow-lg: 0 16px 40px rgba(15,23,42,.10);
+      /* ظلال «طافية» ناعمة — الكروت تبرز فوق أرضية الصفحة الرمادية.
+         انتشار سالب + بلور كبير = ارتفاع واضح بلا ثقل. */
+      --shadow-sm: 0 2px 6px -2px rgba(17,24,39,.08);
+      --shadow:    0 10px 28px -10px rgba(17,24,39,.14), 0 3px 10px -5px rgba(17,24,39,.07);
+      --shadow-md: 0 16px 40px -14px rgba(17,24,39,.18), 0 5px 14px -7px rgba(17,24,39,.09);
+      --shadow-lg: 0 28px 64px -18px rgba(17,24,39,.24), 0 10px 24px -12px rgba(17,24,39,.12);
     }
 
     /* ===== الوضع الليلي — أسود محايد على طراز بوتلي (لا أزرق حبري) ===== */
@@ -127,14 +128,14 @@
 
     .glass-card {
       background: var(--surface) !important;
-      border: 1px solid var(--border) !important;
+      border: 1px solid var(--o04) !important;
       border-radius: var(--border-radius);
       padding: var(--card-padding);
-      transition: border-color .2s, box-shadow .2s;
+      transition: box-shadow .2s, transform .2s;
       position: relative;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow);          /* ظلّ طافٍ — الكرت يرتفع عن الأرضية */
     }
-    .glass-card:hover { box-shadow: var(--shadow) !important; border-color: var(--border-strong) !important; }
+    .glass-card:hover { box-shadow: var(--shadow-md) !important; transform: translateY(-2px); }
 
     /* ===== نافذة تفاصيل الموعد — تصميم احترافي ===== */
     .apptd-card { border-radius:22px !important; overflow:hidden; padding:0 !important; max-height:90vh; display:flex; flex-direction:column; }
@@ -2308,30 +2309,28 @@
 }
 
 /* ===== 🩺 تصميم البروفايل — اضبارة المريض (ملء الشاشة، يتبع الوضعين) ===== */
-/* ═══ كروت مواعيد اليوم (تحت الروزنامة — الرئيسية والموبايل) ═══
-   الحالة يدلّ عليها شريط رفيع على الحافّة وشارة نصّية، لا خلفية ملوّنة للكرت،
-   فتبقى القائمة هادئة ويُقرأ اسم المريض أوّلاً. */
+/* ═══ كروت مواعيد اليوم ═══ نمط Tasklyn/Salesforce:
+   الكرت يرتفع بظلّ طافٍ، ويتعبّأ بلون خفيف حسب الحالة فيبرز المهم بلمحة. */
 .ac{
   display:flex; align-items:center; gap:12px; position:relative;
-  background:var(--surface); border:1px solid var(--border); border-radius:14px;
-  padding:11px 13px; cursor:pointer; overflow:hidden;
-  transition:border-color .15s, box-shadow .15s, transform .1s;
-  /* الحاوية عمود flex بارتفاع مقيَّد ⇒ بلا هذا يضغط الفليكس الكروت
-     (flex-shrink الافتراضي = ١) فتنكمش إلى نصف ارتفاعها بدل أن تفيض ويظهر التمرير. */
+  background:var(--surface); border:1px solid var(--o04); border-radius:16px;
+  padding:12px 14px; cursor:pointer; overflow:hidden;
+  box-shadow:var(--shadow-sm);
+  transition:box-shadow .16s, transform .12s, background .16s;
   flex-shrink:0;
 }
-.ac::before{content:""; position:absolute; inset-inline-start:0; top:0; bottom:0; width:3px; background:var(--border-strong);}
-.ac:hover{border-color:var(--border-strong); box-shadow:var(--shadow-sm);}
-.ac:active{transform:scale(.995);}
-.ac.ac-s-done::before{background:var(--green,#16a34a);}
-.ac.ac-s-noshow::before{background:#dc2626;}
-.ac.ac-s-cancel::before{background:var(--amber,#d97706);}
+.ac:hover{ box-shadow:var(--shadow); transform:translateY(-2px); }
+.ac:active{transform:translateY(0) scale(.995);}
+/* تعبئة حسب الحالة */
+.ac.ac-s-noshow{ background:var(--c-danger-bg);   border-color:color-mix(in srgb, var(--c-danger) 22%, transparent); }
+.ac.ac-s-done  { background:var(--c-positive-bg);  border-color:color-mix(in srgb, var(--c-positive) 20%, transparent); }
+.ac.ac-s-cancel{ background:var(--c-warn-bg);      border-color:color-mix(in srgb, var(--c-warn) 20%, transparent); }
 
 .ac-time{
   flex-shrink:0; min-width:52px; text-align:center;
   font-family:var(--font-num,inherit); font-weight:800; font-size:.82rem;
-  color:var(--primary); background:var(--primary-1); border-radius:9px; padding:6px 8px;
-  font-variant-numeric:tabular-nums;
+  color:var(--text-primary); background:var(--surface); border:1px solid var(--o06);
+  border-radius:10px; padding:6px 8px; font-variant-numeric:tabular-nums;
 }
 .ac-who{min-width:0; flex:1;}
 .ac-name{margin:0; font-weight:700; font-size:.9rem; color:var(--text-primary);
@@ -2339,12 +2338,11 @@
 .ac-type{margin:2px 0 0; font-size:.73rem; color:var(--text-muted);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
-.ac-badge{flex-shrink:0; font-size:.71rem; font-weight:700; border-radius:999px; padding:5px 11px; white-space:nowrap;}
-/* الشارات تعتمد التوكنز الدلالية — تنقلب تلقائياً في الوضع الليلي
-   (كتلة data-theme في tokens.css)، فلا حاجة لثلاثة overrides يدوية. */
-.ac-badge.ac-done{background:var(--c-positive-bg); color:var(--c-positive-fg);}
-.ac-badge.ac-noshow{background:var(--c-danger-bg); color:var(--c-danger-fg);}
-.ac-badge.ac-cancel{background:var(--c-warn-bg); color:var(--c-warn-fg);}
+.ac-badge{flex-shrink:0; font-size:.68rem; font-weight:800; border-radius:999px; padding:4px 10px; white-space:nowrap;}
+/* شارة مصمتة فوق التعبئة الخفيفة — تباين واضح (نمط Tasklyn) */
+.ac-badge.ac-done{background:var(--c-positive); color:#fff;}
+.ac-badge.ac-noshow{background:var(--c-danger); color:#fff;}
+.ac-badge.ac-cancel{background:var(--c-warn); color:#fff;}
 
 .ac-acts{display:flex; gap:6px; flex-shrink:0;}
 .ac-btn{
