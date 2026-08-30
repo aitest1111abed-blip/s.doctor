@@ -3097,6 +3097,25 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       } catch (e) {}
     })();
 
+    // ===== قائمة الملف الشخصي المنسدلة في الشريط العلوي =====
+    window.closeTopbarMenu = function () {
+      var m = document.getElementById('topbarMenu'), b = document.getElementById('topbarProfileBtn');
+      if (m) m.hidden = true;
+      if (b) b.setAttribute('aria-expanded', 'false');
+    };
+    window.toggleTopbarMenu = function () {
+      var m = document.getElementById('topbarMenu'), b = document.getElementById('topbarProfileBtn');
+      if (!m) return;
+      var willOpen = m.hidden;
+      m.hidden = !willOpen;
+      if (b) b.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    };
+    document.addEventListener('click', function (e) {
+      var p = document.getElementById('topbarProfile');
+      if (p && !p.contains(e.target)) window.closeTopbarMenu();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') window.closeTopbarMenu(); });
+
     // ===== الوضع الليلي =====
     const THEME_KEY = 'doctorTheme';
     function syncThemeToggle(dark) {

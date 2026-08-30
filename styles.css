@@ -421,6 +421,34 @@
       .topbar-chip-meta { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; text-align: start; }
       .topbar-chip-meta b { font-size: .82rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
       .topbar-chip-meta i { font-size: .68rem; font-style: normal; color: var(--text-muted); white-space: nowrap; }
+
+      /* قائمة الملف الشخصي المنسدلة */
+      .topbar-profile { position: relative; }
+      .topbar-chip-caret { font-size: .6rem; color: var(--text-muted); margin-inline-start: 2px; transition: transform .18s; }
+      .topbar-chip[aria-expanded="true"] .topbar-chip-caret { transform: rotate(180deg); }
+      .topbar-menu {
+        position: absolute; top: calc(100% + 8px); inset-inline-end: 0;
+        min-width: 224px; background: var(--surface);
+        border: 1px solid var(--border); border-radius: 14px;
+        box-shadow: var(--shadow-lg); padding: 6px; z-index: var(--z-dropdown);
+        animation: tbMenuIn .14s ease;
+      }
+      .topbar-menu[hidden] { display: none; }
+      @keyframes tbMenuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+      .topbar-menu-item {
+        display: flex; align-items: center; gap: 11px; width: 100%;
+        padding: 10px 12px; border: none; background: none; border-radius: 10px;
+        font-family: inherit; font-size: .86rem; font-weight: 700; color: var(--text-primary);
+        text-align: start; cursor: pointer; transition: background .13s;
+      }
+      .topbar-menu-item i { width: 16px; text-align: center; color: var(--text-muted); font-size: .8rem; }
+      .topbar-menu-item:hover { background: var(--primary-bg-06); }
+      .topbar-menu-item:hover i { color: var(--primary); }
+      .topbar-menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+      .topbar-menu-item.danger { color: var(--c-danger); }
+      .topbar-menu-item.danger i { color: var(--c-danger); }
+      .topbar-menu-item.danger:hover { background: var(--c-danger-bg); }
+      .topbar-menu-sep { height: 1px; background: var(--border); margin: 4px 6px; }
     }
     @media (min-width: 768px) and (max-width: 940px) {
       .topbar-chip-meta { display: none; }
@@ -2542,27 +2570,40 @@
   #patientDetailsModal #chartNextSlot{ width:100% !important; min-width:0 !important; box-sizing:border-box; }
 }
 
-/* ═══ الهوية البصرية الموحّدة للأزرار ═══
-   كل زرّ «تركوازي مصمت» صار: خلفية بيضاء + حدّ بلون النافبار (تركوازي غامق)
-   + نصّ أسود + أيقونة تركوازية. الدلالات وحدها تحتفظ بلونها (حذف أحمر، واتساب
-   أخضر). الأساس هنا، ويُطبَّق على .btn-primary و.pf-actbtn و.pf-editbtn معاً. */
-.pf-editbtn,
-.btn-primary{background:var(--surface);color:var(--text-primary);border:1px solid #115e59;
-  font-family:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;
-  justify-content:center;gap:6px;transition:background .15s,border-color .15s,transform .1s;}
-.pf-editbtn i,
-.btn-primary i{color:#115e59;}
-.pf-editbtn:hover,
-.btn-primary:hover{background:var(--primary-light);border-color:#0b4d48;}
-.pf-editbtn:active,
+/* ═══ نظام الأزرار (ج) ═══
+   .btn-primary = تعبئة تركوازية مصمتة + نصّ أبيض (كان مفرّغاً أبيض بحدّ).
+   .btn-solid يبقى للأزرار ذات خلفية مخصّصة inline (واتساب أخضر…) لفرض
+   نصّ/أيقونة بيضاء. الدلالات (حذف أحمر) تحتفظ بلونها.
+   .pf-editbtn و.pf-actbtn زرّان مفرّغان مستقلّان في الاضبارة (معرّفان أدناه). */
+.btn-primary{
+  background:var(--primary); color:#fff;
+  border:1px solid transparent; border-radius:var(--radius-btn);
+  padding:10px 20px; font-family:inherit; font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  transition:background .15s, box-shadow .15s, transform .1s;
+}
+.btn-primary i{color:#fff;}
+.btn-primary:hover{background:var(--primary-hover);}
 .btn-primary:active{transform:scale(.98);}
-/* المقاسات تبقى كما كانت لكلّ زرّ */
-.pf-editbtn{font-size:.76rem;border-radius:8px;padding:5px 12px;}
-.pf-editbtn i{font-size:.68rem;}
-.btn-primary{border-radius:10px;padding:10px 20px;}
-/* أزرار تحتفظ بتعبئتها المصمتة (واتساب/إرسال أخضر): نصّ وأيقونة بيضاء بلا حدّ تركوازي */
-.btn-primary.btn-solid{color:#fff;border-color:transparent;}
+.btn-primary:focus-visible{outline:none; box-shadow:var(--ring-focus);}
+.btn-primary:disabled{opacity:.5; cursor:not-allowed; transform:none;}
+.btn-primary.btn-solid{color:#fff; border-color:transparent;}
 .btn-primary.btn-solid i{color:#fff;}
+
+.btn-secondary:focus-visible{outline:none; box-shadow:var(--ring-focus);}
+.btn-secondary:disabled{opacity:.5; cursor:not-allowed;}
+
+/* زرّ «تعديل» المفرّغ الصغير في الاضبارة — مستقلّ عن الأساسي */
+.pf-editbtn{
+  background:var(--surface); color:var(--text-primary); border:1px solid #115e59;
+  font-family:inherit; font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  transition:background .15s, border-color .15s, transform .1s;
+  font-size:.76rem; border-radius:8px; padding:5px 12px;
+}
+.pf-editbtn i{color:#115e59; font-size:.68rem;}
+.pf-editbtn:hover{background:var(--primary-light); border-color:#0b4d48;}
+.pf-editbtn:active{transform:scale(.98);}
 
 /* الخطّ الزمني للزيارات */
 .pf-tl{position:relative;padding-inline-start:20px;}

@@ -16,7 +16,7 @@
 
   <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
   <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=227">
+  <link rel="stylesheet" href="styles.css?v=229">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -303,13 +303,23 @@
         <button class="topbar-icon-btn" id="sidebarSettingsBtn" onclick="openSettingsModal()" aria-label="الإعدادات" title="الإعدادات">
           <i class="fas fa-cog"></i>
         </button>
-        <button class="topbar-chip" onclick="openSettingsModal()" aria-label="الملف الشخصي والإعدادات">
-          <span class="topbar-avatar" id="sidebarDoctorAvatar"><i class="fas fa-user-md"></i></span>
-          <span class="topbar-chip-meta">
-            <b id="sidebarDoctorName">لوحة الطبيب</b>
-            <i id="sidebarDoctorDate">اليوم، التاريخ</i>
-          </span>
-        </button>
+        <div class="topbar-profile" id="topbarProfile">
+          <button class="topbar-chip" id="topbarProfileBtn" aria-haspopup="true" aria-expanded="false" onclick="toggleTopbarMenu()">
+            <span class="topbar-avatar" id="sidebarDoctorAvatar"><i class="fas fa-user-md"></i></span>
+            <span class="topbar-chip-meta">
+              <b id="sidebarDoctorName">لوحة الطبيب</b>
+              <i id="sidebarDoctorDate">اليوم، التاريخ</i>
+            </span>
+            <i class="fas fa-chevron-down topbar-chip-caret" aria-hidden="true"></i>
+          </button>
+          <div class="topbar-menu" id="topbarMenu" hidden>
+            <button class="topbar-menu-item" type="button" onclick="openSettingsModal();closeTopbarMenu()"><i class="fas fa-user"></i>الملف الشخصي</button>
+            <button class="topbar-menu-item" type="button" onclick="openSettingsModal();closeTopbarMenu()"><i class="fas fa-cog"></i>الإعدادات</button>
+            <button class="topbar-menu-item" type="button" onclick="toggleTheme();closeTopbarMenu()"><i class="fas fa-moon"></i>تبديل الوضع الليلي</button>
+            <div class="topbar-menu-sep"></div>
+            <button class="topbar-menu-item danger" type="button" onclick="docbookSignOut()"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
+          </div>
+        </div>
       </div>
 
     </nav>
@@ -2024,7 +2034,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=219"></script>
+  <script src="script.js?v=220"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
   <script src="dev-seed.js?v=219"></script>
   <!-- 🌊 خلفية متحرّكة (WebGL) — معطّلة حالياً؛ الخلفية النعناعية الثابتة مرسومة بـCSS في styles.css.
