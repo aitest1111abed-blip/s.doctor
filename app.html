@@ -16,7 +16,7 @@
 
   <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
   <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=249">
+  <link rel="stylesheet" href="styles.css?v=250">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -1033,7 +1033,7 @@
               <button onclick="addNewVisit(currentPatientIdForVisit)" class="btn-primary" style="padding:7px 14px;font-size:.8rem;"><i class="fas fa-plus"></i> زيارة جديدة</button>
             </div>
           </div>
-          <div id="chartVisitsList" class="pf-tl" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <div id="chartVisitsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px;align-content:start;"></div>
           <div id="modalVisitsTableBody" style="display:none;"></div>
         </div>
 
@@ -1041,6 +1041,20 @@
 
         </div><!-- /chart-layout -->
       </div>
+    </div>
+  </div>
+
+  <!-- ===== تفاصيل زيارة (يُفتح من كرت الفولدر) ===== -->
+  <div id="visitDetailModal" class="hidden fixed inset-0 z-[210] flex items-center justify-center p-4 modal-overlay" onclick="if(event.target===this)closeVisitDetail()">
+    <div class="modal-content" style="max-width:560px;width:100%;max-height:88vh;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;">
+      <div style="flex-shrink:0;padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div style="min-width:0;">
+          <div id="visitDetailTitle" style="font-weight:800;font-size:1rem;color:var(--text-primary);line-height:1.35;"></div>
+          <div id="visitDetailMeta" style="font-size:.76rem;color:var(--text-muted);margin-top:4px;"></div>
+        </div>
+        <button onclick="closeVisitDetail()" class="pf-close" title="إغلاق" style="flex-shrink:0;"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="visitDetailBody" style="flex:1;overflow-y:auto;padding:18px;"></div>
     </div>
   </div>
 
@@ -2036,7 +2050,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=221"></script>
+  <script src="script.js?v=222"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
   <script src="dev-seed.js?v=219"></script>
   <!-- 🌊 خلفية متحرّكة (WebGL) — معطّلة حالياً؛ الخلفية النعناعية الثابتة مرسومة بـCSS في styles.css.

@@ -4305,38 +4305,54 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return escapeHtml(t);
     }
 
+    // محتوى تفاصيل الزيارة (يُعرَض في مودال منفصل عند فتح كرت الفولدر)
+    function renderVisitBodyHtml(v, pid, i) {
+      var hasLab = !!(v.labTest && v.labTest.trim());
+      var hasImg = !!(v.imagingTest && v.imagingTest.trim());
+      return ((v.complaint && v.complaint.trim()) ? _visitSection('الشكوى', 'fa-comment-medical', v.complaint) : '')
+        + renderVisitCustomHtml(v.custom)
+        + ((v.clinicalExam && v.clinicalExam.trim()) ? _visitSection('الفحص السريري', 'fa-stethoscope', v.clinicalExam) : '')
+        + _visitSection('التشخيص', 'fa-notes-medical', v.diagnosis || v.note)
+        + _visitSection('الوصفة الطبية', 'fa-prescription', v.prescription)
+        + (hasLab ? _visitSection('التحاليل المطلوبة', 'fa-vials', v.labTest) : '')
+        + (hasImg ? _visitSection('الأشعة المطلوبة', 'fa-x-ray', v.imagingTest) : '')
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">'
+          + '<button onclick="openAddNoteModal(\'' + pid + '\',' + i + ')" class="pf-editbtn" style="padding:6px 12px;"><i class="fas fa-pen"></i> تعديل</button>'
+          + '<button onclick="deleteVisit(\'' + pid + '\',' + i + ');closeVisitDetail();" style="padding:6px 12px;font-size:.76rem;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-trash"></i> حذف الزيارة</button>'
+          + '<button onclick="printPrescription(\'' + pid + '\',' + i + ')" style="padding:6px 12px;font-size:.76rem;background:var(--primary-light);color:var(--primary);border:1px solid var(--border-strong);border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-print"></i> طباعة الوصفة</button>'
+          + '<button onclick="sendVisitToContact(\'' + pid + '\',' + i + ',\'pharmacy\')" style="padding:6px 12px;font-size:.76rem;background:#16a34a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fab fa-whatsapp"></i> صيدلية</button>'
+          + (hasLab ? '<button onclick="sendVisitToContact(\'' + pid + '\',' + i + ',\'lab\')" style="padding:6px 12px;font-size:.76rem;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fab fa-whatsapp"></i> مخبر</button>' : '')
+          + (hasImg ? '<button onclick="sendVisitToContact(\'' + pid + '\',' + i + ',\'imaging\')" style="padding:6px 12px;font-size:.76rem;background:#7c3aed;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fab fa-whatsapp"></i> مركز أشعة</button>' : '')
+        + '</div>';
+    }
+
+    window.openVisitDetail = function(pid, i) {
+      var p = allPatients[pid]; if (!p || !p.appointments || !p.appointments[i]) return;
+      var v = p.appointments[i];
+      window._visitDetailCtx = { pid: pid, i: i };
+      document.getElementById('visitDetailTitle').textContent = _visitHeadline(v);
+      document.getElementById('visitDetailMeta').textContent = formatDateAr(v.date) + ' · ' + slotTimeOf(v) + ' · ' + (v.visitType || 'زيارة');
+      document.getElementById('visitDetailBody').innerHTML = renderVisitBodyHtml(v, pid, i);
+      document.getElementById('visitDetailModal').classList.remove('hidden');
+    };
+    window.closeVisitDetail = function() {
+      var m = document.getElementById('visitDetailModal'); if (m) m.classList.add('hidden');
+    };
+
     function renderChartVisits(pid) {
       var p = allPatients[pid]; var box = document.getElementById('chartVisitsList');
       var visits = (p.appointments || []).map(function(v, i) { return { v: v, i: i }; });
       visits.sort(function(a, b) { var d = (b.v.date || '').localeCompare(a.v.date || ''); return d !== 0 ? d : (slotMinutes(slotTimeOf(b.v)) - slotMinutes(slotTimeOf(a.v))); });
       document.getElementById('chartVisitsCount').textContent = '(' + visits.length + ')';
-      if (!visits.length) { box.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;"><i class="far fa-folder-open" style="font-size:1.6rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا توجد زيارات بعد</div>'; return; }
+      if (!visits.length) { box.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;"><i class="far fa-folder-open" style="font-size:1.6rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا توجد زيارات بعد</div>'; return; }
       box.innerHTML = visits.map(function(o) {
         var v = o.v, i = o.i, c = schedStatusColor(v);
-        var hasLab = !!(v.labTest && v.labTest.trim());
-        var hasImg = !!(v.imagingTest && v.imagingTest.trim());
-        return '<div class="chart-visit" style="border:1.5px solid var(--border);border-right:4px solid ' + c.bd + ';border-radius:12px;overflow:hidden;background:var(--surface);">'
-          + '<div onclick="var b=this.parentNode.querySelector(\'.chart-visit-body\');var o=b.style.display===\'none\';b.style.display=o?\'block\':\'none\';this.querySelector(\'.chart-visit-caret\').style.transform=o?\'rotate(180deg)\':\'\';" oncontextmenu="event.preventDefault();openAddNoteModal(\'' + pid + '\',' + i + ');return false;" title="كليك يمين: فتح التعديل" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;cursor:pointer;">'
-            + '<div style="min-width:0;"><div style="font-weight:800;font-size:.88rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _visitHeadline(v) + '</div>'
-            + '<div style="font-size:.74rem;color:var(--text-muted);margin-top:2px;">' + formatDateAr(v.date) + ' · ' + slotTimeOf(v) + ' · ' + escapeHtml(v.visitType || 'زيارة') + '</div></div>'
-            + '<i class="fas fa-chevron-down chart-visit-caret" style="color:var(--text-muted);transition:transform .2s;flex-shrink:0;"></i>'
-          + '</div>'
-          + '<div class="chart-visit-body" style="display:none;padding:0 13px 13px;border-top:1px dashed var(--border);">'
-            + ((v.complaint && v.complaint.trim()) ? _visitSection('الشكوى', 'fa-comment-medical', v.complaint) : '')
-            + renderVisitCustomHtml(v.custom)   // حقول الزيارة المخصّصة (قياسات حسب التخصص)
-            + ((v.clinicalExam && v.clinicalExam.trim()) ? _visitSection('الفحص السريري', 'fa-stethoscope', v.clinicalExam) : '')
-            + _visitSection('التشخيص', 'fa-notes-medical', v.diagnosis || v.note)
-            + _visitSection('الوصفة الطبية', 'fa-prescription', v.prescription)
-            + (hasLab ? _visitSection('التحاليل المطلوبة', 'fa-vials', v.labTest) : '')
-            + (hasImg ? _visitSection('الأشعة المطلوبة', 'fa-x-ray', v.imagingTest) : '')
-            + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">'
-              + '<button onclick="openAddNoteModal(\'' + pid + '\',' + i + ')" class="pf-editbtn" style="padding:6px 12px;"><i class="fas fa-pen"></i> تعديل</button>'
-              + '<button onclick="deleteVisit(\'' + pid + '\',' + i + ')" style="padding:6px 12px;font-size:.76rem;background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-trash"></i> حذف الزيارة</button>'
-              + '<button onclick="printPrescription(\'' + pid + '\',' + i + ')" style="padding:6px 12px;font-size:.76rem;background:var(--primary-light);color:var(--primary);border:1.5px solid var(--border-strong);border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-print"></i> طباعة الوصفة</button>'
-              + '<button onclick="sendVisitToContact(\'' + pid + '\',' + i + ',\'pharmacy\')" style="padding:6px 12px;font-size:.76rem;background:#16a34a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fab fa-whatsapp"></i> صيدلية</button>'
-              + (hasLab ? '<button onclick="sendVisitToContact(\'' + pid + '\',' + i + ',\'lab\')" style="padding:6px 12px;font-size:.76rem;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fab fa-whatsapp"></i> مخبر</button>' : '')
-              + (hasImg ? '<button onclick="sendVisitToContact(\'' + pid + '\',' + i + ',\'imaging\')" style="padding:6px 12px;font-size:.76rem;background:#7c3aed;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fab fa-whatsapp"></i> مركز أشعة</button>' : '')
-            + '</div></div></div>';
+        return '<button class="visit-folder" style="--vf-accent:' + c.bd + ';" onclick="openVisitDetail(\'' + pid + '\',' + i + ')" oncontextmenu="event.preventDefault();openAddNoteModal(\'' + pid + '\',' + i + ');return false;" title="كليك يمين: تعديل سريع">'
+          + '<span class="vf-icon"><i class="fas fa-folder"></i></span>'
+          + '<span class="vf-title">' + _visitHeadline(v) + '</span>'
+          + '<span class="vf-meta">' + formatDateAr(v.date) + '</span>'
+          + '<span class="vf-type">' + escapeHtml(v.visitType || 'زيارة') + '</span>'
+          + '</button>';
       }).join('');
     }
 

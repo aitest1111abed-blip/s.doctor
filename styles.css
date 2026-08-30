@@ -2590,11 +2590,36 @@
 .pf-editbtn:hover{background:var(--primary-light); border-color:#0b4d48;}
 .pf-editbtn:active{transform:scale(.98);}
 
-/* الخطّ الزمني للزيارات */
+/* الخطّ الزمني للزيارات (يبقى لمعاينة الإعداد) */
 .pf-tl{position:relative;padding-inline-start:20px;}
 .pf-tl::before{content:"";position:absolute;inset-inline-start:5px;top:8px;bottom:8px;width:2px;background:var(--border-strong);}
 .pf-tl .chart-visit{position:relative;overflow:visible;}
 .pf-tl .chart-visit::before{content:"";position:absolute;inset-inline-start:-20px;top:16px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);z-index:1;}
+
+/* ═══ كروت الزيارات كـ«فولدر» — شبكة، الضغط يفتح مودال التفاصيل ═══ */
+.visit-folder{
+  position:relative; display:flex; flex-direction:column; gap:5px; min-width:0;
+  text-align:start; font-family:inherit; cursor:pointer;
+  background:var(--surface); border:1px solid var(--o06);
+  border-radius:14px; border-top:3px solid var(--vf-accent, var(--primary));
+  padding:13px 13px 12px;
+  box-shadow:var(--shadow-sm);
+  transition:box-shadow .16s, transform .12s;
+}
+.visit-folder:hover{ box-shadow:var(--shadow); transform:translateY(-2px); }
+.visit-folder:active{ transform:translateY(0); }
+.visit-folder:focus-visible{ outline:none; box-shadow:var(--ring-focus); }
+.visit-folder .vf-icon{ color:var(--vf-accent, var(--primary)); font-size:1.05rem; }
+.visit-folder .vf-title{
+  font-weight:800; font-size:.85rem; color:var(--text-primary); line-height:1.3;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.visit-folder .vf-meta{ font-size:.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+.visit-folder .vf-type{
+  align-self:flex-start; margin-top:2px;
+  font-size:.66rem; font-weight:800; color:var(--primary);
+  background:var(--primary-faint); border-radius:999px; padding:2px 9px;
+}
 
 /* أزرار إجراءات الهيرو (طباعة/اتصال/واتساب) — مجموعة مرتّبة */
 .pf-head-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
