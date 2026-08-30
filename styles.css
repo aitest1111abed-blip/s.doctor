@@ -2905,24 +2905,26 @@ body.theme-dark .visit-folder .vf-paper{ background:#3a3a3a; }
 .sg-side{align-self:start;min-width:0;}
 @media(min-width:1025px){ .sg-side{position:sticky;top:74px;} }
 
-/* مبدّل النمط: جدولة / سابقة */
-.sg-modes{display:flex;gap:7px;margin-bottom:14px;}
+/* مبدّل النمط: جدولة / سابقة — مقسّم (segmented control) */
+.sg-modes{display:flex;gap:3px;margin-bottom:14px;padding:3px;
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;}
 .sg-mode{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  border:1px solid var(--border);background:var(--bg);color:var(--text-secondary);
-  border-radius:10px;padding:9px 10px;font-family:inherit;font-size:.8rem;font-weight:700;
-  cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
-.sg-mode:hover{border-color:var(--border-strong);color:var(--text-primary);}
-.sg-mode.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+  border:none;background:transparent;color:var(--text-muted);
+  border-radius:8px;padding:8px 8px;font-family:inherit;font-size:.8rem;font-weight:800;
+  cursor:pointer;transition:background .15s,color .15s;}
+.sg-mode:hover{background:var(--surface);color:var(--text-primary);}
+.sg-mode.active{background:var(--primary);color:#fff;}
+.sg-mode.active i{color:#fff;}
 .sg-mode i{font-size:.78rem;}
 
-/* حقول النموذج — سطر يتلوّن عند التركيز، بنفس مبدأ محرّر الزيارة/الاضبارة */
+/* حقول النموذج — خليّة محدَّدة بحدّ وتركيز، بنفس لوحات محرّر الزيارة */
 .sg-form{display:flex;flex-direction:column;}
-.sg-label{font-size:.74rem;font-weight:700;color:var(--text-secondary);margin:11px 0 2px;}
+.sg-label{font-size:.74rem;font-weight:800;color:var(--text-secondary);margin:12px 0 5px;}
 .sg-label:first-child{margin-top:0;}
-.sg-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);
-  border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);
-  box-sizing:border-box;transition:border-color .15s;}
-.sg-input:focus{outline:none;border-bottom-color:var(--primary);}
+.sg-input{width:100%;background:var(--surface);border:1px solid var(--border-strong);
+  border-radius:9px;padding:9px 11px;font-family:inherit;font-size:.9rem;color:var(--text-primary);
+  box-sizing:border-box;transition:border-color .15s,box-shadow .15s;}
+.sg-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-faint);}
 textarea.sg-input{resize:none;overflow:hidden;line-height:1.7;min-height:0;}
 .sg-form-btns{display:flex;gap:8px;margin-top:16px;}
 .sg-cancel-btn{border:1px solid var(--border);background:transparent;color:var(--text-muted);
@@ -3971,6 +3973,13 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
       transition:filter .15s;
     }
     #teEditor .te-fl-save:hover { filter:brightness(1.06); }
+
+    /* محرِّر السن = بطاقة عائمة مرساة على المخطّط (على شاكلة popover مرجعيّ):
+       ظلّ يفصلها عن اللوحة، وشرائح الأحداث بشبكة عمودين نظيفة بدل التفاف متعرّج. */
+    #teEditor { box-shadow:var(--shadow-md); }
+    #teEditor .te-fl-pills { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+    #teEditor .te-fl-pills .te-event-btn { justify-content:flex-start; }
+    @media (max-width:420px){ #teEditor .te-fl-pills { grid-template-columns:1fr; } }
 /* =====================================================================
    بطاقات ملخّص اليوم (KPI)
    • اللون يتبع الحالة لا الفئة: تركوازي = تمّت · أحمر = غياب · رمادي = لم يحن.
