@@ -2507,27 +2507,42 @@ body.theme-dark{ --pf-notch:#0d9488; }
   display:flex; align-items:center; justify-content:center; border:2px solid var(--bg);
 }
 @media (min-width:768px){
-  /* صفّ الأقسام يندمج مع أسفل الجزيرة: نفس التركوازي، بلا فراغ → «داخل الجزيرة» */
-  #patientDetailsModal .pf-sections{
-    width:-moz-fit-content; width:fit-content; margin-inline:auto; margin-top:0;
-    flex-wrap:nowrap; gap:12px; padding:4px 34px 11px;
-    background:var(--pf-notch); border-radius:0 0 22px 22px;
+  /* لابتوب/تابلت: صفّ الأقسام يصير مجموعة داخل شريط الجزيرة نفسه (صفّ واحد) —
+     ينقلها JS ابنَ .pf-head، فتظهر بين الهويّة وأزرار الاتصال بفاصل رفيع. */
+  #patientDetailsModal .pf-head > .pf-avatar,
+  #patientDetailsModal .pf-head > .pf-id{ order:1; }
+  #patientDetailsModal .pf-head > .pf-sections{ order:2; }
+  #patientDetailsModal .pf-head > .pf-head-actions{ order:3; }
+  #patientDetailsModal .pf-head > .pf-close{ order:4; }
+  #patientDetailsModal .pf-head > .pf-sections{
+    display:flex; flex-wrap:nowrap; align-items:center; justify-content:flex-start;
+    gap:6px; padding:0; padding-inline-start:11px; margin:0;
+    max-width:none; background:transparent; border-radius:0;
+    flex-shrink:0;
+    border-inline-start:1px solid rgba(255,255,255,.28);
   }
-  #patientDetailsModal.pf-has-sections .pf-head{ border-radius:0; box-shadow:inset 0 1px 0 rgba(255,255,255,.18); }
-  #patientDetailsModal.pf-has-sections .pf-sections{ box-shadow:0 16px 32px -12px rgba(13,148,136,.5); }
-  #patientDetailsModal .pf-sectbtn{
-    padding:0; width:36px; height:36px; justify-content:center; gap:0; border-radius:11px;
+  #patientDetailsModal .pf-head > .pf-head-actions{
+    padding-inline-start:9px;
+    border-inline-start:1px solid rgba(255,255,255,.28);
+  }
+  #patientDetailsModal .pf-head > .pf-sections .pf-sectbtn{
+    padding:0; width:35px; height:35px; justify-content:center; gap:0; border-radius:11px;
     background:#fff; border-color:transparent; box-shadow:0 2px 6px rgba(0,0,0,.16);
   }
-  #patientDetailsModal .pf-sectbtn:hover{background:#eef2f1;color:var(--primary);border-color:transparent;}
-  #patientDetailsModal .pf-sectbtn .pf-mi-badge{border-color:var(--pf-notch);}
-  #patientDetailsModal .pf-sectbtn-lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
-  #patientDetailsModal .pf-sectbtn::after{
-    content:attr(aria-label); position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%);
+  #patientDetailsModal .pf-head > .pf-sections .pf-sectbtn:hover{background:#eef2f1;color:var(--primary);border-color:transparent;}
+  #patientDetailsModal .pf-head > .pf-sections .pf-sectbtn .pf-mi-badge{border-color:var(--pf-notch);}
+  #patientDetailsModal .pf-head > .pf-sections .pf-sectbtn-lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  #patientDetailsModal .pf-head > .pf-sections .pf-sectbtn::after{
+    content:attr(aria-label); position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%);
     white-space:nowrap; background:#0f172a; color:#fff; font-size:.7rem; font-weight:700;
     padding:4px 9px; border-radius:7px; opacity:0; pointer-events:none; transition:opacity .15s; z-index:6;
   }
-  #patientDetailsModal .pf-sectbtn:hover::after{opacity:1;}
+  #patientDetailsModal .pf-head > .pf-sections .pf-sectbtn:hover::after{opacity:1;}
+}
+/* تابلت/لابتوب صغير: رقم الهاتف يختفي ليتّسع الصفّ الواحد (زرّ الاتصال موجود).
+   على اللابتوب الكبير (>900) يبقى ظاهراً. */
+@media (min-width:641px) and (max-width:900px){
+  #patientDetailsModal .pf-phone{display:none;}
 }
 
 /* ── رأس الأداة السريرية «مقارنة القياسات» — يعيد استخدام pf-hero بهوية الاضبارة ── */

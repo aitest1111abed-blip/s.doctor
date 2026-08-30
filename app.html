@@ -16,7 +16,7 @@
 
   <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
   <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=260">
+  <link rel="stylesheet" href="styles.css?v=261">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -952,8 +952,9 @@
           </div>
           <button id="closePatientDetailsModalBtn" onclick="closePatientDetailsModal()" class="pf-close" title="إغلاق"><i class="fas fa-times"></i></button>
         </div>
-        <!-- أقسام المريض: أزرار مباشرة تحت الجزيرة (بدل الدروب داون).
-             لابتوب/تابلت: أيقونات فقط داخل شريط الجزيرة. هاتف: صفّ أزرار (أيقونة+نص) تحتها. -->
+        <!-- أقسام المريض: أزرار مباشرة بدل الدروب داون.
+             لابتوب/تابلت (≥768): ينقلها JS داخل شريط الجزيرة على صفّ واحد (أيقونات فقط).
+             هاتف (<768): تبقى هنا كصفّ أزرار (أيقونة+نص) تحت الجزيرة. -->
         <div class="pf-sections" id="pfSectionsMenu" style="display:none;">
           <button type="button" id="specialtyToolBtn" class="pf-sectbtn" style="display:none;" onclick="pfSectionGo('openSpecialtyTool')" aria-label="الأداة السريرية" title="الأداة السريرية">
             <span class="pf-sectbtn-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span>
@@ -2037,7 +2038,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=225"></script>
+  <script src="script.js?v=226"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
   <script src="dev-seed.js?v=219"></script>
   <!-- 🌊 خلفية متحرّكة (WebGL) — معطّلة حالياً؛ الخلفية النعناعية الثابتة مرسومة بـCSS في styles.css.

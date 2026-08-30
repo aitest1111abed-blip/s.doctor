@@ -4271,17 +4271,35 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       closePfSections();
       if (typeof window[fnName] === 'function') window[fnName](currentPatientIdForVisit);
     };
-    // يُظهر السهم فقط إن توفّر قسم واحد على الأقل (وإلا فالقائمة فارغة)
+    // ينقل صفّ الأقسام: داخل شريط الجزيرة على اللابتوب/التابلت (≥768) وصفّ واحد،
+    // أو تحت الجزيرة على الهاتف (<768).
+    window._pfPlaceSectionsRow = function() {
+      var menu = document.getElementById('pfSectionsMenu'); if (!menu) return;
+      var head = document.querySelector('#patientDetailsModal .pf-head');
+      var hero = document.querySelector('#patientDetailsModal .pf-hero');
+      var acts = document.querySelector('#patientDetailsModal .pf-head-actions');
+      var pills = document.getElementById('chartHeaderPills');
+      if (!head || !hero) return;
+      var wide = window.matchMedia('(min-width:768px)').matches;
+      if (wide) {
+        if (menu.parentElement !== head) head.insertBefore(menu, acts || null);
+      } else {
+        if (menu.parentElement !== hero) hero.insertBefore(menu, pills || null);
+      }
+    };
+    // يُظهر صفّ الأقسام فقط إن توفّر قسم واحد على الأقل
     window._pfSyncSectionsMenu = function() {
       var menu = document.getElementById('pfSectionsMenu'); if (!menu) return;
       var any = ['specialtyToolBtn', 'dentalArchiveBtn', 'orthoArchiveBtn', 'surgeryArchiveBtn'].some(function(id) {
         var el = document.getElementById(id); return el && el.style.display !== 'none';
       });
       menu.style.display = any ? 'flex' : 'none';
-      var host = document.getElementById('patientDetailsModal');
-      if (host) host.classList.toggle('pf-has-sections', any);
+      _pfPlaceSectionsRow();
       if (!any) closePfSections();
     };
+    // إعادة التموضع عند تغيّر عرض الشاشة (لابتوب ⇄ هاتف)
+    try { window.matchMedia('(min-width:768px)').addEventListener('change', _pfPlaceSectionsRow); }
+    catch (e) { window.addEventListener('resize', _pfPlaceSectionsRow); }
     // إغلاق القائمة بالنقر خارجها أو بمفتاح Esc
     document.addEventListener('click', function(e) {
       var menu = document.getElementById('pfSectionsMenu');
