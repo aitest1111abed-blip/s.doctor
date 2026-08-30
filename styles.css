@@ -2398,8 +2398,8 @@
 }
 
 .pf-hero{background:var(--surface);flex-shrink:0;overflow:visible;border-bottom:1px solid var(--border);}
-:root{ --pf-notch:#16211f; }
-body.theme-dark{ --pf-notch:#1f5750; }
+:root{ --pf-notch:#14b8a6; }          /* جزيرة تركوازية */
+body.theme-dark{ --pf-notch:#0d9488; }
 .pf-cover{height:96px;position:relative;overflow:hidden;background:
   radial-gradient(120% 140% at 85% -20%,#14b8a6 0%,transparent 55%),
   radial-gradient(120% 160% at 10% 0%,#0f766e 0%,transparent 60%),
@@ -2430,11 +2430,11 @@ body.theme-dark{ --pf-notch:#1f5750; }
 #patientDetailsModal .pf-head{
   position:relative; margin-inline:auto; width:-moz-fit-content; width:fit-content;
   max-width:calc(100% - 120px);
-  display:flex; gap:13px; align-items:center; flex-wrap:nowrap;
-  padding:9px 18px;
+  display:flex; gap:14px; align-items:center; flex-wrap:nowrap;
+  padding:12px 22px;
   background:var(--pf-notch); color:#fff;
-  border-radius:0 0 24px 24px;
-  box-shadow:0 12px 26px -10px rgba(0,0,0,.4);
+  border-radius:0 0 22px 22px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 16px 32px -12px rgba(13,148,136,.5);
 }
 /* جناحان مقعّران: يملآن الركن بين حافة الجزيرة العليا وحافة اللوحة (تقوّس داخليّ) */
 #patientDetailsModal .pf-head::before, #patientDetailsModal .pf-head::after{
@@ -2454,22 +2454,23 @@ body.theme-dark{ --pf-notch:#1f5750; }
   mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M24 0 H0 V24 C13.25 24 24 13.25 24 0 Z'/%3E%3C/svg%3E");
 }
 /* الهويّة على سطر واحد: الاسم والهاتف جنب بعض */
-#patientDetailsModal .pf-id{display:flex;align-items:center;gap:11px;flex:0 1 auto;min-width:0;}
-#patientDetailsModal .pf-name-row{display:flex;align-items:center;gap:8px;min-width:0;}
-#patientDetailsModal .pf-avatar{width:34px;height:34px;background:linear-gradient(140deg,#2dd4bf,#0d9488);box-shadow:0 0 0 2px rgba(255,255,255,.16);}
-#patientDetailsModal .pf-name{display:block;color:#fff;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-#patientDetailsModal .pf-verline{color:#fff;background:rgba(255,255,255,.18);border-color:transparent;flex-shrink:0;}
-#patientDetailsModal .pf-phone{color:rgba(255,255,255,.6);margin-top:0;font-size:.75rem;white-space:nowrap;flex-shrink:0;padding-inline-start:11px;border-inline-start:1px solid rgba(255,255,255,.18);}
-#patientDetailsModal .pf-head-actions{gap:6px;flex-wrap:nowrap;flex-shrink:0;}
-#patientDetailsModal .pf-actbtn{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.12);border-color:transparent;color:#fff;font-size:.85rem;}
-#patientDetailsModal .pf-actbtn:hover{background:rgba(255,255,255,.22);border-color:transparent;color:#fff;}
-#patientDetailsModal .pf-actbtn.wa{background:#16a34a;color:#fff;border-color:transparent;}
-#patientDetailsModal .pf-actbtn.wa:hover{background:#15803d;color:#fff;}
-#patientDetailsModal .pf-close{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);flex-shrink:0;}
-#patientDetailsModal .pf-close:hover{background:rgba(239,68,68,.92);color:#fff;}
-#patientDetailsModal .pf-menu-trigger{color:rgba(255,255,255,.72);flex-shrink:0;}
-#patientDetailsModal .pf-menu-trigger:hover{background:rgba(255,255,255,.14);color:#fff;}
-#patientDetailsModal .pf-menu-trigger[aria-expanded="true"]{background:rgba(255,255,255,.16);color:#fff;}
+#patientDetailsModal .pf-id{display:flex;align-items:center;gap:12px;flex:0 1 auto;min-width:0;}
+#patientDetailsModal .pf-name-row{display:flex;align-items:center;gap:9px;min-width:0;}
+#patientDetailsModal .pf-avatar{width:40px;height:40px;background:#fff;color:var(--primary);font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.16);}
+#patientDetailsModal .pf-name{display:block;color:#fff;font-size:1.06rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+#patientDetailsModal .pf-verline{color:var(--primary);background:#fff;border-color:transparent;font-weight:800;flex-shrink:0;}
+#patientDetailsModal .pf-phone{color:rgba(255,255,255,.9);font-weight:700;margin-top:0;font-size:.78rem;white-space:nowrap;flex-shrink:0;padding-inline-start:12px;border-inline-start:1px solid rgba(255,255,255,.32);}
+/* أزرار بيضاء متل عناصر الناف بار الجانبي */
+#patientDetailsModal .pf-head-actions{gap:8px;flex-wrap:nowrap;flex-shrink:0;}
+#patientDetailsModal .pf-actbtn{width:37px;height:37px;border-radius:12px;background:#fff;border-color:transparent;color:var(--primary);font-size:.9rem;box-shadow:0 2px 6px rgba(0,0,0,.14);}
+#patientDetailsModal .pf-actbtn:hover{background:#eef2f1;border-color:transparent;color:#0b7d72;}
+#patientDetailsModal .pf-actbtn.wa{background:#fff;color:#16a34a;border-color:transparent;}
+#patientDetailsModal .pf-actbtn.wa:hover{background:#f0fdf4;color:#15803d;}
+#patientDetailsModal .pf-close{width:37px;height:37px;border-radius:12px;background:#fff;color:#ef4444;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.14);}
+#patientDetailsModal .pf-close:hover{background:#ef4444;color:#fff;}
+#patientDetailsModal .pf-menu-trigger{background:#fff;color:var(--primary);flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.14);}
+#patientDetailsModal .pf-menu-trigger:hover{background:#eef2f1;color:#0b7d72;}
+#patientDetailsModal .pf-menu-trigger[aria-expanded="true"]{background:#eef2f1;color:var(--primary);}
 #patientDetailsModal .pf-pills{justify-content:center;padding-top:14px;}
 /* ── رأس الأداة السريرية «مقارنة القياسات» — يعيد استخدام pf-hero بهوية الاضبارة ── */
 /* ═══ بطاقة القياس السريري — فاتحة بهويّة التطبيق، الأولوية للوضوح ═══
