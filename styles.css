@@ -2169,18 +2169,70 @@
 .dc-page-body{display:grid;grid-template-columns:1fr minmax(300px,360px);gap:14px;margin:0 auto;padding:16px;width:100%;align-items:start;}
 .dc-page-main{display:flex;flex-direction:column;gap:14px;min-width:0;}
 .dc-page-side{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:14px;align-items:start;grid-column:1;min-width:0;}
-/* مخطّط الأسنان على اللابتوب: ثلث الشاشة لوحة الأدوات (يمين) + ثلثان للمخطّط (يسار).
-   المخطّط يمتدّ على صفّين، ومحرِّر السن ثم الأرشيف مكدّسان في عمود الأدوات. */
+/* ═══ مخطّط الأسنان على اللابتوب — لوحة أدوات ثابتة العرض + مخطّط يملأ الباقي ═══ */
 @media (min-width:1025px){
   #dentalChartModal .dc-page-body{
-    grid-template-columns:minmax(340px, 34%) 1fr;
+    grid-template-columns:clamp(340px, 30%, 430px) 1fr;
     grid-template-areas:"tools chart" "arch chart";
-    max-width:1600px;
+    max-width:1720px;
   }
   #dentalChartModal .dc-page-main{grid-area:chart;}
   #dentalChartModal .dc-tooth-panel{grid-area:tools;}
   #dentalChartModal .dc-page-side{grid-area:arch;display:block;grid-column:auto;}
+  /* المخطّط أكبر: يستغلّ عمود الثلثين */
+  #dentalChartModal .dc-arch{ height:min(72vh, 760px); max-width:100%; }
+  #dentalChartModal .dc-teeth-row .dc-crown{ scale:1.15; }
+  #dentalChartModal .dc-teeth-row{ gap:7px; padding:14px 4px; }
+  /* الملخّص شريط رفيع لا بطاقة تأكل الارتفاع */
+  #dentalChartModal .dc-summary{ background:transparent; border:none; padding:2px 0 0; justify-content:flex-start; gap:8px; }
 }
+/* الإشارات فوق المخطّط = بطاقات إحصاء موحّدة (نقطة + رقم كبير + تسمية) */
+#dentalChartModal .dc-sum-chip{
+  background:var(--surface); border:1px solid var(--border); border-radius:11px;
+  padding:8px 13px; gap:8px; color:var(--text-secondary); font-size:.74rem; font-weight:800;
+}
+#dentalChartModal .dc-sum-chip b{ font-size:1.05rem; font-weight:900; font-family:var(--font-num); letter-spacing:-.5px; }
+#dentalChartModal .dc-sum-chip .dc-legend-dot{ width:11px; height:11px; border-radius:50%; border-width:3px; }
+
+/* دليل الألوان — مفتاح مضغوط بعمودين مرتّبين */
+#dentalChartModal .dc-legend-wrap{ gap:14px; }
+#dentalChartModal .dc-legend-gt{ font-size:.64rem; letter-spacing:.12em; }
+#dentalChartModal .dc-legend-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+#dentalChartModal .dc-legend-item{
+  background:var(--bg); border-color:var(--o08); border-radius:9px; padding:6px 10px;
+  font-size:.72rem; justify-content:flex-start;
+}
+
+/* محرِّر السن — زرّ «تسجيل الحالة» بهيئة زرّ الحفظ في المحرّر */
+#teEditor .te-fl-save{
+  background:var(--primary); box-shadow:none; border-radius:11px;
+  width:100%; padding:12px; font-weight:800; font-size:.85rem;
+  display:flex; align-items:center; justify-content:center; gap:7px; margin-top:14px;
+}
+#teEditor .te-fl-save:hover{ filter:brightness(1.06); }
+#teEditor .te-event-btn{
+  min-height:40px; border-radius:11px; padding:8px 11px;
+  border:1px solid var(--border); background:var(--surface); box-shadow:none;
+}
+
+/* سجل الأحداث = خطّ زمنيّ (نقطة على خطّ رأسيّ + بطاقة مضغوطة) */
+#dentalChartModal .dc-events-list{
+  display:block; position:relative; padding-inline-start:20px;
+  grid-template-columns:none;
+}
+#dentalChartModal .dc-events-list::before{
+  content:""; position:absolute; inset-inline-start:6px; top:6px; bottom:6px;
+  width:2px; background:var(--border); border-radius:2px;
+}
+#dentalChartModal .dc-ev{ position:relative; margin-bottom:10px; background:var(--surface); }
+#dentalChartModal .dc-ev:last-child{ margin-bottom:0; }
+#dentalChartModal .dc-ev::before{
+  content:""; position:absolute; inset-inline-start:-19px; top:15px;
+  width:11px; height:11px; border-radius:50%;
+  background:var(--surface); border:2.5px solid var(--primary);
+}
+/* الملاحظة سطر توضيحيّ لا حقل إدخال */
+#dentalChartModal .dc-ev-note{ background:transparent; border:none; padding:3px 0 0; color:var(--text-muted); }
 .dc-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;}
 .dc-card-title{display:flex;align-items:center;gap:7px;font-weight:800;font-size:.86rem;color:var(--primary);margin:0 0 10px;}
 .dc-count{font-size:.72rem;color:var(--text-muted);font-weight:600;}
