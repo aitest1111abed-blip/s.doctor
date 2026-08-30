@@ -2788,6 +2788,59 @@ body.theme-dark{ --pf-notch:#0d9488; }
 .btn-secondary:focus-visible{outline:none; box-shadow:var(--ring-focus);}
 .btn-secondary:disabled{opacity:.5; cursor:not-allowed;}
 
+/* ═══════════════════════════════════════════════════════════════════
+   نظام أزرار موحّد: .btn (أساس) + مُعدِّلات — نوع · حجم · شكل
+   .btn-primary / .btn-secondary القديمان يبقيان مستقلَّين (توافق خلفي)
+   ويؤلّفان مع .btn. الجديد: outline · ghost · danger · wa · icon · block · sm · lg · pill
+   الاستعمال:  <button class="btn btn-primary">حفظ</button>
+              <button class="btn btn-outline btn-sm">رجوع</button>
+              <button class="btn btn-icon" aria-label="إغلاق"><i class="fas fa-xmark"></i></button>
+   ═══════════════════════════════════════════════════════════════════ */
+.btn{
+  --_bh:38px; --_bpx:16px; --_bfs:.85rem;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  min-height:var(--_bh); padding:0 var(--_bpx);
+  font-family:inherit; font-size:var(--_bfs); font-weight:700; line-height:1;
+  border:1px solid transparent; border-radius:var(--radius-btn);
+  background:transparent; color:var(--text-primary); cursor:pointer;
+  white-space:nowrap; text-decoration:none; box-sizing:border-box; user-select:none;
+  transition:background var(--transition-fast), border-color var(--transition-fast),
+             color var(--transition-fast), box-shadow var(--transition-fast), transform .1s;
+}
+.btn:active{ transform:scale(.97); }
+.btn:focus-visible{ outline:none; box-shadow:var(--ring-focus); }
+.btn:disabled, .btn[aria-disabled="true"]{ opacity:.5; cursor:not-allowed; transform:none; }
+.btn > i, .btn > svg{ flex-shrink:0; }
+
+/* الأحجام */
+.btn-sm{ --_bh:32px; --_bpx:12px; --_bfs:.78rem; gap:6px; }
+.btn-lg{ --_bh:44px; --_bpx:22px; --_bfs:.92rem; }
+
+/* الأشكال */
+.btn-block{ width:100%; }
+.btn-pill{ border-radius:var(--radius-pill); }
+.btn-icon{ --_bpx:0; width:var(--_bh); min-width:var(--_bh); padding:0; }
+
+/* الأنواع */
+.btn.btn-primary{ background:var(--primary); color:#fff; border-color:transparent; padding:0 var(--_bpx); }
+.btn.btn-primary:hover{ background:var(--primary-hover); }
+.btn.btn-primary > i, .btn.btn-primary > svg{ color:#fff; }
+
+.btn-outline{ background:var(--surface); color:var(--primary); border-color:var(--primary); }
+.btn-outline:hover{ background:var(--primary-light); }
+
+.btn-ghost{ background:transparent; color:var(--text-secondary); border-color:transparent; }
+.btn-ghost:hover{ background:var(--glass-hover, var(--bg)); color:var(--text-primary); }
+
+.btn-danger{ background:transparent; color:var(--c-danger); border-color:transparent; }
+.btn-danger:hover{ background:var(--c-danger-bg); }
+.btn-danger.btn-solid{ background:var(--c-danger); color:#fff; }
+.btn-danger.btn-solid:hover{ filter:brightness(1.06); }
+
+.btn-wa{ background:#16a34a; color:#fff; border-color:transparent; }
+.btn-wa:hover{ background:#15803d; }
+.btn-wa > i{ color:#fff; }
+
 /* زرّ «تعديل» المفرّغ الصغير في الاضبارة — مستقلّ عن الأساسي */
 .pf-editbtn{
   background:var(--surface); color:var(--text-primary); border:1px solid #115e59;
@@ -3963,13 +4016,7 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
       background:var(--surface); border:1px solid var(--border); color:var(--text-muted); font-size:.9rem;
     }
     #addNoteModal .ve-empty-t { font-size:.74rem; color:var(--text-muted); line-height:1.5; }
-    #addNoteModal .ve-empty-btn {
-      display:inline-flex; align-items:center; gap:6px;
-      font-family:inherit; font-size:.74rem; font-weight:800; cursor:pointer;
-      padding:7px 14px; border-radius:9px;
-      background:var(--surface); border:1px solid var(--primary); color:var(--primary);
-    }
-    #addNoteModal .ve-empty-btn:hover { background:var(--primary-light); }
+    /* زرّ الحالة الفارغة يستعمل نظام .btn (btn btn-outline btn-sm) */
 
     /* ── شريط التنبيه = مكوّن Alert (حدّ جانبي + أيقونة تحذير) لا شريط مصمت ── */
     .ve-danger {

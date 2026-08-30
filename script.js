@@ -4823,7 +4823,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       return '<div class="ve-empty">'
         + '<span class="ve-empty-ic"><i class="fas fa-address-book"></i></span>'
         + '<span class="ve-empty-t">' + escapeHtml(t) + '</span>'
-        + '<button type="button" class="ve-empty-btn" onclick="openContactsManager()"><i class="fas fa-plus"></i> إضافة جهة</button>'
+        + '<button type="button" class="btn btn-outline btn-sm" onclick="openContactsManager()"><i class="fas fa-plus"></i> إضافة جهة</button>'
         + '</div>';
     }
     window.renderEditorContacts = function() {
