@@ -2425,13 +2425,28 @@
 /* ═══ بطاقة القياس السريري — فاتحة بهويّة التطبيق، الأولوية للوضوح ═══
    بلا توهّج ولا خلفيات داكنة: القيمة والنطاق المرجعي يجب أن يُقرآ بلا جهد. */
 .scc{
-  position:relative; height:100%; box-sizing:border-box;
-  background:var(--surface); border:1px solid var(--border); border-radius:16px;
-  padding:15px 15px 8px;
+  position:relative; height:100%; box-sizing:border-box; overflow:hidden;
+  background:var(--surface); border:1px solid var(--o06); border-radius:20px;
+  padding:17px 17px 10px;
+  box-shadow:var(--shadow-sm);
 }
+/* شبكة نقاط خافتة خلف المخطّط (على شاكلة بطاقة المقياس) */
+.scc::before{
+  content:""; position:absolute; inset:44% 0 22px 0; z-index:0; pointer-events:none;
+  background-image:radial-gradient(currentColor 1px, transparent 1.5px);
+  background-size:15px 15px; color:var(--text-muted); opacity:.09;
+  -webkit-mask-image:linear-gradient(to bottom, transparent, #000 30%);
+  mask-image:linear-gradient(to bottom, transparent, #000 30%);
+}
+/* وشاح accent يرتفع من الأسفل */
+.scc::after{
+  content:""; position:absolute; inset-inline:0; bottom:0; height:56%; z-index:0; pointer-events:none;
+  background:linear-gradient(to top, color-mix(in srgb, var(--primary) 8%, transparent), transparent);
+}
+.scc-head, .scc-v, .scc-u, .scc-legend, .scc-plot{ position:relative; z-index:1; }
 .scc-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
-.scc-t{font-size:.85rem; font-weight:700; color:var(--text-primary); margin:0;}
-.scc-v{font-size:1.6rem; font-weight:800; color:var(--text-primary); line-height:1.2; margin:4px 0 0; letter-spacing:-.4px; font-variant-numeric:tabular-nums;}
+.scc-t{font-size:.82rem; font-weight:700; color:var(--text-primary); margin:0;}
+.scc-v{font-size:2.05rem; font-weight:700; color:var(--text-primary); line-height:1.1; margin:6px 0 0; letter-spacing:-1px; font-variant-numeric:tabular-nums;}
 .scc-u{font-size:.72rem; font-weight:600; color:var(--text-muted); margin:3px 0 0; line-height:1.5;}
 .scc-pill{
   flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
