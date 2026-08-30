@@ -236,12 +236,12 @@
     .sidebar { display:none; }
     .rail { display:none; }
     @media (min-width: 768px) {
-      /* الشريط صار علوياً (.topbar) — الجسم لم يعد يُزاح جانبياً، بل يُترك فراغ علوي بمقدار ارتفاع الشريط */
-      body { padding-right: 0; }
-      body.rail-expanded, body.sidebar-collapsed { padding-right: 0 !important; }
-      main { flex-direction: column !important; margin-right: 0 !important; padding-top: 84px !important; }
-      body.editor-open main { padding-top: 20px !important; }
-      body.editor-open .topbar { display: none !important; }
+      /* الشريط جانبي (.dbside) على طراز TailAdmin — يُزاح الجسم بعرضه */
+      body { padding-inline-end: 264px; padding-right: 0; }
+      body.rail-expanded, body.sidebar-collapsed { padding-inline-end: 264px !important; padding-right: 0 !important; }
+      main { flex-direction: column !important; margin-right: 0 !important; }
+      body.editor-open { padding-inline-end: 0 !important; }
+      body.editor-open .dbside { display: none !important; }
       .rail {
         display: flex; flex-direction: column;
         position: fixed; top: 0; right: 0; bottom: 0;
@@ -350,109 +350,103 @@
     .sidebar-item { /* managed by rail-nav-btn / topbar-item */ }
 
     /* ============================================================
-       شريط التنقّل العلوي (ديسكتوب) — بديل الشريط الجانبي .rail
-       نمط تبويبات: المفعّل حبّة تركوازية مصمتة، الباقي شفاف.
-       يحافظ على معرّفات .rail القديمة (sidebar-item / #sidebarHome…)
-       فيعمل مع setActiveSection بلا أي تغيير في script.js.
+       الشريط الجانبي (ديسكتوب) — على طراز TailAdmin (library/tailadmin)
+       سطح مسطّح، تسميات أقسام، المفعّل تظليل تركوازي خفيف + نص تركوازي.
+       يحافظ على معرّفات .rail (sidebar-item / #sidebarHome…) فيعمل
+       setActiveSection بلا تغيير في script.js.
        ============================================================ */
-    .topbar { display: none; }
+    .dbside { display: none; }
     @media (min-width: 768px) {
-      .topbar {
-        display: flex; align-items: center; gap: 24px;
-        position: fixed; top: 0; inset-inline: 0; height: 64px;
-        padding: 0 24px;
+      .dbside {
+        display: flex; flex-direction: column;
+        position: fixed; top: 0; inset-inline-start: 0; bottom: 0;
+        width: 264px; padding: 0 20px;
         background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        box-shadow: 0 1px 3px rgba(15,23,42,.05);
+        border-inline-end: 1px solid var(--border);
         z-index: var(--z-rail);
+        overflow-y: auto; scrollbar-width: none;
       }
-      .topbar-brand {
-        display: flex; align-items: center; gap: 9px; flex-shrink: 0;
-        font-weight: 800; font-size: 1.05rem; color: var(--text-primary); letter-spacing: .2px;
-      }
-      .topbar-mark {
-        width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-        background: linear-gradient(140deg, var(--rail-bg-top), var(--rail-bg-bottom));
+      .dbside::-webkit-scrollbar { display: none; }
+
+      .dbside-head { display: flex; align-items: center; gap: 10px; padding: 28px 4px 24px; flex-shrink: 0; }
+      .dbside-mark {
+        width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+        background: var(--primary); color: #fff;
         display: flex; align-items: center; justify-content: center;
       }
-      .topbar-nav {
-        display: flex; align-items: center; gap: 4px;
-        flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none;
-      }
-      .topbar-nav::-webkit-scrollbar { display: none; }
-      .topbar-item {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 8px 16px; border-radius: var(--radius-btn);
-        font-family: inherit; font-size: .9rem; font-weight: 700;
-        color: var(--text-muted); background: none; border: none; cursor: pointer;
-        white-space: nowrap;
-        transition: background .15s, color .15s;
-      }
-      .topbar-item i { font-size: .95rem; width: 1.1em; text-align: center; }
-      .topbar-item:hover:not(.active) { background: var(--primary-bg-06); color: var(--text-primary); }
-      .topbar-item.active { background: var(--primary); color: #fff; font-weight: 800; }
-      .topbar-item.active i { color: #fff; }
-      .topbar-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+      .dbside-brand { font-size: 1.12rem; font-weight: 800; color: var(--text-primary); letter-spacing: .2px; }
 
-      .topbar-end { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-      .topbar-icon-btn {
-        width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-        border: 1px solid var(--border); background: var(--bg); color: var(--text-muted);
-        display: flex; align-items: center; justify-content: center; cursor: pointer;
-        transition: border-color .15s, color .15s;
+      .dbside-scroll { display: flex; flex-direction: column; }
+      .dbside-sec {
+        font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+        color: var(--text-muted); opacity: .8; margin: 4px 8px 12px;
       }
-      .topbar-icon-btn:hover { border-color: var(--primary); color: var(--primary); }
-      .topbar-icon-btn:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+      .dbside-list { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 0; margin: 0 0 20px; }
+
+      .menu-item {
+        position: relative; display: flex; align-items: center; gap: 12px; width: 100%;
+        padding: 9px 12px; border-radius: 8px;
+        font-family: inherit; font-size: .875rem; font-weight: 500;
+        color: var(--text-secondary); background: none; border: none; cursor: pointer; text-align: start;
+        transition: background .13s, color .13s;
+      }
+      .menu-item i { width: 20px; text-align: center; font-size: .95rem; color: var(--text-muted); transition: color .13s; }
+      .menu-item:hover:not(.active) { background: var(--bg); color: var(--text-primary); }
+      .menu-item:hover:not(.active) i { color: var(--text-secondary); }
+      .menu-item.active { background: var(--primary-faint); color: var(--primary); font-weight: 700; }
+      .menu-item.active i { color: var(--primary); }
+      .menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+
+      .dbside-div { height: 1px; background: var(--border); margin: 2px 8px 16px; }
+
+      .dbside-foot {
+        margin-top: auto; flex-shrink: 0; position: relative;
+        padding: 14px 0 18px; border-top: 1px solid var(--border);
+      }
       .topbar-chip {
-        display: flex; align-items: center; gap: 9px;
-        padding: 4px 10px 4px 5px; border-radius: 11px;
-        border: 1px solid var(--border); background: var(--bg);
-        cursor: pointer; font-family: inherit;
-        transition: border-color .15s;
+        display: flex; align-items: center; gap: 10px; width: 100%;
+        padding: 8px; border-radius: 10px;
+        border: none; background: none; cursor: pointer; font-family: inherit;
+        transition: background .13s;
       }
-      .topbar-chip:hover { border-color: var(--primary); }
+      .topbar-chip:hover { background: var(--bg); }
       .topbar-chip:focus-visible { outline: none; box-shadow: var(--ring-focus); }
       .topbar-avatar {
-        width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; overflow: hidden;
-        background: linear-gradient(140deg, var(--primary), #115e59); color: #fff;
-        display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .82rem;
+        width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; overflow: hidden;
+        background: var(--primary); color: #fff;
+        display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .85rem;
       }
       .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; }
-      .topbar-chip-meta { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; text-align: start; }
-      .topbar-chip-meta b { font-size: .82rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+      .topbar-chip-meta { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; flex: 1; text-align: start; }
+      .topbar-chip-meta b { font-size: .82rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .topbar-chip-meta i { font-size: .68rem; font-style: normal; color: var(--text-muted); white-space: nowrap; }
-
-      /* قائمة الملف الشخصي المنسدلة */
-      .topbar-profile { position: relative; }
-      .topbar-chip-caret { font-size: .6rem; color: var(--text-muted); margin-inline-start: 2px; transition: transform .18s; }
+      .topbar-chip-caret { font-size: .6rem; color: var(--text-muted); flex-shrink: 0; transition: transform .18s; }
       .topbar-chip[aria-expanded="true"] .topbar-chip-caret { transform: rotate(180deg); }
+
+      /* قائمة الملف الشخصي — تفتح للأعلى فوق الحبّة */
       .topbar-menu {
-        position: absolute; top: calc(100% + 8px); inset-inline-end: 0;
-        min-width: 224px; background: var(--surface);
+        position: absolute; bottom: calc(100% - 6px); inset-inline: 0;
+        background: var(--surface);
         border: 1px solid var(--border); border-radius: 14px;
         box-shadow: var(--shadow-lg); padding: 6px; z-index: var(--z-dropdown);
         animation: tbMenuIn .14s ease;
       }
       .topbar-menu[hidden] { display: none; }
-      @keyframes tbMenuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes tbMenuIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
       .topbar-menu-item {
         display: flex; align-items: center; gap: 11px; width: 100%;
-        padding: 10px 12px; border: none; background: none; border-radius: 10px;
-        font-family: inherit; font-size: .86rem; font-weight: 700; color: var(--text-primary);
+        padding: 10px 12px; border: none; background: none; border-radius: 8px;
+        font-family: inherit; font-size: .85rem; font-weight: 600; color: var(--text-primary);
         text-align: start; cursor: pointer; transition: background .13s;
       }
       .topbar-menu-item i { width: 16px; text-align: center; color: var(--text-muted); font-size: .8rem; }
-      .topbar-menu-item:hover { background: var(--primary-bg-06); }
+      .topbar-menu-item:hover { background: var(--bg); }
       .topbar-menu-item:hover i { color: var(--primary); }
       .topbar-menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
       .topbar-menu-item.danger { color: var(--c-danger); }
       .topbar-menu-item.danger i { color: var(--c-danger); }
       .topbar-menu-item.danger:hover { background: var(--c-danger-bg); }
       .topbar-menu-sep { height: 1px; background: var(--border); margin: 4px 6px; }
-    }
-    @media (min-width: 768px) and (max-width: 940px) {
-      .topbar-chip-meta { display: none; }
-      .topbar { gap: 16px; padding: 0 16px; }
     }
 
     /* ===== أشرطة التمرير ===== */

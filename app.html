@@ -16,7 +16,7 @@
 
   <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
   <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=229">
+  <link rel="stylesheet" href="styles.css?v=231">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -277,48 +277,54 @@
       </div>
     </header>
 
-    <!-- ====== شريط التنقّل العلوي (ديسكتوب) — بديل الشريط الجانبي ======
+    <!-- ====== الشريط الجانبي (ديسكتوب) — طراز TailAdmin ======
          يحتفظ بمعرّف mainRail وبمعرّفات sidebar* + صنف sidebar-item
          فيعمل setActiveSection وربط الأحداث في script.js بلا أي تغيير. -->
-    <nav class="topbar" id="mainRail" role="navigation" aria-label="التنقل الرئيسي">
+    <nav class="dbside" id="mainRail" role="navigation" aria-label="التنقل الرئيسي">
 
-      <div class="topbar-brand">
-        <span class="topbar-mark"><img src="./logo.png" style="width:20px;height:20px;object-fit:contain;filter:brightness(0) invert(1);" alt="" onerror="this.style.display='none'"></span>
-        DocBook
+      <div class="dbside-head">
+        <span class="dbside-mark"><img src="./logo.png" style="width:20px;height:20px;object-fit:contain;filter:brightness(0) invert(1);" alt="" onerror="this.style.display='none'"></span>
+        <span class="dbside-brand">DocBook</span>
       </div>
 
-      <div class="topbar-nav">
-        <button class="topbar-item sidebar-item active" id="sidebarHome" aria-label="الصفحة الرئيسية">
-          <i class="fas fa-house"></i><span>الرئيسية</span>
-        </button>
-        <button class="topbar-item sidebar-item" id="sidebarCalendar" aria-label="المواعيد المؤكدة">
-          <i class="fas fa-calendar-alt"></i><span>المواعيد المؤكدة</span>
-        </button>
-        <button class="topbar-item sidebar-item" id="sidebarPatients" aria-label="دفتر المرضى">
-          <i class="fas fa-address-book"></i><span>دفتر المرضى</span>
-        </button>
+      <div class="dbside-scroll">
+        <div class="dbside-sec">القائمة</div>
+        <ul class="dbside-list">
+          <li><button class="menu-item sidebar-item active" id="sidebarHome" aria-label="الصفحة الرئيسية">
+            <i class="fas fa-house"></i><span>الرئيسية</span>
+          </button></li>
+          <li><button class="menu-item sidebar-item" id="sidebarCalendar" aria-label="المواعيد المؤكدة">
+            <i class="fas fa-calendar-alt"></i><span>المواعيد المؤكدة</span>
+          </button></li>
+          <li><button class="menu-item sidebar-item" id="sidebarPatients" aria-label="دفتر المرضى">
+            <i class="fas fa-address-book"></i><span>دفتر المرضى</span>
+          </button></li>
+        </ul>
+
+        <div class="dbside-div"></div>
+        <div class="dbside-sec">الحساب</div>
+        <ul class="dbside-list">
+          <li><button class="menu-item" id="sidebarSettingsBtn" onclick="openSettingsModal()" aria-label="الإعدادات">
+            <i class="fas fa-cog"></i><span>الإعدادات</span>
+          </button></li>
+        </ul>
       </div>
 
-      <div class="topbar-end">
-        <button class="topbar-icon-btn" id="sidebarSettingsBtn" onclick="openSettingsModal()" aria-label="الإعدادات" title="الإعدادات">
-          <i class="fas fa-cog"></i>
+      <div class="dbside-foot" id="topbarProfile">
+        <button class="topbar-chip" id="topbarProfileBtn" aria-haspopup="true" aria-expanded="false" onclick="toggleTopbarMenu()">
+          <span class="topbar-avatar" id="sidebarDoctorAvatar"><i class="fas fa-user-md"></i></span>
+          <span class="topbar-chip-meta">
+            <b id="sidebarDoctorName">لوحة الطبيب</b>
+            <i id="sidebarDoctorDate">اليوم، التاريخ</i>
+          </span>
+          <i class="fas fa-chevron-up topbar-chip-caret" aria-hidden="true"></i>
         </button>
-        <div class="topbar-profile" id="topbarProfile">
-          <button class="topbar-chip" id="topbarProfileBtn" aria-haspopup="true" aria-expanded="false" onclick="toggleTopbarMenu()">
-            <span class="topbar-avatar" id="sidebarDoctorAvatar"><i class="fas fa-user-md"></i></span>
-            <span class="topbar-chip-meta">
-              <b id="sidebarDoctorName">لوحة الطبيب</b>
-              <i id="sidebarDoctorDate">اليوم، التاريخ</i>
-            </span>
-            <i class="fas fa-chevron-down topbar-chip-caret" aria-hidden="true"></i>
-          </button>
-          <div class="topbar-menu" id="topbarMenu" hidden>
-            <button class="topbar-menu-item" type="button" onclick="openSettingsModal();closeTopbarMenu()"><i class="fas fa-user"></i>الملف الشخصي</button>
-            <button class="topbar-menu-item" type="button" onclick="openSettingsModal();closeTopbarMenu()"><i class="fas fa-cog"></i>الإعدادات</button>
-            <button class="topbar-menu-item" type="button" onclick="toggleTheme();closeTopbarMenu()"><i class="fas fa-moon"></i>تبديل الوضع الليلي</button>
-            <div class="topbar-menu-sep"></div>
-            <button class="topbar-menu-item danger" type="button" onclick="docbookSignOut()"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
-          </div>
+        <div class="topbar-menu" id="topbarMenu" hidden>
+          <button class="topbar-menu-item" type="button" onclick="openSettingsModal();closeTopbarMenu()"><i class="fas fa-user"></i>الملف الشخصي</button>
+          <button class="topbar-menu-item" type="button" onclick="openSettingsModal();closeTopbarMenu()"><i class="fas fa-cog"></i>الإعدادات</button>
+          <button class="topbar-menu-item" type="button" onclick="toggleTheme();closeTopbarMenu()"><i class="fas fa-moon"></i>تبديل الوضع الليلي</button>
+          <div class="topbar-menu-sep"></div>
+          <button class="topbar-menu-item danger" type="button" onclick="docbookSignOut()"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
         </div>
       </div>
 
