@@ -3517,6 +3517,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       if (isOpen) { closeDocFabDial(); return; }
       if (window._docPositionPills) window._docPositionPills();
       trigger.classList.add('open');
+      _docFabScrim(true);   // تغبيش ما خلف القائمة
       document.querySelectorAll('#docDesktopPills .doc-fab-pill').forEach(function(p){ p.classList.add('visible'); });
       // إغلاق عند الضغط خارج الـ FAB
       setTimeout(function() {
@@ -3535,7 +3536,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var pills    = document.getElementById('docDesktopPills');
       if (trigger)  trigger.classList.remove('open');
       if (pills)    document.querySelectorAll('#docDesktopPills .doc-fab-pill').forEach(function(p){ p.classList.remove('visible'); });
+      _docFabScrim(false);
       document.removeEventListener('click', _docOutsideHandler);
+    }
+    // طبقة تغبيش خلف قائمة الزرّ العائم — نقرة عليها تُغلق
+    function _docFabScrim(show) {
+      var s = document.getElementById('docFabScrim');
+      if (show) {
+        if (!s) {
+          s = document.createElement('div');
+          s.id = 'docFabScrim';
+          s.addEventListener('click', closeDocFabDial);
+          document.body.appendChild(s);
+        }
+        requestAnimationFrame(function() { s.classList.add('show'); });
+      } else if (s) {
+        s.classList.remove('show');
+        setTimeout(function() { var el = document.getElementById('docFabScrim'); if (el && !el.classList.contains('show')) el.remove(); }, 220);
+      }
     }
 
     // ── إرسال التنبيه (من ملف الدكتور) ──
