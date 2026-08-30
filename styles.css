@@ -2398,9 +2398,11 @@
 }
 
 .pf-hero{background:var(--surface);flex-shrink:0;overflow:visible;border-bottom:1px solid var(--border);}
-/* إضبارة المريض: لا شريط أبيض ولا خطّ فاصل — الجزيرة تعوم على أرضيّة الصفحة الرماديّة نفسها */
-#patientDetailsModal .pf-hero{background:var(--bg);border-bottom:none;}
-#patientDetailsModal .modal-content{border:none;}
+/* إضبارة المريض: أرضيّة واحدة موحّدة للمودال كلّه (لا شريط، لا خطّ، لا فرق لونين).
+   الخلفية على .modal-content فقط، وكلّ ما بداخله شفّاف. */
+#patientDetailsModal .modal-content{background:var(--bg);border:none;}
+#patientDetailsModal .pf-hero{background:transparent;border-bottom:none;}
+#patientDetailsModal .chart-body{background:transparent;}
 #patientDetailsModal .pf-pill{background:var(--surface);}
 :root{ --pf-notch:#14b8a6; }          /* جزيرة تركوازية */
 body.theme-dark{ --pf-notch:#0d9488; }
