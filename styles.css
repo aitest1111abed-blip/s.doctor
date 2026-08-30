@@ -209,11 +209,10 @@
     .sidebar { display:none; }
     .rail { display:none; }
     @media (min-width: 768px) {
-      /* الشريط جانبي (.dbside) على طراز TailAdmin، مثبّت يمين الشاشة (RTL) —
-         الجسم يُزاح بحشوة يمنى بمقدار عرضه. padding-right صريح (لا -inline-):
-         في RTL يكون -inline-end هو اليسار، وقد كان ذلك يُدخل المحتوى تحت الشريط. */
-      body { padding-right: 264px; padding-left: 0; }
-      body.rail-expanded, body.sidebar-collapsed { padding-right: 264px !important; }
+      /* شريط أيقونات عائم يمين الشاشة (RTL) — الجسم يُزاح بحشوة يمنى:
+         عرض الشريط 64 + هامش 12 + فجوة 14 ≈ 90px. */
+      body { padding-right: 90px; padding-left: 0; }
+      body.rail-expanded, body.sidebar-collapsed { padding-right: 90px !important; }
       main { flex-direction: column !important; margin-right: 0 !important; }
       body.editor-open { padding-right: 0 !important; }
       body.editor-open .dbside { display: none !important; }
@@ -325,100 +324,105 @@
     .sidebar-item { /* managed by rail-nav-btn / topbar-item */ }
 
     /* ============================================================
-       الشريط الجانبي (ديسكتوب) — على طراز shadcn/ui sidebar
-       (library/shadcn-ui). سطح شبه أبيض، حشوة 8px، كل شيء rounded-md،
-       المفعّل = تعبئة رمادية محايدة خفيفة + وزن medium (بلا لون accent).
-       يحافظ على معرّفات .rail (sidebar-item / #sidebarHome…) فيعمل
-       setActiveSection بلا تغيير في script.js.
+       شريط أيقونات عائم (Floating icon rail) — كحاوية بيضوية طويلة
+       على طرف الشاشة (مرجع المستخدم). أيقونات فقط + tooltip،
+       المفعّل مربّع تركوازي مصمت. RTL: مثبّت يمين الشاشة بهامش.
+       يحافظ على معرّفات .rail (sidebar-item / #sidebarHome…).
        ============================================================ */
     .dbside { display: none; }
     @media (min-width: 768px) {
       .dbside {
-        --s-accent: var(--o06);          /* = bg-sidebar-accent عند shadcn */
         box-sizing: border-box;
-        display: flex; flex-direction: column; gap: 4px;
-        position: fixed; top: 0; inset-inline-start: 0; bottom: 0;
-        width: 256px; padding: 8px;
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        position: fixed; top: 14px; bottom: 14px; inset-inline-start: 14px;
+        width: 64px; padding: 14px 0;
         background: var(--surface);
-        border-inline-end: 1px solid var(--border);
+        border: 1px solid var(--border); border-radius: 24px;
+        box-shadow: var(--shadow);
         z-index: var(--z-rail);
-        overflow-y: auto; scrollbar-width: none;
+        overflow: visible;
       }
-      .dbside::-webkit-scrollbar { display: none; }
 
-      /* صف العلامة — بهيئة زرّ قائمة */
-      .dbside-head { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 8px; flex-shrink: 0; }
+      .dbside-head { display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 6px; }
       .dbside-mark {
-        width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+        width: 40px; height: 40px; border-radius: 13px; flex-shrink: 0;
         background: var(--primary); color: #fff;
         display: flex; align-items: center; justify-content: center;
       }
-      .dbside-brand { font-size: .95rem; font-weight: 600; color: var(--text-primary); letter-spacing: -.01em; }
-
-      .dbside-scroll { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; }
-      .dbside-sec {
-        height: 32px; display: flex; align-items: center; padding: 0 8px;
-        font-size: .75rem; font-weight: 500; color: var(--text-muted);
-      }
-      .dbside-list { list-style: none; display: flex; flex-direction: column; gap: 2px; padding: 0; margin: 0; }
+      .dbside-brand { display: none; }
+      .dbside-sec { display: none; }
+      .dbside-scroll { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1 1 auto; min-height: 0; }
+      .dbside-list { list-style: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; margin: 0; }
 
       .menu-item {
-        position: relative; display: flex; align-items: center; gap: 8px; width: 100%;
-        height: 32px; padding: 0 8px; border-radius: 6px;
-        font-family: inherit; font-size: .875rem; font-weight: 400;
-        color: var(--text-secondary); background: none; border: none; cursor: pointer; text-align: start;
-        transition: background .12s, color .12s;
+        position: relative; display: flex; align-items: center; justify-content: center;
+        width: 44px; height: 44px; padding: 0; border-radius: 15px;
+        color: var(--text-muted); background: none; border: none; cursor: pointer;
+        transition: background .13s, color .13s;
       }
-      .menu-item i { width: 16px; font-size: .88rem; text-align: center; color: currentColor; flex-shrink: 0; }
-      .menu-item:hover { background: var(--s-accent); color: var(--text-primary); }
-      .menu-item.active { background: var(--s-accent); color: var(--text-primary); font-weight: 500; }
+      .menu-item span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      .menu-item i { font-size: 1.05rem; color: currentColor; }
+      .menu-item:hover:not(.active) { background: var(--bg); color: var(--text-primary); }
+      .menu-item.active { background: var(--primary); color: #fff; }
       .menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
-
-      .dbside-div { height: 1px; background: var(--border); margin: 4px 8px; }
-
-      .dbside-foot { margin-top: auto; flex-shrink: 0; position: relative; padding-top: 4px; }
-      .topbar-chip {
-        display: flex; align-items: center; gap: 8px; width: 100%;
-        height: 48px; padding: 0 8px; border-radius: 6px;
-        border: none; background: none; cursor: pointer; font-family: inherit;
-        transition: background .12s;
+      /* tooltip بجانب الأيقونة (جهة المحتوى = اليسار في RTL) —
+         inset-inline-start في RTL = يمين العنصر ⇒ يخرج التلميح لليسار. */
+      .menu-item[aria-label]::after {
+        content: attr(aria-label);
+        position: absolute; inset-inline-start: calc(100% + 12px); top: 50%;
+        transform: translateY(-50%) translateX(-4px);
+        background: var(--text-primary); color: var(--surface);
+        font-size: .72rem; font-weight: 700; white-space: nowrap;
+        padding: 5px 10px; border-radius: 8px;
+        opacity: 0; pointer-events: none;
+        transition: opacity .12s, transform .12s;
+        z-index: var(--z-tooltip);
       }
-      .topbar-chip:hover { background: var(--s-accent); }
+      .menu-item:hover::after, .menu-item:focus-visible::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+      .dbside-div { width: 26px; height: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
+
+      .dbside-foot { margin-top: auto; flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+      .topbar-chip {
+        display: flex; align-items: center; justify-content: center;
+        width: 44px; height: 44px; padding: 0; border-radius: 15px;
+        border: none; background: none; cursor: pointer; font-family: inherit;
+        transition: background .13s;
+      }
+      .topbar-chip:hover { background: var(--bg); }
       .topbar-chip:focus-visible { outline: none; box-shadow: var(--ring-focus); }
       .topbar-avatar {
-        width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; overflow: hidden;
+        width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0; overflow: hidden;
         background: var(--primary-light); color: var(--primary);
-        display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem;
+        display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .82rem;
       }
       .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; }
-      .topbar-chip-meta { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; flex: 1; text-align: start; }
-      .topbar-chip-meta b { font-size: .8rem; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .topbar-chip-meta i { font-size: .7rem; font-style: normal; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .topbar-chip-caret { font-size: .8rem; color: var(--text-muted); flex-shrink: 0; }
+      .topbar-chip-meta, .topbar-chip-caret { display: none; }
 
-      /* قائمة الملف الشخصي — تفتح للأعلى */
+      /* قائمة الملف الشخصي — تفتح جانب الشريط (جهة المحتوى = يسار في RTL) */
       .topbar-menu {
-        position: absolute; bottom: calc(100% + 4px); inset-inline: 0;
+        position: absolute; inset-inline-start: calc(100% + 12px); bottom: 0;
+        min-width: 208px;
         background: var(--surface);
-        border: 1px solid var(--border); border-radius: 8px;
-        box-shadow: var(--shadow-lg); padding: 4px; z-index: var(--z-dropdown);
+        border: 1px solid var(--border); border-radius: 12px;
+        box-shadow: var(--shadow-lg); padding: 5px; z-index: var(--z-dropdown);
         animation: tbMenuIn .12s ease;
       }
       .topbar-menu[hidden] { display: none; }
-      @keyframes tbMenuIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes tbMenuIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
       .topbar-menu-item {
-        display: flex; align-items: center; gap: 8px; width: 100%;
-        height: 32px; padding: 0 8px; border: none; background: none; border-radius: 6px;
-        font-family: inherit; font-size: .82rem; font-weight: 400; color: var(--text-primary);
+        display: flex; align-items: center; gap: 9px; width: 100%;
+        height: 34px; padding: 0 10px; border: none; background: none; border-radius: 8px;
+        font-family: inherit; font-size: .84rem; font-weight: 500; color: var(--text-primary);
         text-align: start; cursor: pointer; transition: background .12s;
       }
-      .topbar-menu-item i { width: 16px; text-align: center; color: var(--text-muted); font-size: .8rem; }
-      .topbar-menu-item:hover { background: var(--s-accent); }
+      .topbar-menu-item i { width: 16px; text-align: center; color: var(--text-muted); font-size: .82rem; }
+      .topbar-menu-item:hover { background: var(--bg); }
       .topbar-menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
       .topbar-menu-item.danger { color: var(--c-danger); }
       .topbar-menu-item.danger i { color: var(--c-danger); }
       .topbar-menu-item.danger:hover { background: var(--c-danger-bg); }
-      .topbar-menu-sep { height: 1px; background: var(--border); margin: 4px; }
+      .topbar-menu-sep { height: 1px; background: var(--border); margin: 4px 6px; }
     }
 
     /* ===== أشرطة التمرير ===== */

@@ -16,7 +16,7 @@
 
   <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
   <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=234">
+  <link rel="stylesheet" href="styles.css?v=236">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -277,20 +277,18 @@
       </div>
     </header>
 
-    <!-- ====== الشريط الجانبي (ديسكتوب) — طراز TailAdmin ======
-         يحتفظ بمعرّف mainRail وبمعرّفات sidebar* + صنف sidebar-item
-         فيعمل setActiveSection وربط الأحداث في script.js بلا أي تغيير. -->
+    <!-- ====== شريط أيقونات عائم (ديسكتوب) — مرجع المستخدم ======
+         حاوية بيضوية على الطرف، أيقونات فقط + tooltip.
+         يحتفظ بمعرّف mainRail وبمعرّفات sidebar* + صنف sidebar-item. -->
     <nav class="dbside" id="mainRail" role="navigation" aria-label="التنقل الرئيسي">
 
       <div class="dbside-head">
-        <span class="dbside-mark"><img src="./logo.png" style="width:20px;height:20px;object-fit:contain;filter:brightness(0) invert(1);" alt="" onerror="this.style.display='none'"></span>
-        <span class="dbside-brand">DocBook</span>
+        <span class="dbside-mark"><img src="./logo.png" style="width:22px;height:22px;object-fit:contain;filter:brightness(0) invert(1);" alt="" onerror="this.style.display='none'"></span>
       </div>
 
       <div class="dbside-scroll">
-        <div class="dbside-sec">القائمة</div>
         <ul class="dbside-list">
-          <li><button class="menu-item sidebar-item active" id="sidebarHome" aria-label="الصفحة الرئيسية">
+          <li><button class="menu-item sidebar-item active" id="sidebarHome" aria-label="الرئيسية">
             <i class="fas fa-house"></i><span>الرئيسية</span>
           </button></li>
           <li><button class="menu-item sidebar-item" id="sidebarCalendar" aria-label="المواعيد المؤكدة">
@@ -300,18 +298,15 @@
             <i class="fas fa-address-book"></i><span>دفتر المرضى</span>
           </button></li>
         </ul>
-
-        <div class="dbside-div"></div>
-        <div class="dbside-sec">الحساب</div>
-        <ul class="dbside-list">
-          <li><button class="menu-item" id="sidebarSettingsBtn" onclick="openSettingsModal()" aria-label="الإعدادات">
-            <i class="fas fa-cog"></i><span>الإعدادات</span>
-          </button></li>
-        </ul>
       </div>
 
-      <div class="dbside-foot" id="topbarProfile">
-        <button class="topbar-chip" id="topbarProfileBtn" aria-haspopup="true" aria-expanded="false" onclick="toggleTopbarMenu()">
+      <div class="dbside-foot">
+        <div class="dbside-div"></div>
+        <button class="menu-item" id="sidebarSettingsBtn" onclick="openSettingsModal()" aria-label="الإعدادات">
+          <i class="fas fa-cog"></i><span>الإعدادات</span>
+        </button>
+        <div class="dbside-profile" id="topbarProfile" style="position:relative;">
+        <button class="topbar-chip" id="topbarProfileBtn" aria-haspopup="true" aria-expanded="false" aria-label="الملف الشخصي" onclick="toggleTopbarMenu()">
           <span class="topbar-avatar" id="sidebarDoctorAvatar"><i class="fas fa-user-md"></i></span>
           <span class="topbar-chip-meta">
             <b id="sidebarDoctorName">لوحة الطبيب</b>
@@ -326,7 +321,8 @@
           <div class="topbar-menu-sep"></div>
           <button class="topbar-menu-item danger" type="button" onclick="docbookSignOut()"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
         </div>
-      </div>
+        </div><!-- /dbside-profile -->
+      </div><!-- /dbside-foot -->
 
     </nav>
 
