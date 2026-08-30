@@ -6818,35 +6818,64 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     function dcEventDef(e) {
       return DC_EVENTS[e.type] || (e.to && DC_STATUS[e.to] ? { label: e.action || DC_STATUS[e.to].label, color: DC_STATUS[e.to].bd, kind: 'legacy' } : { label: e.action || 'حدث', color: '#64748b', kind: 'legacy' });
     }
+    function _dcKindTxt(def){ return def.kind === 'finding' ? 'موجود' : (def.kind === 'treatment' ? 'معالجة' : ''); }
+    function _dcKindCls(def){ return def.kind === 'finding' ? 'find' : (def.kind === 'treatment' ? 'treat' : ''); }
+    // بند واحد داخل بطاقة الجلسة (يظهر عند الفتح)
+    function _dcEvItem(e){
+      var def = dcEventDef(e);
+      var kt = _dcKindTxt(def);
+      return '<div class="dc-ev-item">'
+        + '<span class="dc-ev-dot" style="background:' + def.color + ';"></span>'
+        + (kt ? '<span class="dc-ev-kind ' + _dcKindCls(def) + '">' + kt + '</span>' : '')
+        + '<span class="dc-ev-label">' + escapeHtml(def.label) + '</span>'
+        + (e.surfaces && e.surfaces.length ? '<span class="dc-ev-surf">[' + escapeHtml(e.surfaces.join('،')) + ']</span>' : '')
+        + (e.ts ? '<button class="dc-ev-del" onclick="event.stopPropagation();dcDeleteEvent(' + e.ts + ')" title="حذف هذا البند"><i class="fas fa-trash"></i></button>' : '')
+        + '</div>';
+    }
     function dcRenderEvents() {
       var p = allPatients[dcCurrentPid]; if (!p) return;
-      var evs = (p.dentalEvents || []).slice().sort(function(a, b) {
+      var all = (p.dentalEvents || []).slice().sort(function(a, b) {
         var d = (b.date || '').localeCompare(a.date || '');
         return d !== 0 ? d : ((b.ts || 0) - (a.ts || 0));
-      }).slice(0, 40);
-      document.getElementById('dcEventsCount').textContent = '(' + ((p.dentalEvents || []).length) + ')';
+      });
+      document.getElementById('dcEventsCount').textContent = '(' + all.length + ')';
       var box = document.getElementById('dcEventsList');
-      if (!evs.length) { box.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-muted);font-size:.8rem;">لا توجد أحداث بعد — اضغط على أي سن لتسجيل أول حدث</div>'; return; }
-      box.innerHTML = evs.map(function(e) {
-        var def = dcEventDef(e);
-        var kindCls = def.kind === 'finding' ? 'find' : (def.kind === 'treatment' ? 'treat' : '');
-        var kindTxt = def.kind === 'finding' ? 'موجود' : (def.kind === 'treatment' ? 'معالجة' : '');
-        var tName = (typeof dcToothName === 'function') ? dcToothName(e.tooth) : '';
-        return '<div class="dc-ev">'
-          + '<div class="dc-ev-top">'
-            + '<span class="dc-ev-tooth">' + escapeHtml(String(e.tooth)) + '</span>'
-            + '<span class="dc-ev-tname">' + escapeHtml(tName) + '</span>'
-            + '<span class="dc-ev-date"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + formatDateAr(e.date) + '</span>'
-            + (e.ts ? '<button class="dc-tl-del" onclick="event.stopPropagation();dcDeleteEvent(' + e.ts + ')" title="حذف الحدث"><i class="fas fa-trash"></i></button>' : '')
+      if (!all.length) { box.innerHTML = '<div class="dc-ev-empty">لا توجد أحداث بعد — اضغط على أي سن لتسجيل أول حدث</div>'; return; }
+      // تجميع حسب الجلسة: نفس السنّ + نفس التاريخ = بطاقة واحدة قابلة للفتح
+      var groups = [], byKey = {};
+      all.forEach(function(e) {
+        var key = e.tooth + '|' + (e.date || '');
+        var g = byKey[key];
+        if (!g) { g = byKey[key] = { tooth: e.tooth, date: e.date, items: [], maxTs: 0 }; groups.push(g); }
+        g.items.push(e);
+        if ((e.ts || 0) > g.maxTs) g.maxTs = e.ts || 0;
+      });
+      box.innerHTML = groups.slice(0, 40).map(function(g) {
+        var tName = (typeof dcToothName === 'function') ? dcToothName(g.tooth) : '';
+        // لون العقدة: لون آخر معالجة إن وُجدت، وإلّا آخر موجود
+        var treat = g.items.filter(function(e){ return dcEventDef(e).kind === 'treatment'; })[0];
+        var clr = dcEventDef(treat || g.items[0]).color;
+        // ملخّص مطويّ: رقاقة لكل بند (موجود ومعالجة معاً — لا المعالجة وحدها)
+        var chips = g.items.map(function(e) {
+          var def = dcEventDef(e);
+          return '<span class="dc-ev-chip ' + _dcKindCls(def) + '"><span class="dc-ev-dot" style="background:' + def.color + ';"></span>' + escapeHtml(def.label) + '</span>';
+        }).join('');
+        var note = (g.items.find(function(e){ return e.note && e.note.trim(); }) || {}).note || '';
+        return '<details class="dc-ev">'
+          + '<summary class="dc-ev-sum" style="--dc-ev-clr:' + clr + ';">'
+            + '<span class="dc-ev-tooth">' + escapeHtml(String(g.tooth)) + '</span>'
+            + '<span class="dc-ev-hd">'
+              + '<span class="dc-ev-tname">' + escapeHtml(tName) + '</span>'
+              + '<span class="dc-ev-chips">' + chips + '</span>'
+            + '</span>'
+            + '<span class="dc-ev-date">' + formatDateAr(g.date) + '</span>'
+            + '<i class="fas fa-chevron-down dc-ev-caret"></i>'
+          + '</summary>'
+          + '<div class="dc-ev-det">'
+            + g.items.map(_dcEvItem).join('')
+            + (note ? '<div class="dc-ev-note">' + escapeHtml(note) + '</div>' : '')
           + '</div>'
-          + '<div class="dc-ev-body">'
-            + (kindTxt ? '<span class="dc-ev-kind ' + kindCls + '">' + kindTxt + '</span>' : '')
-            + '<span class="dc-ev-dot" style="background:' + def.color + ';"></span>'
-            + '<span class="dc-ev-label">' + escapeHtml(def.label) + '</span>'
-            + (e.surfaces && e.surfaces.length ? '<span class="dc-ev-surf" style="color:' + def.color + ';">[' + escapeHtml(e.surfaces.join('،')) + ']</span>' : '')
-          + '</div>'
-          + (e.note ? '<div class="dc-ev-note">' + escapeHtml(e.note) + '</div>' : '')
-        + '</div>';
+        + '</details>';
       }).join('');
     }
     window.openDentalChart = function(pid) {
