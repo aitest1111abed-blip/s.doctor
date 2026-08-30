@@ -4708,51 +4708,88 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
     window.toggleTestWrap = function(checked) {
       document.getElementById('labTestWrap').style.display = checked ? '' : 'none';
-      if (checked) veAutoGrow(document.getElementById('labTestText'));   // لم يكن مرئياً فلم يُقَس
+      if (checked) _veRenderLabRows();
     };
     // رقائق إدراج سريع — أكثر الطلبات شيوعاً حسب الفئة
     var _VE_LAB_CHIPS = {
       lab: ['CBC صورة دم', 'CRP', 'سكر صائم', 'وظائف كلى', 'وظائف كبد', 'شوارد', 'HbA1c', 'بول عام', 'زمرة دم', 'TSH'],
       imaging: ['صورة صدر', 'إيكو قلب', 'CT دماغ', 'رنين للركبة', 'إيكو بطن', 'صورة عمود فقري', 'دوبلر أوعية', 'ماموغرام']
     };
-    function _veRenderLabChips(kind) {
-      var box = document.getElementById('labQuickChips'); if (!box) return;
+    function _veLabPlaceholder() {
+      return _curTestKind === 'imaging' ? 'نوع الصورة الشعاعية' : 'نوع الفحص المطلوب';
+    }
+    // ── صفوف الطلبات: عرضٌ فوق نصّ #labTestText (أسطر مفصولة بـ \n) ──
+    // القيمة تبقى نصّاً مجموعاً فلا يتغيّر الحفظ/الطباعة/الإرسال.
+    window._veRenderLabRows = function() {
+      var box = document.getElementById('labRows'); if (!box) return;
       var ta = document.getElementById('labTestText');
-      box.innerHTML = (_VE_LAB_CHIPS[kind === 'imaging' ? 'imaging' : 'lab'] || []).map(function(t) {
+      var lines = String((ta && ta.value) || '').split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+      if (!lines.length) lines = [''];
+      box.innerHTML = lines.map(function(ln) {
+        return '<div class="ve-labrow"><input type="text" value="' + _cfAttr(ln) + '" placeholder="' + _cfAttr(_veLabPlaceholder()) + '" oninput="_veSyncLabRows()">'
+          + '<button type="button" class="ve-rowdel" aria-label="حذف" onclick="_veDelLabRow(this)"><i class="fas fa-minus"></i></button></div>';
+      }).join('');
+      _veRenderLabChips();
+    };
+    window._veSyncLabRows = function() {
+      var box = document.getElementById('labRows'); var ta = document.getElementById('labTestText');
+      if (!box || !ta) return;
+      var vals = Array.prototype.map.call(box.querySelectorAll('.ve-labrow input'), function(i){ return i.value.trim(); }).filter(Boolean);
+      ta.value = vals.join('\n');
+    };
+    window._veDelLabRow = function(btn) {
+      var row = btn && btn.closest('.ve-labrow'); if (!row) return;
+      var box = row.parentNode; row.remove();
+      if (!box.querySelector('.ve-labrow')) _veRenderLabRows(); // اترك سطراً فارغاً واحداً
+      _veSyncLabRows();
+    };
+    window._veAddLabRow = function(text) {
+      var box = document.getElementById('labRows'); if (!box) return;
+      var rows = box.querySelectorAll('.ve-labrow');
+      var last = rows[rows.length - 1];
+      var lastIn = last && last.querySelector('input');
+      if (text) {
+        if (lastIn && !lastIn.value.trim()) { lastIn.value = text; }
+        else {
+          box.insertAdjacentHTML('beforeend', '<div class="ve-labrow"><input type="text" value="' + _cfAttr(text) + '" placeholder="' + _cfAttr(_veLabPlaceholder()) + '" oninput="_veSyncLabRows()"><button type="button" class="ve-rowdel" aria-label="حذف" onclick="_veDelLabRow(this)"><i class="fas fa-minus"></i></button></div>');
+        }
+      } else {
+        if (lastIn && !lastIn.value.trim()) { lastIn.focus(); return; }
+        box.insertAdjacentHTML('beforeend', '<div class="ve-labrow"><input type="text" placeholder="' + _cfAttr(_veLabPlaceholder()) + '" oninput="_veSyncLabRows()"><button type="button" class="ve-rowdel" aria-label="حذف" onclick="_veDelLabRow(this)"><i class="fas fa-minus"></i></button></div>');
+      }
+      var added = box.querySelector('.ve-labrow:last-child input'); if (added) added.focus();
+      _veSyncLabRows();
+    };
+    function _veRenderLabChips() {
+      var box = document.getElementById('labQuickChips'); if (!box) return;
+      box.innerHTML = (_VE_LAB_CHIPS[_curTestKind === 'imaging' ? 'imaging' : 'lab'] || []).map(function(t) {
         return '<button type="button" class="ve-chip" data-t="' + _cfAttr(t) + '">+ ' + escapeHtml(t) + '</button>';
       }).join('');
       Array.prototype.forEach.call(box.querySelectorAll('.ve-chip'), function(c) {
-        c.addEventListener('click', function() {
-          if (!ta) return;
-          var cur = (ta.value || '').trim();
-          ta.value = cur ? (cur + '، ' + c.getAttribute('data-t')) : c.getAttribute('data-t');
-          veAutoGrow(ta); ta.focus();
-        });
+        c.addEventListener('click', function() { _veAddLabRow(c.getAttribute('data-t')); });
       });
     }
     function _applyTestKindUI(kind) {
       var isImg = kind === 'imaging';
       document.getElementById('testKindLabBtn').classList.toggle('active', !isImg);
       document.getElementById('testKindImgBtn').classList.toggle('active', isImg);
-      document.getElementById('labTestText').placeholder = isImg
-        ? 'اكتب نوع الصورة الشعاعية المطلوبة (مثال: صورة صدر، إيكو قلب، CT دماغ، رنين مغناطيسي للركبة...)'
-        : 'اكتب نوع التحليل المطلوب (مثال: صورة دم كاملة CBC، وظائف كلى، سكر صائم...)';
       var tl = document.getElementById('testListLabel'); if (tl) tl.textContent = isImg ? 'إرسال إلى مركز أشعة' : 'إرسال إلى مخبر';
-      _veRenderLabChips(kind);
+      _veRenderLabRows();
       renderEditorContacts();
     }
     window.setTestKind = function(kind) {
       // احفظ نص الفئة الحالية قبل التبديل ثم استرجع نص الفئة الجديدة
+      _veSyncLabRows();
       var ta = document.getElementById('labTestText');
       _testBuf[_curTestKind] = ta.value;
       _curTestKind = kind;
       document.getElementById('testKind').value = kind;
       ta.value = _testBuf[kind] || '';
-      veAutoGrow(ta);
       _applyTestKindUI(kind);
     };
     // يقرأ النصوص الحالية ويكتبها في كائن الزيارة (نصّان مستقلان)
     function _flushTestFields(v) {
+      if (typeof _veSyncLabRows === 'function') _veSyncLabRows();
       _testBuf[_curTestKind] = document.getElementById('labTestText').value;
       var on = document.getElementById('labTestToggle').checked;
       v.labTest     = on ? (_testBuf.lab || '').trim() : '';
