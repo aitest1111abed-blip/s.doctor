@@ -2499,20 +2499,22 @@
 .pf-pill .k{color:var(--text-muted);font-weight:600;font-size:.72rem;}
 .pf-pill .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 
-/* بطاقات المعلومات */
-/* معلومات المريض: أسطر لا صناديق — نفس مبدأ محرّر الزيارة.
-   كانت سبعة صناديق رمادية تحتلّ ارتفاعاً كبيراً وتفكّك القراءة. */
-.pf-tiles{display:flex;flex-direction:column;gap:0;}
-.pf-tile{background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:9px 2px;display:flex;align-items:baseline;justify-content:space-between;gap:14px;min-width:0;}
-.pf-tile:last-child{border-bottom:none;}
-.pf-tile .lab{font-size:.76rem;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.pf-tile .lab i{font-size:.72rem;opacity:.85;width:13px;text-align:center;}
-.pf-tile .val{font-size:.88rem;font-weight:700;color:var(--text-primary);word-break:break-word;overflow-wrap:anywhere;text-align:end;}
+/* ═══ خانات معلومات المريض — بلاطات ناعمة بشبكة عمودين ═══
+   نمط بلوك «معلومات أساسية»: تسمية صغيرة فوق القيمة، خلية مدوّرة غائرة. */
+.pf-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pf-tile{
+  display:flex;flex-direction:column;gap:5px;min-width:0;
+  background:var(--bg);border:1px solid var(--o05);border-radius:12px;
+  padding:11px 13px;
+}
+.pf-tile .lab{font-size:.68rem;font-weight:700;color:var(--text-muted);letter-spacing:.02em;display:flex;align-items:center;gap:6px;}
+.pf-tile .lab i{font-size:.7rem;opacity:.85;width:13px;text-align:center;color:var(--primary);}
+.pf-tile .val{font-size:.9rem;font-weight:700;color:var(--text-primary);word-break:break-word;overflow-wrap:anywhere;line-height:1.35;}
 /* «غير مسجّل» خبرٌ عن غياب القيمة لا قيمة، فيتراجع وزنه ولونه */
 .pf-tile .val.empty{font-weight:500;color:var(--text-muted);}
-/* الحقول الطويلة (أمراض مزمنة، ملاحظات) تنزل لسطر مستقلّ */
-.pf-tile.full{flex-direction:column;align-items:stretch;gap:4px;}
-.pf-tile.full .val{text-align:start;}
+/* الحقول الطويلة (أمراض مزمنة، ملاحظات، عنوان) تمتدّ عرض الشبكة */
+.pf-tile.full{grid-column:1 / -1;}
+@media (max-width:520px){ .pf-tiles{grid-template-columns:1fr;} }
 /* تنبيه الحساسية — سطر بلا حاوية: وسم «تنبيه» أحمر مصمت ثم النصّ مباشرةً.
    (أُزيل الصندوق بالكامل بطلب المستخدم — التنبيه يُقرأ كسطر لا ككتلة.) */
 .pf-alertline{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:3px 0 9px;}
