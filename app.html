@@ -9,10 +9,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=DM+Mono:wght@400;500&family=Space+Mono:wght@400;700&family=Montserrat:wght@700;800&family=Roboto:wght@300;400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+  <!-- الخطوط: Tajawal (أساسي) · DM Mono (أرقام) · Outfit (عرض رقمي رفيع) · Montserrat (شعار الشريط).
+       أُزيلت Roboto (بلا استخدام) و Space Mono (استُبدلت بـ DM Mono) و IBM Plex Sans Arabic (بقيت كـ fallback في المكدّس). -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=DM+Mono:wght@400;500&family=Montserrat:wght@700;800&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  
-  <link rel="stylesheet" href="styles.css?v=221">
+
+  <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
+  <link rel="stylesheet" href="tokens.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=224">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -2050,9 +2054,9 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=221"></script>
+  <script src="script.js?v=219"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
-  <script src="dev-seed.js?v=221"></script>
+  <script src="dev-seed.js?v=219"></script>
   <!-- 🌊 خلفية متحرّكة (WebGL) — معطّلة حالياً؛ الخلفية النعناعية الثابتة مرسومة بـCSS في styles.css.
        لإرجاع المتحرّكة: أزل التعليق عن السطر التالي. -->
   <!-- <script src="bg-gradient.js?v=1"></script> -->

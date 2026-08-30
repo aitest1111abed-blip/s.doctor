@@ -1,0 +1,172 @@
+/* ============================================================
+   DocBook — طبقة التوكنز (tokens.css)
+   ------------------------------------------------------------
+   معمارية مقتبسة من لغة تصميم «بوتلي»
+   (chattermate/frontend/src/assets/styles/design-tokens.css).
+
+   هذا الملف يُحمَّل *قبل* styles.css ويضيف مفردات توكنز جديدة
+   لا يستهلكها أي عنصر بعد — إضافته لا تغيّر أي بكسل.
+   يُبنى عليها تدريجياً في مراحل P0/P1/P2 (راجع
+   library/docbook-design-upgrade.md).
+
+   ملاحظة: سلّم --primary-1..10 وألوان الوضع الليلي ما زالت في
+   styles.css — تُنقل هنا في P0-2 و P0-3.
+   ============================================================ */
+
+:root {
+  /* ---- توكنز شفافية محايدة (حدود · فواصل · hover · overlays) ----
+     الأساس #0f172a (15,23,42) وهو نفس أساس ظلال styles.css.
+     في الوضع الليلي تنقلب إلى أبيض شفاف (كتلة data-theme أدناه). */
+  --o03: rgba(15, 23, 42, .03);
+  --o04: rgba(15, 23, 42, .04);
+  --o05: rgba(15, 23, 42, .05);
+  --o06: rgba(15, 23, 42, .06);
+  --o08: rgba(15, 23, 42, .08);
+  --o10: rgba(15, 23, 42, .10);
+  --o12: rgba(15, 23, 42, .12);
+  --o14: rgba(15, 23, 42, .14);
+  --o16: rgba(15, 23, 42, .16);
+  --o20: rgba(15, 23, 42, .20);
+  --o25: rgba(15, 23, 42, .25);
+  --o30: rgba(15, 23, 42, .30);
+
+  /* ---- تدرّجات الـ accent المشتقّة مرّة واحدة عبر color-mix ----
+     تلغي لاحقاً سلّم --primary-1..10 اليدوي + overrides الوضع الليلي.
+     --primary يأتي من styles.css (#0d9488) — نشير إليه لا نعيد تعريفه. */
+  --primary-bg-06:  color-mix(in srgb, var(--primary) 6%,  transparent);
+  --primary-bg-10:  color-mix(in srgb, var(--primary) 10%, transparent);
+  --primary-bg-14:  color-mix(in srgb, var(--primary) 14%, transparent);
+  --primary-border: color-mix(in srgb, var(--primary) 28%, transparent);
+
+  /* ---- ألوان دلالية — مضبوطة على قيم styles.css الحالية بالضبط ----
+     فلا يتغيّر شيء حين تُستبدل .ac-badge / .pf-alert… بها في P0-6.
+     خلفيات الشارات = درجات Tailwind ‏100 الحالية نفسها (لا color-mix) لضمان ثبات البكسل. */
+  --c-positive:  #16a34a;
+  --c-danger:    #dc2626;
+  --c-warn:      #d97706;
+  --c-info:      #2563eb;
+  --c-neutral:   #64748b;
+  --c-positive-bg: #dcfce7;
+  --c-danger-bg:   #fee2e2;
+  --c-warn-bg:     #fef3c7;
+  --c-info-bg:     #dbeafe;
+  --c-positive-fg: #166534;
+  --c-danger-fg:   #b91c1c;
+  --c-warn-fg:     #92400e;
+
+  /* ---- الزر الثانوي — مضبوط على قيم styles.css الحالية (فاتح) ---- */
+  --btn-secondary-bg:       #e2e8f0;
+  --btn-secondary-fg:       #475569;
+  --btn-secondary-bg-hover: #cbd5e1;
+
+  /* ---- توكنز الشريط الجانبي (rail) — تُستبدل بها القيم الـ hardcoded في P0-6 ----
+     مطابقة للتدرّج الحالي linear-gradient(#158078, #0b4d48). */
+  --rail-bg-top:    #158078;
+  --rail-bg-bottom: #0b4d48;
+  --rail-fg:        #ffffff;
+  --rail-fg-muted:  rgba(255, 255, 255, .62);
+  --rail-fg-faint:  rgba(255, 255, 255, .5);
+  --rail-hover:     rgba(255, 255, 255, .12);
+  --rail-active:    rgba(255, 255, 255, .20);
+  --rail-divider:   rgba(255, 255, 255, .10);
+  --rail-width:      62px;
+  --rail-width-open: 224px;
+
+  /* ---- سلّم نصف القطر (إيقاع مقصود بدل ١٢ قيمة عشوائية) ---- */
+  --radius-chip:     10px;
+  --radius-btn:      10px;
+  --radius-input:    12px;
+  --radius-card:     16px;
+  --radius-card-lg:  20px;
+  --radius-pill:     999px;
+
+  /* ---- سلّم المسافات (متوافق مع تسمية بوتلي) ---- */
+  --space-xs:  .25rem;   /*  4px */
+  --space-sm:  .5rem;    /*  8px */
+  --space-md:  1rem;     /* 16px */
+  --space-lg:  1.5rem;   /* 24px */
+  --space-xl:  2rem;     /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  --space-3xl: 4rem;     /* 64px */
+
+  /* ---- سلّم التايبوغرافي ---- */
+  --text-xs:   .75rem;
+  --text-sm:   .875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --tracking-display: -.02em;
+  --tracking-tight:   -.01em;
+  --tracking-wide:     .04em;
+
+  /* ---- خطوط ---- */
+  --font-sans: 'Tajawal', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+
+  /* ---- انتقالات ---- */
+  --transition-fast:   .15s cubic-bezier(.4, 0, .2, 1);
+  --transition-normal: .25s cubic-bezier(.4, 0, .2, 1);
+  --transition-slow:   .4s  cubic-bezier(.4, 0, .2, 1);
+
+  /* ---- حلقة التركيز (مطابقة لنمط styles.css الحالي) ---- */
+  --ring-focus: 0 0 0 3px var(--primary-faint);
+
+  /* ---- سلّم z-index مُسمّى (بدل 50/90/150/200/270/999/9998/9999) ---- */
+  --z-base:      1;
+  --z-nav:       100;
+  --z-rail:      200;
+  --z-dropdown:  300;
+  --z-drawer:    1000;
+  --z-modal:     2000;
+  --z-sheet:     2100;
+  --z-toast:     2200;
+  --z-tooltip:   2300;
+
+  /* ---- قشرة الموبايل ---- */
+  --bottom-nav-height: 64px;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================================
+   الوضع الليلي — قلب توكنز الشفافية فقط (باقي الألوان في P0-3).
+   يعمل مع body.theme-dark الحالي *و* مع html[data-theme="dark"]
+   المستقبلي، فلا تنكسر أي مرحلة انتقالية.
+   ============================================================ */
+:root[data-theme="dark"],
+body.theme-dark {
+  --o03: rgba(255, 255, 255, .03);
+  --o04: rgba(255, 255, 255, .04);
+  --o05: rgba(255, 255, 255, .05);
+  --o06: rgba(255, 255, 255, .06);
+  --o08: rgba(255, 255, 255, .07);
+  --o10: rgba(255, 255, 255, .09);
+  --o12: rgba(255, 255, 255, .11);
+  --o14: rgba(255, 255, 255, .13);
+  --o16: rgba(255, 255, 255, .16);
+  --o20: rgba(255, 255, 255, .20);
+  --o25: rgba(255, 255, 255, .25);
+  --o30: rgba(255, 255, 255, .30);
+
+  /* الدلاليات ترفع سطوعها قليلاً على أرضية داكنة — مطابقة لـ body.theme-dark .ac-badge الحالية */
+  --c-positive: #34d399;
+  --c-danger:   #f87171;
+  --c-warn:     #fbbf24;
+  --c-info:     #60a5fa;
+  --c-neutral:  #8b99ad;
+  --c-positive-bg: rgba(22,163,74,.18);
+  --c-danger-bg:   rgba(220,38,38,.18);
+  --c-warn-bg:     rgba(217,119,6,.18);
+  --c-info-bg:     rgba(37,99,235,.18);
+  --c-positive-fg: #4ade80;
+  --c-danger-fg:   #fca5a5;
+  --c-warn-fg:     #fcd34d;
+
+  /* الزر الثانوي في الوضع الليلي — مطابق لـ body.theme-dark .btn-secondary الحالية */
+  --btn-secondary-bg:       #27344a;
+  --btn-secondary-fg:       #c3cdda;
+  --btn-secondary-bg-hover: #33415a;
+}
