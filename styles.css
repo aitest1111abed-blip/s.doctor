@@ -3726,6 +3726,96 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
     #addNoteModal .ve-side .ve-prev { padding:0; }
     #addNoteModal .ve-side .ve-label { font-size:.82rem; letter-spacing:0; text-transform:none; color:var(--text-primary); }
 
+    /* ═══ لوحة إجراء موحّدة (تحاليل/أشعة · عملية · تقويم) — منطقة غائرة بحقول محدَّدة ═══ */
+    #addNoteModal .ve-panel {
+      margin-top:12px; padding:13px; background:var(--bg);
+      border:1px solid var(--border); border-radius:11px;
+      display:flex; flex-direction:column; gap:13px;
+    }
+    #addNoteModal .ve-field { display:flex; flex-direction:column; gap:5px; }
+    #addNoteModal .ve-field > label {
+      font-size:.72rem; font-weight:800; color:var(--text-secondary);
+      letter-spacing:.02em;
+    }
+    /* الحقل هنا محدَّد (لا سطر عارٍ) — لوحة الإجراء نموذجٌ مستقلّ داخل النموذج.
+       يغلب قاعدة «!important» العامّة للحقول في المحرّر. */
+    #addNoteModal .ve-panel input,
+    #addNoteModal .ve-panel select,
+    #addNoteModal .ve-panel textarea {
+      background:var(--surface) !important; border:1px solid var(--border-strong) !important;
+      border-radius:9px !important; padding:9px 11px !important;
+      font-family:inherit; font-size:.88rem; color:var(--text-primary);
+      width:100%; box-sizing:border-box; line-height:1.6;
+    }
+    #addNoteModal .ve-panel input:focus,
+    #addNoteModal .ve-panel select:focus,
+    #addNoteModal .ve-panel textarea:focus {
+      border-color:var(--primary) !important;
+      box-shadow:0 0 0 3px var(--primary-faint) !important;
+    }
+    #addNoteModal .ve-panel input[type="date"] { min-height:38px; }
+    #addNoteModal .ve-note {
+      display:flex; align-items:flex-start; gap:7px; margin:0;
+      font-size:.72rem; color:var(--text-muted); line-height:1.6;
+    }
+    #addNoteModal .ve-note i { color:var(--primary); margin-top:2px; flex-shrink:0; font-size:.78rem; }
+
+    /* — مقسّم (segmented control) لنوع الطلب — */
+    #addNoteModal .ve-seg {
+      display:flex; gap:3px; padding:3px;
+      background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    }
+    #addNoteModal .ve-seg .test-kind-opt {
+      flex:1; border:none; background:transparent; border-radius:8px;
+      padding:8px 6px; font-size:.8rem; font-weight:800; color:var(--text-muted);
+      box-shadow:none; transition:background .15s, color .15s;
+    }
+    #addNoteModal .ve-seg .test-kind-opt.active {
+      background:var(--primary); color:#fff;
+    }
+    #addNoteModal .ve-seg .test-kind-opt.active i { color:#fff; }
+
+    /* — رقائق: إدراج سريع (تحاليل) + راديو (نوع جهاز التقويم) — */
+    #addNoteModal .ve-chips, #addNoteModal .ve-chipset { display:flex; flex-wrap:wrap; gap:6px; }
+    #addNoteModal .ve-chip {
+      font-family:inherit; font-size:.73rem; font-weight:800; cursor:pointer;
+      padding:6px 12px; border-radius:999px; white-space:nowrap;
+      background:var(--surface); border:1px solid var(--border); color:var(--text-secondary);
+      transition:border-color .15s, color .15s, background .15s;
+    }
+    #addNoteModal .ve-chip:hover { border-color:var(--primary); color:var(--primary); }
+    #addNoteModal .ve-chipset .ve-chip.active {
+      background:var(--primary-light); border-color:var(--primary); color:var(--primary);
+    }
+
+    /* — رأس قائمة المراكز داخل اللوحة — */
+    #addNoteModal .ve-panel-sub {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      font-size:.74rem; font-weight:800; color:var(--text-secondary);
+    }
+    #addNoteModal .ve-panel-manage {
+      font-size:.7rem; color:var(--primary); background:none; border:none;
+      cursor:pointer; font-family:inherit; font-weight:800; padding:0;
+    }
+
+    /* — حالة فارغة لقائمة المراكز — */
+    #addNoteModal .ve-empty {
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+      text-align:center; padding:16px 10px;
+    }
+    #addNoteModal .ve-empty-ic {
+      width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+      background:var(--surface); border:1px solid var(--border); color:var(--text-muted); font-size:.9rem;
+    }
+    #addNoteModal .ve-empty-t { font-size:.74rem; color:var(--text-muted); line-height:1.5; }
+    #addNoteModal .ve-empty-btn {
+      display:inline-flex; align-items:center; gap:6px;
+      font-family:inherit; font-size:.74rem; font-weight:800; cursor:pointer;
+      padding:7px 14px; border-radius:9px;
+      background:var(--surface); border:1px solid var(--primary); color:var(--primary);
+    }
+    #addNoteModal .ve-empty-btn:hover { background:var(--primary-light); }
+
     /* ── شريط التنبيه = مكوّن Alert (حدّ جانبي + أيقونة تحذير) لا شريط مصمت ── */
     .ve-danger {
       background:var(--c-warn-bg, #fef3c7);

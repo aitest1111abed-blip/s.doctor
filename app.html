@@ -16,7 +16,7 @@
 
   <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
   <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=262">
+  <link rel="stylesheet" href="styles.css?v=263">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -1290,16 +1290,20 @@
                 <input type="checkbox" id="labTestToggle" onchange="toggleTestWrap(this.checked)" style="width:17px;height:17px;accent-color:var(--primary);cursor:pointer;">
                 طلب تحليل / أشعة
               </label>
-              <div id="labTestWrap" style="display:none;margin-top:12px;">
-                <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <div id="labTestWrap" class="ve-panel" style="display:none;">
+                <div class="ve-seg">
                   <div class="test-kind-opt active" id="testKindLabBtn" onclick="setTestKind('lab')"><i class="fas fa-vials"></i> تحليل مخبري</div>
                   <div class="test-kind-opt" id="testKindImgBtn" onclick="setTestKind('imaging')"><i class="fas fa-x-ray"></i> أشعة</div>
                 </div>
                 <input type="hidden" id="testKind" value="lab">
-                <textarea id="labTestText" rows="1" placeholder="اكتب نوع التحليل المطلوب..."></textarea>
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
-                  <span id="testListLabel" style="font-size:.74rem;font-weight:700;color:var(--text-secondary);">إرسال إلى مخبر</span>
-                  <button onclick="openContactsManager()" title="إدارة جهات التواصل" style="font-size:.7rem;color:var(--primary);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;"><i class="fas fa-gear"></i> إدارة</button>
+                <div class="ve-field">
+                  <label for="labTestText">المطلوب</label>
+                  <textarea id="labTestText" rows="1" placeholder="اكتب نوع التحليل المطلوب..."></textarea>
+                  <div class="ve-chips" id="labQuickChips"></div>
+                </div>
+                <div class="ve-panel-sub">
+                  <span id="testListLabel">إرسال إلى مخبر</span>
+                  <button onclick="openContactsManager()" title="إدارة جهات التواصل" class="ve-panel-manage"><i class="fas fa-gear"></i> إدارة</button>
                 </div>
                 <div id="editorTestList"></div>
               </div>
@@ -1311,11 +1315,16 @@
                 <input type="checkbox" id="veSurgeryToggle" onchange="veToggleSurgery(this.checked)" style="width:17px;height:17px;accent-color:var(--primary);cursor:pointer;">
                 <i class="fas fa-briefcase-medical" style="color:var(--primary);margin:0 4px;"></i> جدولة عملية جراحية
               </label>
-              <div id="veSurgeryWrap" style="display:none;margin-top:12px;">
-                <input type="text" id="veSurgeryName" placeholder="اسم العملية" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
-                <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin:12px 0 2px;">تاريخ العملية المجدول</label>
-                <input type="date" id="veSurgeryDate" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
-                <p style="font-size:.72rem;color:var(--text-muted);margin:9px 0 0;line-height:1.6;">تُحفظ في «العمليات الجراحية» مرتبطةً بهذه الزيارة عند حفظ الزيارة.</p>
+              <div id="veSurgeryWrap" class="ve-panel" style="display:none;">
+                <div class="ve-field">
+                  <label for="veSurgeryName">اسم العملية</label>
+                  <input type="text" id="veSurgeryName" placeholder="مثال: استئصال زائدة">
+                </div>
+                <div class="ve-field">
+                  <label for="veSurgeryDate">تاريخ العملية المجدول</label>
+                  <input type="date" id="veSurgeryDate">
+                </div>
+                <p class="ve-note"><i class="fas fa-circle-info"></i> تُحفظ في «العمليات الجراحية» مرتبطةً بهذه الزيارة عند حفظ الزيارة.</p>
               </div>
             </div>
 
@@ -1325,16 +1334,21 @@
                 <input type="checkbox" id="veOrthoToggle" onchange="veToggleOrtho(this.checked)" style="width:17px;height:17px;accent-color:var(--primary);cursor:pointer;">
                 <i class="fas fa-teeth-open" style="color:var(--primary);margin:0 4px;"></i> المريض يحتاج تقويم
               </label>
-              <div id="veOrthoWrap" style="display:none;margin-top:12px;">
-                <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin:0 0 2px;">نوع الجهاز</label>
-                <select id="veOrthoType" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
-                  <option value="fixed">ثابت (معدني/خزفي)</option>
-                  <option value="removable">متحرّك</option>
-                  <option value="clear">شفّاف (Aligners)</option>
-                </select>
-                <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-secondary);margin:12px 0 2px;">تاريخ البدء المتوقّع</label>
-                <input type="date" id="veOrthoDate" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-strong);border-radius:0;padding:7px 2px;font-family:inherit;font-size:.9rem;color:var(--text-primary);box-sizing:border-box;">
-                <p style="font-size:.72rem;color:var(--text-muted);margin:9px 0 0;line-height:1.6;">تبدأ دورة في «تقويم الأسنان» مرتبطةً بهذه الزيارة عند حفظ الزيارة.</p>
+              <div id="veOrthoWrap" class="ve-panel" style="display:none;">
+                <div class="ve-field">
+                  <label>نوع الجهاز</label>
+                  <div class="ve-chipset" role="radiogroup" aria-label="نوع الجهاز">
+                    <button type="button" class="ve-chip active" data-val="fixed" onclick="_veSetOrthoType('fixed')" role="radio" aria-checked="true">ثابت</button>
+                    <button type="button" class="ve-chip" data-val="removable" onclick="_veSetOrthoType('removable')" role="radio" aria-checked="false">متحرّك</button>
+                    <button type="button" class="ve-chip" data-val="clear" onclick="_veSetOrthoType('clear')" role="radio" aria-checked="false">شفّاف</button>
+                  </div>
+                  <input type="hidden" id="veOrthoType" value="fixed">
+                </div>
+                <div class="ve-field">
+                  <label for="veOrthoDate">تاريخ البدء المتوقّع</label>
+                  <input type="date" id="veOrthoDate">
+                </div>
+                <p class="ve-note"><i class="fas fa-circle-info"></i> تبدأ دورة في «تقويم الأسنان» مرتبطةً بهذه الزيارة عند حفظ الزيارة.</p>
               </div>
             </div>
 
@@ -2038,7 +2052,7 @@
   </div>
 
   <script src="config.js"></script>
-  <script src="script.js?v=227"></script>
+  <script src="script.js?v=228"></script>
   <!-- 🌱 بذّار تجريبي (مُفعَّل فقط عند #seed بالرابط) — احذف هذا السطر قبل بيع النسخة -->
   <script src="dev-seed.js?v=219"></script>
   <!-- 🌊 خلفية متحرّكة (WebGL) — معطّلة حالياً؛ الخلفية النعناعية الثابتة مرسومة بـCSS في styles.css.

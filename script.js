@@ -4676,7 +4676,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       _testBuf = { lab: v.labTest || '', imaging: v.imagingTest || '' };
       var hasAny = !!((_testBuf.lab && _testBuf.lab.trim()) || (_testBuf.imaging && _testBuf.imaging.trim()));
       document.getElementById('labTestToggle').checked = hasAny;
-      document.getElementById('labTestWrap').style.display = hasAny ? 'block' : 'none';
+      document.getElementById('labTestWrap').style.display = hasAny ? '' : 'none';
       _curTestKind = (v.testKind === 'imaging') ? 'imaging' : 'lab';
       document.getElementById('testKind').value = _curTestKind;
       document.getElementById('labTestText').value = _testBuf[_curTestKind] || '';
@@ -4707,9 +4707,29 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     };
 
     window.toggleTestWrap = function(checked) {
-      document.getElementById('labTestWrap').style.display = checked ? 'block' : 'none';
+      document.getElementById('labTestWrap').style.display = checked ? '' : 'none';
       if (checked) veAutoGrow(document.getElementById('labTestText'));   // لم يكن مرئياً فلم يُقَس
     };
+    // رقائق إدراج سريع — أكثر الطلبات شيوعاً حسب الفئة
+    var _VE_LAB_CHIPS = {
+      lab: ['CBC صورة دم', 'CRP', 'سكر صائم', 'وظائف كلى', 'وظائف كبد', 'شوارد', 'HbA1c', 'بول عام', 'زمرة دم', 'TSH'],
+      imaging: ['صورة صدر', 'إيكو قلب', 'CT دماغ', 'رنين للركبة', 'إيكو بطن', 'صورة عمود فقري', 'دوبلر أوعية', 'ماموغرام']
+    };
+    function _veRenderLabChips(kind) {
+      var box = document.getElementById('labQuickChips'); if (!box) return;
+      var ta = document.getElementById('labTestText');
+      box.innerHTML = (_VE_LAB_CHIPS[kind === 'imaging' ? 'imaging' : 'lab'] || []).map(function(t) {
+        return '<button type="button" class="ve-chip" data-t="' + _cfAttr(t) + '">+ ' + escapeHtml(t) + '</button>';
+      }).join('');
+      Array.prototype.forEach.call(box.querySelectorAll('.ve-chip'), function(c) {
+        c.addEventListener('click', function() {
+          if (!ta) return;
+          var cur = (ta.value || '').trim();
+          ta.value = cur ? (cur + '، ' + c.getAttribute('data-t')) : c.getAttribute('data-t');
+          veAutoGrow(ta); ta.focus();
+        });
+      });
+    }
     function _applyTestKindUI(kind) {
       var isImg = kind === 'imaging';
       document.getElementById('testKindLabBtn').classList.toggle('active', !isImg);
@@ -4718,6 +4738,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         ? 'اكتب نوع الصورة الشعاعية المطلوبة (مثال: صورة صدر، إيكو قلب، CT دماغ، رنين مغناطيسي للركبة...)'
         : 'اكتب نوع التحليل المطلوب (مثال: صورة دم كاملة CBC، وظائف كلى، سكر صائم...)';
       var tl = document.getElementById('testListLabel'); if (tl) tl.textContent = isImg ? 'إرسال إلى مركز أشعة' : 'إرسال إلى مخبر';
+      _veRenderLabChips(kind);
       renderEditorContacts();
     }
     window.setTestKind = function(kind) {
@@ -4751,7 +4772,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         + '</div></div>';
     }
     function _editorEmpty(t) {
-      return '<div style="font-size:.74rem;color:var(--text-muted);text-align:center;padding:10px 6px;line-height:1.6;">' + t + '<br><button onclick="openContactsManager()" style="background:none;border:none;color:var(--primary);font-weight:700;cursor:pointer;font-family:inherit;"><i class="fas fa-plus"></i> إضافة جهة تواصل</button></div>';
+      return '<div class="ve-empty">'
+        + '<span class="ve-empty-ic"><i class="fas fa-address-book"></i></span>'
+        + '<span class="ve-empty-t">' + escapeHtml(t) + '</span>'
+        + '<button type="button" class="ve-empty-btn" onclick="openContactsManager()"><i class="fas fa-plus"></i> إضافة جهة</button>'
+        + '</div>';
     }
     window.renderEditorContacts = function() {
       var ph = document.getElementById('editorPharmacyList');
@@ -7218,6 +7243,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var wrap = document.getElementById('veOrthoWrap');
       if (wrap) wrap.style.display = checked ? '' : 'none';
     };
+    // رقائق راديو لنوع جهاز التقويم — تكتب في الحقل المخفيّ #veOrthoType
+    window._veSetOrthoType = function(val) {
+      var hid = document.getElementById('veOrthoType'); if (hid) hid.value = val;
+      var set = document.querySelector('#veOrthoWrap .ve-chipset'); if (!set) return;
+      Array.prototype.forEach.call(set.querySelectorAll('.ve-chip'), function(c) {
+        var on = c.getAttribute('data-val') === val;
+        c.classList.toggle('active', on);
+        c.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+    };
     function _veLoadOrtho(p, v) {
       var card = document.getElementById('veOrthoCard');
       if (!card) return;
@@ -7230,10 +7265,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var dateEl = document.getElementById('veOrthoDate');
       if (linked) {
         toggle.checked = true; wrap.style.display = '';
-        typeEl.value = linked.type || 'fixed'; dateEl.value = linked.startDate || '';
+        _veSetOrthoType(linked.type || 'fixed'); dateEl.value = linked.startDate || '';
       } else {
         toggle.checked = false; wrap.style.display = 'none';
-        typeEl.value = 'fixed'; dateEl.value = '';
+        _veSetOrthoType('fixed'); dateEl.value = '';
       }
     }
     function _veFlushOrtho(p, v) {
