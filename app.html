@@ -16,7 +16,7 @@
 
   <!-- طبقة التوكنز — تُحمَّل قبل styles.css (راجع library/docbook-design-upgrade.md) -->
   <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=225">
+  <link rel="stylesheet" href="styles.css?v=227">
 
   <!-- منع ومضة الصفحة الرئيسية قبل شاشة الإعداد — يُنفَّذ في الـhead قبل أول رسم.
        يُخفى محتوى التطبيق فوراً إن كان الحساب يحتاج إعداداً (حسب المخزّن المحلي)،
@@ -277,69 +277,39 @@
       </div>
     </header>
 
-    <!-- ====== FULL-HEIGHT COLLAPSIBLE RAIL ====== -->
-    <nav class="rail" id="mainRail" role="navigation" aria-label="التنقل الرئيسي">
+    <!-- ====== شريط التنقّل العلوي (ديسكتوب) — بديل الشريط الجانبي ======
+         يحتفظ بمعرّف mainRail وبمعرّفات sidebar* + صنف sidebar-item
+         فيعمل setActiveSection وربط الأحداث في script.js بلا أي تغيير. -->
+    <nav class="topbar" id="mainRail" role="navigation" aria-label="التنقل الرئيسي">
 
-      <!-- صورة الطبيب + الاسم -->
-      <div class="rail-profile">
-        <div class="rail-avatar" id="sidebarDoctorAvatar"><i class="fas fa-user-md"></i></div>
-        <div class="rail-profile-info">
-          <div class="rail-profile-name" id="sidebarDoctorName">لوحة الطبيب</div>
-          <div class="rail-profile-date" id="sidebarDoctorDate">اليوم، التاريخ</div>
-        </div>
+      <div class="topbar-brand">
+        <span class="topbar-mark"><img src="./logo.png" style="width:20px;height:20px;object-fit:contain;filter:brightness(0) invert(1);" alt="" onerror="this.style.display='none'"></span>
+        DocBook
       </div>
 
-      <!-- زر الطي / الفتح -->
-      <button class="rail-toggle" onclick="toggleRail()" data-tip="طي / فتح" aria-label="طي / فتح القائمة">
-        <div class="rail-toggle-icon">
-          <svg id="railArrowIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .3s cubic-bezier(.4,0,.2,1);">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </div>
-      </button>
-
-      <!-- عناصر التنقل -->
-      <div class="rail-nav">
-        <button class="rail-nav-btn sidebar-item active" id="sidebarHome" data-tip="الرئيسية" aria-label="الصفحة الرئيسية">
-          <div class="rail-nav-icon"><i class="fas fa-house"></i></div>
-          <div class="rail-nav-label">
-            <span class="rail-nav-label-main">الصفحة الرئيسية</span>
-            <span class="rail-nav-label-sub">لمحة عن يومك</span>
-          </div>
+      <div class="topbar-nav">
+        <button class="topbar-item sidebar-item active" id="sidebarHome" aria-label="الصفحة الرئيسية">
+          <i class="fas fa-house"></i><span>الرئيسية</span>
         </button>
-        <button class="rail-nav-btn sidebar-item" id="sidebarCalendar" data-tip="المواعيد" aria-label="المواعيد المؤكدة">
-          <div class="rail-nav-icon"><i class="fas fa-calendar-alt"></i></div>
-          <div class="rail-nav-label">
-            <span class="rail-nav-label-main">المواعيد المؤكدة</span>
-            <span class="rail-nav-label-sub">الروزنامة اليومية</span>
-          </div>
+        <button class="topbar-item sidebar-item" id="sidebarCalendar" aria-label="المواعيد المؤكدة">
+          <i class="fas fa-calendar-alt"></i><span>المواعيد المؤكدة</span>
         </button>
-        <button class="rail-nav-btn sidebar-item" id="sidebarPatients" data-tip="المرضى" aria-label="دفتر المرضى">
-          <div class="rail-nav-icon"><i class="fas fa-address-book"></i></div>
-          <div class="rail-nav-label">
-            <span class="rail-nav-label-main">دفتر المرضى</span>
-            <span class="rail-nav-label-sub">سجل المرضى والزيارات</span>
-          </div>
-        </button>
-        <div class="rail-divider"></div>
-        <button class="rail-nav-btn sidebar-item" id="sidebarSettingsBtn" onclick="openSettingsModal()" data-tip="الإعدادات" aria-label="الإعدادات">
-          <div class="rail-nav-icon"><i class="fas fa-cog"></i></div>
-          <div class="rail-nav-label">
-            <span class="rail-nav-label-main">الإعدادات</span>
-            <span class="rail-nav-label-sub">ضبط التطبيق</span>
-          </div>
+        <button class="topbar-item sidebar-item" id="sidebarPatients" aria-label="دفتر المرضى">
+          <i class="fas fa-address-book"></i><span>دفتر المرضى</span>
         </button>
       </div>
 
-      <!-- أسفل: DocBook -->
-      <div class="rail-bottom">
-        <div class="rail-bottom-icon">
-          <img src="./logo.png" style="width:42px;height:42px;object-fit:contain;filter:brightness(0) invert(1);" alt="DocBook" onerror="this.style.display='none'">
-        </div>
-        <div class="rail-bottom-text">
-          <span class="rail-bottom-text-name">DocBook</span>
-          <span class="rail-bottom-text-sub">Smart Clinic Management</span>
-        </div>
+      <div class="topbar-end">
+        <button class="topbar-icon-btn" id="sidebarSettingsBtn" onclick="openSettingsModal()" aria-label="الإعدادات" title="الإعدادات">
+          <i class="fas fa-cog"></i>
+        </button>
+        <button class="topbar-chip" onclick="openSettingsModal()" aria-label="الملف الشخصي والإعدادات">
+          <span class="topbar-avatar" id="sidebarDoctorAvatar"><i class="fas fa-user-md"></i></span>
+          <span class="topbar-chip-meta">
+            <b id="sidebarDoctorName">لوحة الطبيب</b>
+            <i id="sidebarDoctorDate">اليوم، التاريخ</i>
+          </span>
+        </button>
       </div>
 
     </nav>

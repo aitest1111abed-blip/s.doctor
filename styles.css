@@ -236,11 +236,12 @@
     .sidebar { display:none; }
     .rail { display:none; }
     @media (min-width: 768px) {
-      body { padding-right: var(--rail-width); transition: padding-right .3s cubic-bezier(.4,0,.2,1); }
-      body.rail-expanded { padding-right: var(--rail-width-open); }
-      body.sidebar-collapsed { padding-right: 0 !important; }
-      body.sidebar-collapsed .rail { display: none; }
-      main { flex-direction: column !important; margin-right: 0 !important; }
+      /* الشريط صار علوياً (.topbar) — الجسم لم يعد يُزاح جانبياً، بل يُترك فراغ علوي بمقدار ارتفاع الشريط */
+      body { padding-right: 0; }
+      body.rail-expanded, body.sidebar-collapsed { padding-right: 0 !important; }
+      main { flex-direction: column !important; margin-right: 0 !important; padding-top: 84px !important; }
+      body.editor-open main { padding-top: 20px !important; }
+      body.editor-open .topbar { display: none !important; }
       .rail {
         display: flex; flex-direction: column;
         position: fixed; top: 0; right: 0; bottom: 0;
@@ -346,7 +347,85 @@
       font-size: 7px; color: rgba(255,255,255,.5);
       white-space: nowrap; letter-spacing: .3px; font-weight: 500; margin-top: 2px;
     }
-    .sidebar-item { /* managed by rail-nav-btn */ }
+    .sidebar-item { /* managed by rail-nav-btn / topbar-item */ }
+
+    /* ============================================================
+       شريط التنقّل العلوي (ديسكتوب) — بديل الشريط الجانبي .rail
+       نمط تبويبات: المفعّل حبّة تركوازية مصمتة، الباقي شفاف.
+       يحافظ على معرّفات .rail القديمة (sidebar-item / #sidebarHome…)
+       فيعمل مع setActiveSection بلا أي تغيير في script.js.
+       ============================================================ */
+    .topbar { display: none; }
+    @media (min-width: 768px) {
+      .topbar {
+        display: flex; align-items: center; gap: 24px;
+        position: fixed; top: 0; inset-inline: 0; height: 64px;
+        padding: 0 24px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(15,23,42,.05);
+        z-index: var(--z-rail);
+      }
+      .topbar-brand {
+        display: flex; align-items: center; gap: 9px; flex-shrink: 0;
+        font-weight: 800; font-size: 1.05rem; color: var(--text-primary); letter-spacing: .2px;
+      }
+      .topbar-mark {
+        width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+        background: linear-gradient(140deg, var(--rail-bg-top), var(--rail-bg-bottom));
+        display: flex; align-items: center; justify-content: center;
+      }
+      .topbar-nav {
+        display: flex; align-items: center; gap: 4px;
+        flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none;
+      }
+      .topbar-nav::-webkit-scrollbar { display: none; }
+      .topbar-item {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 16px; border-radius: var(--radius-btn);
+        font-family: inherit; font-size: .9rem; font-weight: 700;
+        color: var(--text-muted); background: none; border: none; cursor: pointer;
+        white-space: nowrap;
+        transition: background .15s, color .15s;
+      }
+      .topbar-item i { font-size: .95rem; width: 1.1em; text-align: center; }
+      .topbar-item:hover:not(.active) { background: var(--primary-bg-06); color: var(--text-primary); }
+      .topbar-item.active { background: var(--primary); color: #fff; font-weight: 800; }
+      .topbar-item.active i { color: #fff; }
+      .topbar-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+
+      .topbar-end { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+      .topbar-icon-btn {
+        width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+        border: 1px solid var(--border); background: var(--bg); color: var(--text-muted);
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: border-color .15s, color .15s;
+      }
+      .topbar-icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+      .topbar-icon-btn:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+      .topbar-chip {
+        display: flex; align-items: center; gap: 9px;
+        padding: 4px 10px 4px 5px; border-radius: 11px;
+        border: 1px solid var(--border); background: var(--bg);
+        cursor: pointer; font-family: inherit;
+        transition: border-color .15s;
+      }
+      .topbar-chip:hover { border-color: var(--primary); }
+      .topbar-chip:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+      .topbar-avatar {
+        width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; overflow: hidden;
+        background: linear-gradient(140deg, var(--primary), #115e59); color: #fff;
+        display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .82rem;
+      }
+      .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .topbar-chip-meta { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; text-align: start; }
+      .topbar-chip-meta b { font-size: .82rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+      .topbar-chip-meta i { font-size: .68rem; font-style: normal; color: var(--text-muted); white-space: nowrap; }
+    }
+    @media (min-width: 768px) and (max-width: 940px) {
+      .topbar-chip-meta { display: none; }
+      .topbar { gap: 16px; padding: 0 16px; }
+    }
 
     /* ===== أشرطة التمرير ===== */
     ::-webkit-scrollbar { width: 10px; height: 10px; }
