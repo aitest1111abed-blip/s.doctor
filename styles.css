@@ -1,8 +1,7 @@
 /* ===== Main Styles ===== */
     :root {
-      /* أرضية الصفحة — رمادي-سيج خفيف مقصود (لمسة خضرة تناغم التركوازي)،
-         أغمق قليلاً من الأبيض ليبرز الكروت والشريط العائم فوقه. */
-      --page:      #eef1f0;
+      /* أرضية الصفحة — بيج كريمي واضح، تُبرز الكروت والشريط الأبيض فوقها. */
+      --page:      #ece3d0;
       --bg:        #eef1f6;
       --surface:   #ffffff;
       --border:    #e7ebf1;
@@ -50,26 +49,25 @@
       --shadow-lg: 0 16px 40px rgba(15,23,42,.10);
     }
 
-    /* ===== الوضع الليلي ===== */
+    /* ===== الوضع الليلي — أسود محايد على طراز بوتلي (لا أزرق حبري) ===== */
     body.theme-dark {
-      /* أرضية داكنة بلمسة سيج (تناغم النهاري) — أغمق قليلاً من الأسطح لتبرز فوقها */
-      --page:#0f1412;
-      --bg:#0b1220; --surface:#16202e; --border:#27344a; --border-strong:#3a4a63;
-      --text-primary:#e8edf4; --text-secondary:#c3cdda; --text-muted:#8b99ad;
-      --primary-light:#0f3b36; --primary-faint:#0f1a28;
-      --glass-bg:rgba(22,32,46,.7); --glass-border:#27344a; --glass-hover:rgba(40,52,74,.6);
-      --red-light:#3a1c1c; --green-light:#10331f; --amber-light:#3a2e10;
-      --day-line:#38e59d; /* يبقى النيون الأخضر كما هو في الوضع الداكن */
-      --grid-line:#20293c; --grid-line-soft:#1b2333;
+      --page:#0a0a0a;
+      --bg:#131313; --surface:#171717; --border:#272727; --border-strong:#383838;
+      --text-primary:#f4f4f5; --text-secondary:#d1d1d3; --text-muted:#8f8f92;
+      --primary-light:#10312e; --primary-faint:#0f1c1a;
+      --glass-bg:rgba(20,20,20,.72); --glass-border:#272727; --glass-hover:rgba(42,42,42,.6);
+      --red-light:#331717; --green-light:#12331f; --amber-light:#33290f;
+      --day-line:#38e59d;
+      --grid-line:#1f1f1f; --grid-line-soft:#181818;
       --today-wash:linear-gradient(180deg, rgba(45,212,191,.06), rgba(45,212,191,.02));
-      --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow:0 2px 10px rgba(0,0,0,.4);
-      --shadow-md:0 6px 20px rgba(0,0,0,.45); --shadow-lg:0 16px 44px rgba(0,0,0,.5);
+      --shadow-sm:0 1px 2px rgba(0,0,0,.5); --shadow:0 2px 10px rgba(0,0,0,.5);
+      --shadow-md:0 6px 20px rgba(0,0,0,.55); --shadow-lg:0 16px 44px rgba(0,0,0,.6);
     }
     body.theme-dark .form-input,
     body.theme-dark input[type="text"], body.theme-dark input[type="tel"],
     body.theme-dark input[type="date"], body.theme-dark input[type="email"],
     body.theme-dark input[type="password"], body.theme-dark select, body.theme-dark textarea#noteText {
-      background:#0f1a28; color:var(--text-primary); border-color:var(--border);
+      background:#131313; color:var(--text-primary); border-color:var(--border);
     }
     body.theme-dark .form-input::placeholder, body.theme-dark input::placeholder, body.theme-dark textarea::placeholder { color:#64748b; }
 
@@ -77,7 +75,7 @@
     body.theme-dark [style*="background:white"],
     body.theme-dark [style*="background: white"],
     body.theme-dark [style*="background:#fff"],
-    body.theme-dark [style*="background:#ffffff"] { background:#16202e !important; }
+    body.theme-dark [style*="background:#ffffff"] { background:#171717 !important; }
     /* الكريمي/الأصفر الفاتح (الوصفة) → كهرماني داكن */
     body.theme-dark [style*="background:#fffbeb"],
     body.theme-dark [style*="background:#fef3c7"],
@@ -89,22 +87,22 @@
     body.theme-dark [style*="background:#fff5f5"],
     body.theme-dark [style*="background:#eff6ff"],
     body.theme-dark [style*="background:#f0fdf4"],
-    body.theme-dark [style*="background:#ecfdf5"] { background:#0f1a28 !important; }
+    body.theme-dark [style*="background:#ecfdf5"] { background:#131313 !important; }
     /* أسطح تستخدم var(--surface-alt) (مثل نموذج جهات التواصل) */
-    body.theme-dark [style*="var(--surface-alt"] { background:#0f1a28 !important; }
+    body.theme-dark [style*="var(--surface-alt"] { background:#131313 !important; }
     /* أيقونات بطاقات ملخص الرئيسية الملوّنة → دوائر داكنة (الأيقونة الملوّنة تبقى) */
-    body.theme-dark .home-mini-card [style*="width:52px"] { background:#0f1a28 !important; }
+    body.theme-dark .home-mini-card [style*="width:52px"] { background:#131313 !important; }
     /* أزرار FAB البيضاء */
-    body.theme-dark .doc-fab-pill { background:#16202e !important; box-shadow:0 4px 18px rgba(0,0,0,.5); }
-    body.theme-dark .doc-fab-pill-label { color:#e8edf4 !important; }
-    body.theme-dark .doc-fab-pill-sublabel:hover { background:#27344a !important; color:#c3cdda !important; }
+    body.theme-dark .doc-fab-pill { background:#171717 !important; box-shadow:0 4px 18px rgba(0,0,0,.5); }
+    body.theme-dark .doc-fab-pill-label { color:var(--text-primary) !important; }
+    body.theme-dark .doc-fab-pill-sublabel:hover { background:#272727 !important; color:var(--text-secondary) !important; }
     /* الزر الثانوي: يعتمد التوكنز الآن وينقلب تلقائياً — لا حاجة لـ override هنا */
     /* نصوص داكنة ثابتة فوق أسطح داكنة → فاتحة */
     body.theme-dark [style*="color:#1e293b"], body.theme-dark [style*="color:#333"], body.theme-dark [style*="color:#1a1a1a"] { color:var(--text-primary) !important; }
     /* الشريط السفلي للموبايل + النوافذ المنبثقة (تعتمد المتغيّرات أصلاً) */
     body.theme-dark .modal-overlay { background: rgba(0,0,0,.55); }
     /* بطاقات أيقونات عامة فاتحة */
-    body.theme-dark .card-icon, body.theme-dark .stat-icon { background:#0f3b36 !important; }
+    body.theme-dark .card-icon, body.theme-dark .stat-icon { background:#10312e !important; }
     /* أيقونة عنوان القسم بلون النافبار (متدرّج) في الوضعين */
     body.theme-dark .card-icon { background:linear-gradient(180deg,#158078,#0b4d48) !important; color:#fff !important; }
 
@@ -434,10 +432,10 @@
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     * { scrollbar-color: #cbd5e1 transparent; }
     /* داكنة في الوضع الليلي */
-    body.theme-dark ::-webkit-scrollbar-track { background: #0b1220; }
-    body.theme-dark ::-webkit-scrollbar-thumb { background: #2b3a52; }
-    body.theme-dark ::-webkit-scrollbar-thumb:hover { background: #3a4a63; }
-    body.theme-dark, body.theme-dark * { scrollbar-color: #2b3a52 #0b1220; }
+    body.theme-dark ::-webkit-scrollbar-track { background: #0a0a0a; }
+    body.theme-dark ::-webkit-scrollbar-thumb { background: #2e2e2e; }
+    body.theme-dark ::-webkit-scrollbar-thumb:hover { background: #383838; }
+    body.theme-dark, body.theme-dark * { scrollbar-color: #2e2e2e #0a0a0a; }
 
     .card-icon { width:40px; height:40px; border-radius:11px; background:linear-gradient(180deg,#158078,#0b4d48); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1rem; flex-shrink:0; }
     .card-subtitle { font-size:0.72rem; color:var(--text-muted); font-weight:400; }
@@ -1071,7 +1069,7 @@
     body.theme-dark .contact-type-imaging { background:#2e1d4a; color:#c4a3f5; }
     /* وضوح نص الكتابة في الوضع الليلي داخل محرّر الزيارة */
     body.theme-dark #diagnosisText,
-    body.theme-dark #labTestText { background:#0f1a28 !important; color:#e8edf4 !important; border-color:#27344a !important; }
+    body.theme-dark #labTestText { background:#131313 !important; color:var(--text-primary) !important; border-color:#272727 !important; }
     body.theme-dark #diagnosisText::placeholder,
     body.theme-dark #labTestText::placeholder,
     body.theme-dark #prescriptionText::placeholder { color:#7c8aa0 !important; }
@@ -1626,7 +1624,7 @@
     .msum.rem   .msum-ic { background:#dbeafe; color:#2563eb; } .msum.rem   .msum-n { color:#2563eb; }
     .msum.vis   .msum-ic { background:#dcfce7; color:#16a34a; } .msum.vis   .msum-n { color:#16a34a; }
     .msum.abs   .msum-ic { background:#fee2e2; color:#dc2626; } .msum.abs   .msum-n { color:#dc2626; }
-    body.theme-dark .msum.total .msum-ic { background:#0f3b36; color:#2dd4bf; } body.theme-dark .msum.total .msum-n { color:#2dd4bf; }
+    body.theme-dark .msum.total .msum-ic { background:#10312e; color:#2dd4bf; } body.theme-dark .msum.total .msum-n { color:#2dd4bf; }
     body.theme-dark .msum.rem   .msum-ic { background:#13243d; color:#60a5fa; } body.theme-dark .msum.rem   .msum-n { color:#60a5fa; }
     body.theme-dark .msum.vis   .msum-ic { background:#0e2e1c; color:#4ade80; } body.theme-dark .msum.vis   .msum-n { color:#4ade80; }
     body.theme-dark .msum.abs   .msum-ic { background:#3a1c1c; color:#f87171; } body.theme-dark .msum.abs   .msum-n { color:#f87171; }
