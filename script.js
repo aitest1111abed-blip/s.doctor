@@ -5372,8 +5372,32 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     // تهريب قيمة سمة HTML (للاقتباس المزدوج)
     function _cfAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
+    // ===== تجميع حقول القياسات حسب الجهاز (لمحرّر الزيارة) =====
+    // خريطة كلمات مفتاحية → مجموعة. المطابقة تقريبية؛ ما لا يُطابق يقع في «عامة».
+    var _VE_FIELD_GROUPS = [
+      ['نسائية وتوليدية', ['طمث','حيض','دورة شهر','حمل','ولاد','إجهاض','إسقاط','lmp','edd','gpa','pap','مسحة','عنق الرحم','رحم','مبيض','ثدي','رضاع','مخاض','جنين','نفاس','تبويض']],
+      ['قلبية', ['قلب','ضغط الدم','ecg','تخطيط القلب','إيكو','echo','نبض','خفقان','ذبحة','شريان','كوليسترول','دهون الدم','وذمة']],
+      ['تنفّسية', ['تنفّس','سعال','بلغم','ربو','رئة','أزيز','بخاخ','أكسج','spo2','إصغاء الصدر','ضيق النفس']],
+      ['بولية وكلوية', ['بول','كلية','تبوّل','psa','بروستات','حصى','كرياتينين','إدرار']],
+      ['غدد وسكري', ['سكر','غلوكوز','hba1c','a1c','درق','tsh','الغدة','أنسولين']],
+      ['عينية', ['إبصار','العين','قعر العين','iop','ضغط العين','sph','cyl','axis','عدسات','نظار','بؤبؤ']],
+      ['عصبية', ['صداع','دوخة','دوار','اختلاج','نوبة','الوعي','عصب','رعاش','خدر','توازن']],
+      ['جلدية', ['آفة','طفح','حكة','الجلد','بثرة','حويصلة','صداف','أكزيما','الشعر','الظفر']],
+      ['عظمية ومفصلية', ['مفصل','عظم','الظهر','الرقبة','الركبة','الكتف','كسر','الوظيفة الحركية','عضل','غضروف','قرص','فقرة','مشية']],
+      ['أسنان وفم', ['السن','الأسنان','اللثة','تسوّس','الفم','اللسان','مضغ','إطباق','خلع','حشو','رائحة الفم']],
+      ['هضمية', ['البطن','المعدة','قولون','إسهال','إمساك','غثيان','إقياء','الكبد','المرارة','بلع','حرقة','الشهية']]
+    ];
+    function _veFieldGroup(label) {
+      var s = String(label || '').toLowerCase();
+      for (var i = 0; i < _VE_FIELD_GROUPS.length; i++) {
+        var kws = _VE_FIELD_GROUPS[i][1];
+        for (var j = 0; j < kws.length; j++) { if (s.indexOf(kws[j]) !== -1) return _VE_FIELD_GROUPS[i][0]; }
+      }
+      return 'عامة';
+    }
+
     // ===== توليد عناصر الإدخال من تعريف الحقول وملؤها بالقيم الحالية =====
-    // opts: { heading, variant }  — variant: 'form' (بطاقة المريض) | 'editor' (محرّر الزيارة: صناديق كبيرة بحدود)
+    // opts: { heading, variant }  — variant: 'form' (بطاقة المريض) | 'editor' (محرّر الزيارة)
     function buildCustomFieldInputs(container, fields, values, opts) {
       if (!container) return;
       opts = (typeof opts === 'string') ? { heading: opts } : (opts || {});   // توافق خلفي مع توقيع (heading)
@@ -5388,15 +5412,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         h.textContent = opts.heading;
         container.appendChild(h);
       }
-      // شبكة مرنة: الحقول القصيرة بأعمدة تملأ العرض، الحقول الطويلة (textarea) بعرض كامل
-      var grid = document.createElement('div');
-      // 250 لا 210: عند 210 تظهر أربعة أعمدة فتُخنق تسمية مثل «حدة الإبصار — اليمنى (OD)»
-      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 22px;align-items:start;';
       var labelCss = (variant === 'editor')
         ? 'display:block;font-weight:700;font-size:.75rem;color:var(--text-secondary);margin-bottom:1px;'
         : 'display:block;font-size:.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:5px;';
-      // في المحرّر: الحقل سطر على ورق لا صندوق رمادي — الحدّ السفلي وحده،
-      // ويتلوّن عند التركيز. (كانت كتلاً رمادية تسحب العين عن المحتوى.)
       var boxCss = 'width:100%;padding:7px 2px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;color:var(--text-primary);font-family:inherit;font-size:.92rem;box-sizing:border-box;line-height:1.85;';
       function styleInput(el, extra) {
         if (variant === 'editor') {
@@ -5407,21 +5425,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           el.className = 'form-input'; if (extra) el.style.cssText = extra;
         }
       }
-      fields.forEach(function(f) {
+      function hasVal(f) {
+        var v = values[f.id];
+        if (f.type === 'checkbox') return (v === true || v === 'true' || v === 'نعم');
+        return v != null && String(v).trim() !== '';
+      }
+      // يبني خلية حقل واحدة (عنصر <div>) ويضبط data-cfid/type على عنصر الإدخال
+      function makeCell(f) {
         var cell = document.createElement('div');
         var val = values[f.id];
         var el;
         if (f.type === 'textarea') {
           cell.style.gridColumn = '1/-1';
           var lblt = document.createElement('label'); lblt.style.cssText = labelCss; lblt.textContent = f.label || '(حقل)'; cell.appendChild(lblt);
-          // سطر واحد ينمو مع الكتابة — كان min-height ثابتاً (84/60px) من زمن
-          // الصناديق، فيبقى الخطّ السفلي بعيداً عن التسمية والحقل يبدو فارغاً
           el = document.createElement('textarea'); el.rows = 1;
           styleInput(el, 'resize:none;overflow:hidden;line-height:1.7;min-height:0;');
           el.value = (val != null ? val : '');
           el.addEventListener('input', function() { veAutoGrow(el); });
         } else if (f.type === 'checkbox') {
-          // صندوق بحدود: عنوان + مفتاح
           cell.style.cssText = (variant === 'editor')
             ? 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;'
             : 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:22px;';
@@ -5446,10 +5467,53 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         }
         el.setAttribute('data-cfid', f.id);
         el.setAttribute('data-cftype', f.type);
+        if (variant === 'editor' && !hasVal(f)) cell.classList.add('ve-cf-empty');
         cell.appendChild(el);
-        grid.appendChild(cell);
-      });
-      container.appendChild(grid);
+        return cell;
+      }
+      function newGrid() {
+        var g = document.createElement('div');
+        g.className = 've-cf-grid';
+        g.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 22px;align-items:start;';
+        return g;
+      }
+
+      // محرّر الزيارة وحقول كثيرة → مجموعات قابلة للطيّ حسب الجهاز
+      if (variant === 'editor' && fields.length > 6) {
+        var buckets = {};
+        fields.forEach(function(f) {
+          var g = _veFieldGroup(f.label);
+          (buckets[g] || (buckets[g] = [])).push(f);
+        });
+        var order = _VE_FIELD_GROUPS.map(function(x) { return x[0]; }).concat(['عامة']);
+        var visibleGroups = order.filter(function(g) { return buckets[g] && buckets[g].length; });
+        var anyValueAnywhere = fields.some(hasVal);
+        var _renderedFirst = false;
+        visibleGroups.forEach(function(gName) {
+          var gf = buckets[gName];
+          var anyVal = gf.some(hasVal);
+          var det = document.createElement('details');
+          det.className = 've-grp';
+          // افتح المجموعات ذات القيم؛ وإن كانت الزيارة فارغة تماماً افتح الأولى فقط
+          if (anyVal || visibleGroups.length === 1 || (!anyValueAnywhere && !_renderedFirst)) det.open = true;
+          _renderedFirst = true;
+          var sum = document.createElement('summary');
+          sum.className = 've-grp-h';
+          sum.innerHTML = '<span class="ve-grp-t">' + escapeHtml(gName) + '</span><span class="ve-grp-n">' + gf.length + '</span>';
+          det.appendChild(sum);
+          var grid = newGrid();
+          gf.forEach(function(f) { grid.appendChild(makeCell(f)); });
+          det.appendChild(grid);
+          det.addEventListener('toggle', function() { if (det.open) requestAnimationFrame(veGrowAll); });
+          container.appendChild(det);
+        });
+        return;
+      }
+
+      // غير ذلك: شبكة مسطّحة (سلوك سابق)
+      var grid0 = newGrid();
+      fields.forEach(function(f) { grid0.appendChild(makeCell(f)); });
+      container.appendChild(grid0);
     }
 
     // يقرأ القيم من الحاوية ويرجع كائن { fieldId: value } (يتجاهل الفارغ)
