@@ -2398,8 +2398,10 @@
 }
 
 .pf-hero{background:var(--surface);flex-shrink:0;overflow:visible;border-bottom:1px solid var(--border);}
-/* إضبارة المريض: بلا خطّ فاصل رمادي (بقايا الهيدر القديم) — الجزيرة تفصل بذاتها */
-#patientDetailsModal .pf-hero{border-bottom:none;}
+/* إضبارة المريض: لا شريط أبيض ولا خطّ فاصل — الجزيرة تعوم على أرضيّة الصفحة الرماديّة نفسها */
+#patientDetailsModal .pf-hero{background:var(--bg);border-bottom:none;}
+#patientDetailsModal .modal-content{border:none;}
+#patientDetailsModal .pf-pill{background:var(--surface);}
 :root{ --pf-notch:#14b8a6; }          /* جزيرة تركوازية */
 body.theme-dark{ --pf-notch:#0d9488; }
 .pf-cover{height:96px;position:relative;overflow:hidden;background:
