@@ -4277,7 +4277,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var any = ['specialtyToolBtn', 'dentalArchiveBtn', 'orthoArchiveBtn', 'surgeryArchiveBtn'].some(function(id) {
         var el = document.getElementById(id); return el && el.style.display !== 'none';
       });
-      menu.style.display = any ? 'inline-flex' : 'none';
+      menu.style.display = any ? 'flex' : 'none';
+      var host = document.getElementById('patientDetailsModal');
+      if (host) host.classList.toggle('pf-has-sections', any);
       if (!any) closePfSections();
     };
     // إغلاق القائمة بالنقر خارجها أو بمفتاح Esc

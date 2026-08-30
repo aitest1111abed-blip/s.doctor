@@ -2479,6 +2479,57 @@ body.theme-dark{ --pf-notch:#0d9488; }
 #patientDetailsModal .pf-menu-trigger:hover{background:#eef2f1;color:#0b7d72;}
 #patientDetailsModal .pf-menu-trigger[aria-expanded="true"]{background:#eef2f1;color:var(--primary);}
 #patientDetailsModal .pf-pills{justify-content:center;padding-top:14px;}
+
+/* ═══ أقسام المريض: أزرار مباشرة بدل الدروب داون ═══
+   هاتف (افتراضي): صفّ أزرار «أيقونة + نص» تحت الجزيرة على الرمادي، يلتفّ.
+   لابتوب/تابلت (≥768px): أيقونات فقط + تلميح عند المرور. */
+#patientDetailsModal .pf-sections{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
+  gap:8px; padding:12px 14px 2px; max-width:calc(100% - 24px);
+  margin-inline:auto; text-align:initial;
+}
+#patientDetailsModal .pf-sectbtn{
+  position:relative; display:inline-flex; align-items:center; gap:7px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:8px 13px; font-family:inherit; font-size:.8rem; font-weight:800;
+  color:var(--text-primary); cursor:pointer; white-space:nowrap;
+  box-shadow:0 1px 3px rgba(17,24,39,.09);
+  transition:border-color .15s, color .15s, background .15s, transform .1s;
+}
+#patientDetailsModal .pf-sectbtn:hover{border-color:var(--primary);color:var(--primary);}
+#patientDetailsModal .pf-sectbtn:active{transform:scale(.96);}
+#patientDetailsModal .pf-sectbtn-ic{display:inline-flex;flex-shrink:0;}
+#patientDetailsModal .pf-sectbtn-ic svg{width:17px;height:17px;color:var(--primary);display:block;}
+#patientDetailsModal .pf-sectbtn .pf-mi-badge{
+  position:absolute; top:-7px; inset-inline-start:-7px;
+  min-width:18px; height:18px; padding:0 5px; border-radius:999px;
+  background:#ef4444; color:#fff; font-size:.62rem; font-weight:800;
+  display:flex; align-items:center; justify-content:center; border:2px solid var(--bg);
+}
+@media (min-width:768px){
+  /* صفّ الأقسام يندمج مع أسفل الجزيرة: نفس التركوازي، بلا فراغ → «داخل الجزيرة» */
+  #patientDetailsModal .pf-sections{
+    width:-moz-fit-content; width:fit-content; margin-inline:auto; margin-top:0;
+    flex-wrap:nowrap; gap:12px; padding:4px 34px 11px;
+    background:var(--pf-notch); border-radius:0 0 22px 22px;
+  }
+  #patientDetailsModal.pf-has-sections .pf-head{ border-radius:0; box-shadow:inset 0 1px 0 rgba(255,255,255,.18); }
+  #patientDetailsModal.pf-has-sections .pf-sections{ box-shadow:0 16px 32px -12px rgba(13,148,136,.5); }
+  #patientDetailsModal .pf-sectbtn{
+    padding:0; width:36px; height:36px; justify-content:center; gap:0; border-radius:11px;
+    background:#fff; border-color:transparent; box-shadow:0 2px 6px rgba(0,0,0,.16);
+  }
+  #patientDetailsModal .pf-sectbtn:hover{background:#eef2f1;color:var(--primary);border-color:transparent;}
+  #patientDetailsModal .pf-sectbtn .pf-mi-badge{border-color:var(--pf-notch);}
+  #patientDetailsModal .pf-sectbtn-lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  #patientDetailsModal .pf-sectbtn::after{
+    content:attr(aria-label); position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%);
+    white-space:nowrap; background:#0f172a; color:#fff; font-size:.7rem; font-weight:700;
+    padding:4px 9px; border-radius:7px; opacity:0; pointer-events:none; transition:opacity .15s; z-index:6;
+  }
+  #patientDetailsModal .pf-sectbtn:hover::after{opacity:1;}
+}
+
 /* ── رأس الأداة السريرية «مقارنة القياسات» — يعيد استخدام pf-hero بهوية الاضبارة ── */
 /* ═══ بطاقة القياس السريري — فاتحة بهويّة التطبيق، الأولوية للوضوح ═══
    بلا توهّج ولا خلفيات داكنة: القيمة والنطاق المرجعي يجب أن يُقرآ بلا جهد. */
