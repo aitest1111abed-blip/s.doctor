@@ -2596,30 +2596,72 @@
 .pf-tl .chart-visit{position:relative;overflow:visible;}
 .pf-tl .chart-visit::before{content:"";position:absolute;inset-inline-start:-20px;top:16px;width:11px;height:11px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);z-index:1;}
 
-/* ═══ كروت الزيارات كـ«فولدر» — شبكة، الضغط يفتح مودال التفاصيل ═══ */
+/* ═══ كرت الزيارة = فولدر أبيض ناعم يتفرقع كملف عند المرور ═══
+   منقول من مكوّن CSS (transform + clip-path + hover). الضغط يفتح المودال. */
 .visit-folder{
-  position:relative; display:flex; flex-direction:column; gap:5px; min-width:0;
-  text-align:start; font-family:inherit; cursor:pointer;
-  background:var(--surface); border:1px solid var(--o06);
-  border-radius:14px; border-top:3px solid var(--vf-accent, var(--primary));
-  padding:13px 13px 12px;
-  box-shadow:var(--shadow-sm);
-  transition:box-shadow .16s, transform .12s;
+  all:unset; display:block; cursor:pointer; -webkit-tap-highlight-color:transparent;
 }
-.visit-folder:hover{ box-shadow:var(--shadow); transform:translateY(-2px); }
-.visit-folder:active{ transform:translateY(0); }
-.visit-folder:focus-visible{ outline:none; box-shadow:var(--ring-focus); }
-.visit-folder .vf-icon{ color:var(--vf-accent, var(--primary)); font-size:1.05rem; }
+.visit-folder .vf-inner{
+  position:relative; display:block; width:100%; height:126px;
+  perspective:1400px;
+}
+/* الغطاء الخلفي — رمادي فاتح، يظهر كجسم الملف؛ لسان صغير أعلاه */
+.visit-folder .vf-back{
+  position:absolute; inset:0; display:block;
+  background:var(--bg); border:1px solid var(--o08);
+  border-radius:14px; border-start-start-radius:0;
+  transition:box-shadow .3s ease;
+}
+.visit-folder .vf-back::after{
+  content:""; position:absolute; bottom:99%; inset-inline-start:0;
+  width:42%; height:12px; background:var(--bg);
+  border:1px solid var(--o08); border-bottom:none;
+  border-radius:9px 9px 0 0;
+}
+.visit-folder:hover .vf-back{ box-shadow:var(--shadow); }
+/* الأوراق (صفحات الزيارة) — رماديات متدرّجة، تتفرقع عند المرور */
+.visit-folder .vf-sheet{
+  position:absolute; inset:4px; border-radius:12px;
+  transition:transform .32s ease; transform-origin:bottom;
+}
+.visit-folder .vf-s3{ background:#e6e8ea; }
+.visit-folder .vf-s2{ background:#eef0f2; }
+.visit-folder .vf-s1{ background:#f6f7f8; }
+body.theme-dark .visit-folder .vf-s3{ background:#242422; }
+body.theme-dark .visit-folder .vf-s2{ background:#1e1f1d; }
+body.theme-dark .visit-folder .vf-s1{ background:#191a18; }
+.visit-folder:hover .vf-s3{ transform:rotateX(-17deg); }
+.visit-folder:hover .vf-s2{ transform:rotateX(-26deg); }
+.visit-folder:hover .vf-s1{ transform:rotateX(-34deg); }
+/* الغلاف الأمامي — أبيض، يحمل النصّ، يميل للأمام عند المرور */
+.visit-folder .vf-front{
+  position:absolute; inset-inline:0; bottom:0; height:calc(100% + 8px);
+  background:var(--surface);
+  border:1px solid var(--o08); border-end-end-radius:14px; border-end-start-radius:14px;
+  border-start-start-radius:14px; border-start-end-radius:0;
+  box-shadow:var(--shadow-sm);
+  transition:transform .32s ease, box-shadow .32s ease; transform-origin:bottom;
+  display:flex; flex-direction:column; gap:4px;
+  padding:12px 13px; overflow:hidden;
+}
+.visit-folder .vf-front::before{  /* خط حالة رفيع على الحافة العليا */
+  content:""; position:absolute; inset-inline:0; top:0; height:3px;
+  background:var(--vf-accent, var(--primary));
+}
+.visit-folder:hover .vf-front{
+  transform:rotateX(-42deg) translateY(1px);
+  box-shadow:0 -6px 20px -6px rgba(17,24,39,.14), var(--shadow);
+}
 .visit-folder .vf-title{
-  font-weight:800; font-size:.85rem; color:var(--text-primary); line-height:1.3;
+  font-weight:800; font-size:.84rem; color:var(--text-primary); line-height:1.32;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
-.visit-folder .vf-meta{ font-size:.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+.visit-folder .vf-meta{ font-size:.7rem; color:var(--text-muted); margin-top:auto; font-variant-numeric:tabular-nums; }
 .visit-folder .vf-type{
-  align-self:flex-start; margin-top:2px;
-  font-size:.66rem; font-weight:800; color:var(--primary);
+  align-self:flex-start; font-size:.63rem; font-weight:800; color:var(--primary);
   background:var(--primary-faint); border-radius:999px; padding:2px 9px;
 }
+.visit-folder:focus-visible .vf-front{ outline:none; box-shadow:var(--ring-focus); }
 
 /* أزرار إجراءات الهيرو (طباعة/اتصال/واتساب) — مجموعة مرتّبة */
 .pf-head-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}

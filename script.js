@@ -4348,10 +4348,17 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       box.innerHTML = visits.map(function(o) {
         var v = o.v, i = o.i, c = schedStatusColor(v);
         return '<button class="visit-folder" style="--vf-accent:' + c.bd + ';" onclick="openVisitDetail(\'' + pid + '\',' + i + ')" oncontextmenu="event.preventDefault();openAddNoteModal(\'' + pid + '\',' + i + ');return false;" title="كليك يمين: تعديل سريع">'
-          + '<span class="vf-icon"><i class="fas fa-folder"></i></span>'
-          + '<span class="vf-title">' + _visitHeadline(v) + '</span>'
-          + '<span class="vf-meta">' + formatDateAr(v.date) + '</span>'
-          + '<span class="vf-type">' + escapeHtml(v.visitType || 'زيارة') + '</span>'
+          + '<span class="vf-inner">'
+          +   '<span class="vf-back"></span>'
+          +   '<span class="vf-sheet vf-s3"></span>'
+          +   '<span class="vf-sheet vf-s2"></span>'
+          +   '<span class="vf-sheet vf-s1"></span>'
+          +   '<span class="vf-front">'
+          +     '<span class="vf-title">' + _visitHeadline(v) + '</span>'
+          +     '<span class="vf-meta">' + formatDateAr(v.date) + '</span>'
+          +     '<span class="vf-type">' + escapeHtml(v.visitType || 'زيارة') + '</span>'
+          +   '</span>'
+          + '</span>'
           + '</button>';
       }).join('');
     }
