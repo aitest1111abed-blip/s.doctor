@@ -343,9 +343,9 @@
         width: 68px; max-height: calc(100vh - 40px);
         padding: 14px 0;
         background: var(--surface);
-        border: 1px solid var(--o06);
+        border: 1.5px solid var(--primary);
         border-radius: 34px;
-        box-shadow: 0 10px 34px -10px rgba(15,23,42,.14), 0 3px 10px -3px rgba(15,23,42,.07);
+        box-shadow: 0 10px 34px -10px rgba(13,148,136,.2), 0 3px 10px -3px rgba(13,148,136,.1);
         z-index: var(--z-rail);
         overflow: visible;
       }
@@ -3739,6 +3739,32 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
     /* بطاقة الزيارة السابقة لها ترويسة/جسم بحشوتهما الخاصّة — تبقى بلا حشوة خارجيّة */
     #addNoteModal .ve-side .ve-prev { padding:0; }
     #addNoteModal .ve-side .ve-label { font-size:.82rem; letter-spacing:0; text-transform:none; color:var(--text-primary); }
+
+    /* ═══ هويّة «فولدر مفتوح» لبطاقة الزيارة السابقة — لسان بارز + لون المانيلا،
+       والمحتوى يبقى ظاهراً كلّه (سياق دائم أثناء الكتابة). نفس توكنز الأرشيف. ═══ */
+    #addNoteModal .ve-side .ve-prev {
+      position:relative; overflow:visible;
+      margin-top:22px;
+      background:var(--vf-face,#f4f5f9);
+      border:1px solid var(--o08);
+      border-radius:14px;
+      box-shadow:0 10px 22px -12px rgba(17,24,39,.16);
+    }
+    #addNoteModal .ve-side .ve-prev::before {   /* لسان الفولدر */
+      content:""; position:absolute; z-index:-1;
+      bottom:calc(100% - 9px); inset-inline-start:16px;
+      width:46%; height:24px;
+      background:var(--vf-body,#e6e9ef);
+      border-radius:11px 11px 0 0;
+    }
+    #addNoteModal .ve-prev .ve-prev-top {
+      background:var(--vf-body,#e6e9ef);
+      border-bottom:1px solid var(--o06);
+      border-radius:13px 13px 0 0;
+    }
+    body.theme-dark #addNoteModal .ve-side .ve-prev { background:#242424; border-color:#333; }
+    body.theme-dark #addNoteModal .ve-side .ve-prev::before,
+    body.theme-dark #addNoteModal .ve-prev .ve-prev-top { background:#1c1c1c; }
 
     /* ═══ لوحة إجراء موحّدة (تحاليل/أشعة · عملية · تقويم) — منطقة غائرة بحقول محدَّدة ═══ */
     #addNoteModal .ve-panel {
