@@ -4570,6 +4570,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       var body = document.getElementById('prevVisitBody');
       var when = document.getElementById('prevVisitWhen');
       if (!card || !body) return;
+      card.classList.toggle('collapsed', !!_vePrevCollapsed);   // استعادة تفضيل الطيّ
       var visits = (p && p.appointments) || [];
       // الأحدث قبل الزيارة الحالية زمنياً (لا بالفهرس — الترتيب في المصفوفة ليس زمنياً بالضرورة)
       var cur = visits[idx], prev = null;
@@ -4620,9 +4621,19 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       _veSyncSteps();
       var btn = card.querySelector('.ve-copy');
       if (btn) {
-        btn.textContent = 'نُسخت ✓'; btn.classList.add('done');
+        btn.textContent = 'تم النسخ'; btn.classList.add('done');   // الأيقونة (✓) من ::before
         setTimeout(function() { btn.textContent = 'نسخ الوصفة إلى الزيارة'; btn.classList.remove('done'); }, 1800);
       }
+    };
+    // طيّ/فتح بطاقة الزيارة السابقة — يُحفظ التفضيل للجلسة، والعناصر تحته ترتفع تلقائياً
+    var _vePrevCollapsed = false;
+    try { _vePrevCollapsed = localStorage.getItem('vePrevCollapsed') === '1'; } catch (e) {}
+    window._vePrevToggle = function() {
+      var card = document.getElementById('prevVisitCard'); if (!card) return;
+      _vePrevCollapsed = !card.classList.contains('collapsed');
+      card.classList.toggle('collapsed', _vePrevCollapsed);
+      var top = card.querySelector('.ve-prev-top'); if (top) top.setAttribute('aria-expanded', _vePrevCollapsed ? 'false' : 'true');
+      try { localStorage.setItem('vePrevCollapsed', _vePrevCollapsed ? '1' : '0'); } catch (e) {}
     };
 
     // حافّة كل قسم تتلوّن متى كُتب فيه — إشارة صامتة لما اكتمل وما بقي

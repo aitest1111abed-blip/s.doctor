@@ -3485,13 +3485,23 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
     body.theme-dark .ve-danger .tag { background:#f87171; color:#2a1416; }
     .ve-danger em { font-style:normal; font-weight:600; color:var(--text-secondary); }
 
-    /* بطاقة الزيارة السابقة — السياق حاضر بلا مغادرة المحرّر */
+    /* بطاقة الزيارة السابقة — السياق حاضر بلا مغادرة المحرّر، قابلة للطيّ */
     .ve-prev { padding:0; overflow:hidden; }
     .ve-prev-top {
-      padding:11px 14px; background:var(--bg); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
+      padding:11px 14px; background:var(--bg); border:none; border-bottom:1px solid var(--border);
+      font-family:inherit; text-align:start; cursor:pointer;
     }
+    .ve-prev-th { min-width:0; }
     .ve-prev-top b { display:block; font-size:.82rem; font-weight:800; color:var(--text-primary); }
     .ve-prev-top span { display:block; font-size:.71rem; color:var(--text-muted); margin-top:1px; }
+    .ve-prev-caret {
+      flex-shrink:0; font-size:.8rem; color:var(--text-muted);
+      transition:transform .2s; margin-inline-start:auto;
+    }
+    .ve-prev.collapsed .ve-prev-caret { transform:rotate(180deg); }
+    .ve-prev.collapsed .ve-prev-body { display:none; }
+    .ve-prev.collapsed .ve-prev-top { border-bottom:none; }
     .ve-prev-body { padding:13px 14px; display:flex; flex-direction:column; gap:12px; }
     .ve-prev-f .k {
       font-size:.69rem; font-weight:800; color:var(--text-muted);
@@ -3508,12 +3518,18 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
     }
     .ve-copy {
       width:100%; justify-content:center; display:flex; align-items:center; gap:7px;
-      background:var(--primary-light); color:var(--primary); border:1px solid var(--primary);
-      border-radius:11px; padding:10px; font-family:inherit; font-size:.83rem;
-      font-weight:800; cursor:pointer; transition:background .15s, color .15s;
+      background:var(--surface); color:var(--primary); border:1px solid var(--primary);
+      border-radius:10px; padding:10px 14px; font-family:inherit; font-size:.82rem;
+      font-weight:800; cursor:pointer;
+      transition:background .15s, color .15s, border-color .15s, transform .1s;
     }
-    .ve-copy:hover { background:var(--primary); color:#fff; }
-    .ve-copy.done { background:var(--primary); color:#fff; }
+    .ve-copy::before { content:"\f0c5"; font-family:"Font Awesome 6 Free"; font-weight:900; font-size:.86rem; }
+    .ve-copy:hover { background:var(--primary-light); }
+    .ve-copy:active { transform:scale(.985); }
+    .ve-copy.done {
+      background:var(--c-positive-bg); border-color:transparent; color:var(--c-positive-fg);
+    }
+    .ve-copy.done::before { content:"\f00c"; }
 
 
     /* ── ترويسة محرّر الزيارة ──
@@ -3744,26 +3760,28 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
        والمحتوى يبقى ظاهراً كلّه (سياق دائم أثناء الكتابة). نفس توكنز الأرشيف. ═══ */
     #addNoteModal .ve-side .ve-prev {
       position:relative; overflow:visible;
-      margin-top:22px;
-      background:var(--vf-face,#f4f5f9);
-      border:1px solid var(--o08);
+      margin-top:30px;
+      background:var(--vf-face,#eef0f5);
+      border:1px solid var(--o10);
       border-radius:14px;
-      box-shadow:0 10px 22px -12px rgba(17,24,39,.16);
+      box-shadow:0 12px 26px -12px rgba(17,24,39,.2);
     }
-    #addNoteModal .ve-side .ve-prev::before {   /* لسان الفولدر */
+    #addNoteModal .ve-side .ve-prev::before {   /* لسان الفولدر — بارز وواضح */
       content:""; position:absolute; z-index:-1;
-      bottom:calc(100% - 9px); inset-inline-start:16px;
-      width:46%; height:24px;
-      background:var(--vf-body,#e6e9ef);
-      border-radius:11px 11px 0 0;
+      bottom:calc(100% - 10px); inset-inline-start:14px;
+      width:52%; height:30px;
+      background:var(--vf-body,#dfe3ea);
+      border:1px solid var(--o10); border-bottom:none;
+      border-radius:12px 12px 0 0;
     }
     #addNoteModal .ve-prev .ve-prev-top {
-      background:var(--vf-body,#e6e9ef);
-      border-bottom:1px solid var(--o06);
+      background:var(--vf-body,#dfe3ea);
+      border-bottom:1px solid var(--o08);
       border-radius:13px 13px 0 0;
     }
-    body.theme-dark #addNoteModal .ve-side .ve-prev { background:#242424; border-color:#333; }
-    body.theme-dark #addNoteModal .ve-side .ve-prev::before,
+    #addNoteModal .ve-prev.collapsed .ve-prev-top { border-radius:13px; border-bottom:none; }
+    body.theme-dark #addNoteModal .ve-side .ve-prev { background:#242424; border-color:#3a3a3a; }
+    body.theme-dark #addNoteModal .ve-side .ve-prev::before { background:#1c1c1c; border-color:#3a3a3a; }
     body.theme-dark #addNoteModal .ve-prev .ve-prev-top { background:#1c1c1c; }
 
     /* ═══ لوحة إجراء موحّدة (تحاليل/أشعة · عملية · تقويم) — منطقة غائرة بحقول محدَّدة ═══ */
