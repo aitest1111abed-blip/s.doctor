@@ -325,18 +325,20 @@
     .sidebar-item { /* managed by rail-nav-btn / topbar-item */ }
 
     /* ============================================================
-       الشريط الجانبي (ديسكتوب) — على طراز TailAdmin (library/tailadmin)
-       سطح مسطّح، تسميات أقسام، المفعّل تظليل تركوازي خفيف + نص تركوازي.
+       الشريط الجانبي (ديسكتوب) — على طراز shadcn/ui sidebar
+       (library/shadcn-ui). سطح شبه أبيض، حشوة 8px، كل شيء rounded-md،
+       المفعّل = تعبئة رمادية محايدة خفيفة + وزن medium (بلا لون accent).
        يحافظ على معرّفات .rail (sidebar-item / #sidebarHome…) فيعمل
        setActiveSection بلا تغيير في script.js.
        ============================================================ */
     .dbside { display: none; }
     @media (min-width: 768px) {
       .dbside {
+        --s-accent: var(--o06);          /* = bg-sidebar-accent عند shadcn */
         box-sizing: border-box;
-        display: flex; flex-direction: column;
+        display: flex; flex-direction: column; gap: 4px;
         position: fixed; top: 0; inset-inline-start: 0; bottom: 0;
-        width: 264px; padding: 0 20px;
+        width: 256px; padding: 8px;
         background: var(--surface);
         border-inline-end: 1px solid var(--border);
         z-index: var(--z-rail);
@@ -344,85 +346,79 @@
       }
       .dbside::-webkit-scrollbar { display: none; }
 
-      .dbside-head { display: flex; align-items: center; gap: 10px; padding: 28px 4px 24px; flex-shrink: 0; }
+      /* صف العلامة — بهيئة زرّ قائمة */
+      .dbside-head { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 8px; flex-shrink: 0; }
       .dbside-mark {
-        width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+        width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
         background: var(--primary); color: #fff;
         display: flex; align-items: center; justify-content: center;
       }
-      .dbside-brand { font-size: 1.12rem; font-weight: 800; color: var(--text-primary); letter-spacing: .2px; }
+      .dbside-brand { font-size: .95rem; font-weight: 600; color: var(--text-primary); letter-spacing: -.01em; }
 
-      .dbside-scroll { display: flex; flex-direction: column; }
+      .dbside-scroll { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; }
       .dbside-sec {
-        font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
-        color: var(--text-muted); opacity: .8; margin: 4px 8px 12px;
+        height: 32px; display: flex; align-items: center; padding: 0 8px;
+        font-size: .75rem; font-weight: 500; color: var(--text-muted);
       }
-      .dbside-list { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 0; margin: 0 0 20px; }
+      .dbside-list { list-style: none; display: flex; flex-direction: column; gap: 2px; padding: 0; margin: 0; }
 
       .menu-item {
-        position: relative; display: flex; align-items: center; gap: 12px; width: 100%;
-        padding: 9px 12px; border-radius: 8px;
-        font-family: inherit; font-size: .875rem; font-weight: 500;
+        position: relative; display: flex; align-items: center; gap: 8px; width: 100%;
+        height: 32px; padding: 0 8px; border-radius: 6px;
+        font-family: inherit; font-size: .875rem; font-weight: 400;
         color: var(--text-secondary); background: none; border: none; cursor: pointer; text-align: start;
-        transition: background .13s, color .13s;
+        transition: background .12s, color .12s;
       }
-      .menu-item i { width: 20px; text-align: center; font-size: .95rem; color: var(--text-muted); transition: color .13s; }
-      .menu-item:hover:not(.active) { background: var(--bg); color: var(--text-primary); }
-      .menu-item:hover:not(.active) i { color: var(--text-secondary); }
-      .menu-item.active { background: var(--primary-faint); color: var(--primary); font-weight: 700; }
-      .menu-item.active i { color: var(--primary); }
+      .menu-item i { width: 16px; font-size: .88rem; text-align: center; color: currentColor; flex-shrink: 0; }
+      .menu-item:hover { background: var(--s-accent); color: var(--text-primary); }
+      .menu-item.active { background: var(--s-accent); color: var(--text-primary); font-weight: 500; }
       .menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
 
-      .dbside-div { height: 1px; background: var(--border); margin: 2px 8px 16px; }
+      .dbside-div { height: 1px; background: var(--border); margin: 4px 8px; }
 
-      .dbside-foot {
-        margin-top: auto; flex-shrink: 0; position: relative;
-        padding: 14px 0 18px; border-top: 1px solid var(--border);
-      }
+      .dbside-foot { margin-top: auto; flex-shrink: 0; position: relative; padding-top: 4px; }
       .topbar-chip {
-        display: flex; align-items: center; gap: 10px; width: 100%;
-        padding: 8px; border-radius: 10px;
+        display: flex; align-items: center; gap: 8px; width: 100%;
+        height: 48px; padding: 0 8px; border-radius: 6px;
         border: none; background: none; cursor: pointer; font-family: inherit;
-        transition: background .13s;
+        transition: background .12s;
       }
-      .topbar-chip:hover { background: var(--bg); }
+      .topbar-chip:hover { background: var(--s-accent); }
       .topbar-chip:focus-visible { outline: none; box-shadow: var(--ring-focus); }
       .topbar-avatar {
-        width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; overflow: hidden;
-        background: var(--primary); color: #fff;
-        display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .85rem;
+        width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; overflow: hidden;
+        background: var(--primary-light); color: var(--primary);
+        display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem;
       }
       .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; }
-      .topbar-chip-meta { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; flex: 1; text-align: start; }
-      .topbar-chip-meta b { font-size: .82rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .topbar-chip-meta i { font-size: .68rem; font-style: normal; color: var(--text-muted); white-space: nowrap; }
-      .topbar-chip-caret { font-size: .6rem; color: var(--text-muted); flex-shrink: 0; transition: transform .18s; }
-      .topbar-chip[aria-expanded="true"] .topbar-chip-caret { transform: rotate(180deg); }
+      .topbar-chip-meta { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; flex: 1; text-align: start; }
+      .topbar-chip-meta b { font-size: .8rem; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .topbar-chip-meta i { font-size: .7rem; font-style: normal; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .topbar-chip-caret { font-size: .8rem; color: var(--text-muted); flex-shrink: 0; }
 
-      /* قائمة الملف الشخصي — تفتح للأعلى فوق الحبّة */
+      /* قائمة الملف الشخصي — تفتح للأعلى */
       .topbar-menu {
-        position: absolute; bottom: calc(100% - 6px); inset-inline: 0;
+        position: absolute; bottom: calc(100% + 4px); inset-inline: 0;
         background: var(--surface);
-        border: 1px solid var(--border); border-radius: 14px;
-        box-shadow: var(--shadow-lg); padding: 6px; z-index: var(--z-dropdown);
-        animation: tbMenuIn .14s ease;
+        border: 1px solid var(--border); border-radius: 8px;
+        box-shadow: var(--shadow-lg); padding: 4px; z-index: var(--z-dropdown);
+        animation: tbMenuIn .12s ease;
       }
       .topbar-menu[hidden] { display: none; }
-      @keyframes tbMenuIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes tbMenuIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
       .topbar-menu-item {
-        display: flex; align-items: center; gap: 11px; width: 100%;
-        padding: 10px 12px; border: none; background: none; border-radius: 8px;
-        font-family: inherit; font-size: .85rem; font-weight: 600; color: var(--text-primary);
-        text-align: start; cursor: pointer; transition: background .13s;
+        display: flex; align-items: center; gap: 8px; width: 100%;
+        height: 32px; padding: 0 8px; border: none; background: none; border-radius: 6px;
+        font-family: inherit; font-size: .82rem; font-weight: 400; color: var(--text-primary);
+        text-align: start; cursor: pointer; transition: background .12s;
       }
       .topbar-menu-item i { width: 16px; text-align: center; color: var(--text-muted); font-size: .8rem; }
-      .topbar-menu-item:hover { background: var(--bg); }
-      .topbar-menu-item:hover i { color: var(--primary); }
+      .topbar-menu-item:hover { background: var(--s-accent); }
       .topbar-menu-item:focus-visible { outline: none; box-shadow: var(--ring-focus); }
       .topbar-menu-item.danger { color: var(--c-danger); }
       .topbar-menu-item.danger i { color: var(--c-danger); }
       .topbar-menu-item.danger:hover { background: var(--c-danger-bg); }
-      .topbar-menu-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+      .topbar-menu-sep { height: 1px; background: var(--border); margin: 4px; }
     }
 
     /* ===== أشرطة التمرير ===== */
