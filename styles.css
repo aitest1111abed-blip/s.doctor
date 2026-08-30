@@ -4098,38 +4098,70 @@ body.theme-dark #onboardOverlay #obPrevBody #obPrevRx{background:#1d1a10; border
      (المحاولة الأولى أحمر+كهرماني رُفضت عند 14.4).
    ===================================================================== */
     /* بطاقات KPI (ب) — رقم كبير بخط الأرقام الرفيع، تسمية مُتباعدة، حدّ شعري */
+    /* بطاقات ملخّص اليوم — نفس هويّة بطاقة الأداة السريرية (.scc):
+       زوايا 20، حدّ ناعم، شبكة نقاط خافتة، وشاح accent يرتفع من الأسفل. */
     .kpi{
-      position:relative; background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--radius-card); padding:18px 18px 17px; overflow:hidden;
-      display:flex; flex-direction:column; gap:12px;
-      transition:border-color .2s, box-shadow .2s;
+      position:relative; background:var(--surface); border:1px solid var(--o06);
+      border-radius:20px; padding:17px 17px 12px; overflow:hidden;
+      display:flex; flex-direction:column; gap:8px;
+      box-shadow:var(--shadow-sm);
+      transition:border-color .2s, box-shadow .2s, transform .2s;
     }
-    .kpi:hover{ border-color:var(--border-strong); box-shadow:var(--shadow-sm); }
+    .kpi:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .kpi::before{
+      content:""; position:absolute; inset:44% 0 22px 0; z-index:0; pointer-events:none;
+      background-image:radial-gradient(currentColor 1px, transparent 1.5px);
+      background-size:15px 15px; color:var(--text-muted); opacity:.09;
+      -webkit-mask-image:linear-gradient(to bottom, transparent, #000 30%);
+      mask-image:linear-gradient(to bottom, transparent, #000 30%);
+    }
+    .kpi::after{
+      content:""; position:absolute; inset-inline:0; bottom:0; height:56%; z-index:0; pointer-events:none;
+      background:linear-gradient(to top, color-mix(in srgb, var(--primary) 8%, transparent), transparent);
+    }
+    .kpi-h, .kpi-t, .kpi-p, .kpi-share{ position:relative; z-index:1; }
     .kpi-h{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
     .kpi-n{
-      font-family:var(--font-num);
-      font-size:2.4rem; font-weight:400; line-height:1;
-      font-variant-numeric:tabular-nums; letter-spacing:-1.5px; color:var(--text-primary);
+      position:relative; z-index:1;
+      font-size:2.05rem; font-weight:700; line-height:1.1;
+      font-variant-numeric:tabular-nums; letter-spacing:-1px; color:var(--text-primary);
     }
-    .kpi-p{font-size:.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; margin-top:7px; font-weight:600;}
-    .kpi-t{
-      font-size:.7rem; color:var(--text-muted); font-weight:700;
-      letter-spacing:.06em; text-transform:uppercase;
-    }
+    .kpi-p{font-size:.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; margin-top:3px; font-weight:600; line-height:1.5;}
+    .kpi-t{ font-size:.72rem; color:var(--text-muted); font-weight:700; letter-spacing:0; text-transform:none; }
     .kpi-tag{
-      font-size:.66rem; font-weight:800; border-radius:var(--radius-pill); padding:4px 10px;
-      white-space:nowrap; flex-shrink:0;
-      background:var(--bg); color:var(--text-muted);
+      flex-shrink:0; white-space:nowrap;
+      background:var(--primary-light); color:var(--primary);
+      border-radius:999px; padding:5px 11px; font-size:.71rem; font-weight:700;
     }
-    .kpi-share{position:absolute; inset-inline:0; bottom:0; height:3px; background:var(--o06);}
+    .kpi-share{position:absolute; inset-inline:0; bottom:0; height:3px; background:var(--o06); z-index:2;}
     .kpi-share i{display:block; height:100%; width:0; background:var(--border-strong); transition:width .55s cubic-bezier(.4,0,.2,1);}
 
     .kpi.total .kpi-share i{background:var(--text-muted); opacity:.55;}
     .kpi.done  .kpi-n{color:var(--primary);}
     .kpi.done  .kpi-tag{background:var(--primary-light); color:var(--primary);}
     .kpi.done  .kpi-share i{background:var(--primary);}
-    /* الغياب: محايد افتراضياً، ويحمرّ فقط عند وجود غياب فعلي (.on) — يعتمد التوكنز فينقلب ليلياً لحاله */
-    .kpi.miss.on{border-color:var(--c-danger);}
+    /* الغياب: محايد افتراضياً، ويحمرّ فقط عند وجود غياب فعلي (.on) */
+    .kpi.miss.on{border-color:color-mix(in srgb, var(--c-danger) 40%, transparent);}
+    .kpi.miss.on::after{background:linear-gradient(to top, color-mix(in srgb, var(--c-danger) 9%, transparent), transparent);}
     .kpi.miss.on .kpi-n{color:var(--c-danger);}
     .kpi.miss.on .kpi-tag{background:var(--c-danger-bg); color:var(--c-danger);}
     .kpi.miss.on .kpi-share i{background:var(--c-danger);}
+
+    /* «توزيع الأيام» — نفس هويّة .scc: القشرة + شبكة النقاط خلف الأعمدة + الوشاح */
+    #homeDayDistCard{
+      border:1px solid var(--o06) !important; border-radius:20px !important;
+      box-shadow:var(--shadow-sm) !important;
+      position:relative; overflow:hidden;
+    }
+    #homeDayDistCard::before{
+      content:""; position:absolute; inset:38% 0 44px 0; z-index:0; pointer-events:none;
+      background-image:radial-gradient(currentColor 1px, transparent 1.5px);
+      background-size:15px 15px; color:var(--text-muted); opacity:.09;
+      -webkit-mask-image:linear-gradient(to bottom, transparent, #000 30%);
+      mask-image:linear-gradient(to bottom, transparent, #000 30%);
+    }
+    #homeDayDistCard::after{
+      content:""; position:absolute; inset-inline:0; bottom:0; height:56%; z-index:0; pointer-events:none;
+      background:linear-gradient(to top, color-mix(in srgb, var(--primary) 8%, transparent), transparent);
+    }
+    #homeDayDistCard > *{ position:relative; z-index:1; }
