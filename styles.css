@@ -350,10 +350,11 @@
 
       .dbside-head { display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 4px; }
       .dbside-mark {
-        width: 42px; height: 42px; border-radius: 15px; flex-shrink: 0;
-        background: var(--primary); color: #fff;
+        width: 42px; height: 42px; border-radius: 15px; flex-shrink: 0; overflow: hidden;
         display: flex; align-items: center; justify-content: center;
+        background: var(--surface); border: 1px solid var(--o06);
       }
+      .dbside-mark img { width: 100%; height: 100%; object-fit: cover; }
       .dbside-brand, .dbside-sec { display: none; }
       .dbside-scroll { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 0 0 auto; }
       .dbside-list { list-style: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; margin: 0; }
